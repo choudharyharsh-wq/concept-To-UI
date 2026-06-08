@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c \"from server import server; print\\('Server imports OK'\\)\")",
+      "Bash(mkdir -p server client)",
+      "Bash(mv frontend/* frontend/.* client/)",
+      "Bash(mv src *)",
+      "Bash(npm install *)",
+      "Bash(npx tsc *)"
+    ]
+  }
+}
