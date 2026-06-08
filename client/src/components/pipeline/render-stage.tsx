@@ -46,60 +46,66 @@ export function RenderStage({ stage }: { stage: PipelineStage }) {
   }, [logs]);
 
   return (
-    <div className="relative pl-16">
+    <div className="relative pl-14">
       <div className={cn(
-        "absolute left-0 top-0 w-12 h-12 rounded-full flex items-center justify-center border-2 z-10 bg-slate-950 transition-all duration-500",
-        isActive ? "border-blue-500 text-blue-500 animate-glow" : 
-        isCompleted ? "border-emerald-500 text-emerald-500" : "border-slate-800 text-slate-700"
+        "absolute left-0 top-0 w-11 h-11 rounded-md flex items-center justify-center border z-10 bg-zinc-950 transition-all duration-500",
+        isActive ? "border-zinc-400 text-zinc-300" :
+        isCompleted ? "border-zinc-600 text-zinc-400" : "border-zinc-800 text-zinc-700"
       )}>
-        {isCompleted ? <CheckCircle2 size={24} /> : isActive ? <div className="w-6 h-6 rounded-full border-4 border-t-blue-500 border-r-pink-500 border-b-purple-500 border-l-orange-500 animate-spin" /> : <div className="w-6 h-6 bg-slate-800 rounded-sm" />}
+        {isCompleted
+          ? <CheckCircle2 size={18} />
+          : isActive
+            ? <Loader2 size={18} className="animate-spin" />
+            : <div className="w-4 h-4 bg-zinc-800 rounded-sm" />
+        }
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 pt-2">
         <h3 className={cn(
-          "text-xl font-semibold transition-colors duration-500",
-          isActive ? "text-blue-400" : isCompleted ? "text-emerald-400" : "text-slate-500"
+          "text-sm font-semibold tracking-tight transition-colors duration-500",
+          isActive ? "text-zinc-200" : isCompleted ? "text-zinc-300" : "text-zinc-600"
         )}>
           {stage.name}
         </h3>
 
         {(isActive || (isCompleted && logs.length > 0)) && (
-          <div className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-700">
-            <div 
+          <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-500">
+            {/* Terminal */}
+            <div
               ref={terminalRef}
-              className="bg-black border border-slate-800 rounded-lg p-4 font-mono text-xs h-40 overflow-y-auto shadow-2xl no-scrollbar"
+              className="bg-black border border-zinc-800 rounded-lg p-4 font-mono text-xs h-36 overflow-y-auto no-scrollbar"
             >
               {logs.map((log, i) => (
                 <div key={i} className={cn(
-                  "mb-1",
-                  log.includes("[SUCCESS]") ? "text-emerald-400 font-bold" :
-                  log.includes("[SYS]") ? "text-slate-500" :
-                  log.includes("[MCP]") ? "text-blue-400" : "text-slate-300"
+                  "mb-1 leading-relaxed",
+                  log.includes("[SUCCESS]") ? "text-zinc-300 font-semibold" :
+                  log.includes("[SYS]") ? "text-zinc-700" :
+                  log.includes("[MCP]") ? "text-zinc-400" : "text-zinc-500"
                 )}>
                   {log}
                 </div>
               ))}
               {isActive && (
-                <div className="flex items-center space-x-2 text-slate-500 italic">
-                  <span>Rendering canvas...</span>
-                  <span className="flex space-x-1">
-                    <span className="w-1 h-1 bg-slate-500 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                    <span className="w-1 h-1 bg-slate-500 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                    <span className="w-1 h-1 bg-slate-500 rounded-full animate-bounce"></span>
+                <div className="flex items-center gap-2 text-zinc-700">
+                  <span>Rendering canvas</span>
+                  <span className="flex gap-0.5">
+                    <span className="w-1 h-1 bg-zinc-700 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                    <span className="w-1 h-1 bg-zinc-700 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                    <span className="w-1 h-1 bg-zinc-700 rounded-full animate-bounce" />
                   </span>
                 </div>
               )}
             </div>
 
             {isCompleted && (
-              <a 
+              <a
                 href={stage.data?.figma_url || "#"}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center space-x-2 px-8 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold shadow-[0_0_20px_rgba(37,99,235,0.4)] transition-all transform hover:scale-105 active:scale-95 animate-in zoom-in-90 duration-500"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-zinc-100 text-black text-sm font-semibold hover:bg-zinc-200 transition-colors active:scale-[0.98] animate-in fade-in duration-300"
               >
                 <span>Open in Figma Canvas</span>
-                <ExternalLink size={20} />
+                <ExternalLink size={15} />
               </a>
             )}
           </div>

@@ -12,12 +12,12 @@ interface PipelineContainerProps {
 
 export function PipelineContainer({ stages }: PipelineContainerProps) {
   return (
-    <div className="w-full max-w-4xl mx-auto mt-12 space-y-8 pb-20">
+    <div className="w-full max-w-3xl mx-auto mt-4 pb-24">
       <div className="relative">
         {/* Vertical Line */}
-        <div className="absolute left-6 top-4 bottom-4 w-0.5 bg-slate-800" />
-        
-        <div className="space-y-12">
+        <div className="absolute left-[22px] top-6 bottom-6 w-px bg-zinc-800" />
+
+        <div className="space-y-10">
           {stages.map((stage) => {
             switch (stage.id) {
               case "prd_node":

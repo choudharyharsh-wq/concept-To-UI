@@ -1,14 +1,19 @@
 import os
 import json
 from dotenv import load_dotenv
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage, SystemMessage
 from .state import GraphState
 
 load_dotenv(override=True)
 
-# Initialize Gemini LLM
-llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.2)
+def get_llm():
+    """Lazily build the LLM so it reads ANTHROPIC_API_KEY after load_dotenv() has run."""
+    return ChatAnthropic(
+        model="claude-haiku-4-5",
+        temperature=0.2,
+        anthropic_api_key=os.environ["ANTHROPIC_API_KEY"],
+    )
 
 def prd_node(state: GraphState):
     """
@@ -70,7 +75,7 @@ Return ONLY a JSON object matching this exact schema — no markdown fences, no 
   }}
 }}"""
 
-    response = llm.invoke([
+    response = get_llm().invoke([
         SystemMessage(content=system_prompt),
         HumanMessage(content=user_prompt),
     ])
@@ -122,7 +127,7 @@ def ia_node(state: GraphState):
     }}
     """
     
-    response = llm.invoke([HumanMessage(content=prompt)])
+    response = get_llm().invoke([HumanMessage(content=prompt)])
     try:
         content = response.content
         if "```json" in content:
@@ -159,7 +164,7 @@ def copy_node(state: GraphState):
     }}
     """
     
-    response = llm.invoke([HumanMessage(content=prompt)])
+    response = get_llm().invoke([HumanMessage(content=prompt)])
     try:
         content = response.content
         if "```json" in content:
@@ -186,7 +191,7 @@ def layout_node(state: GraphState):
     Suggest design system components for these screens: {json.dumps(state['ia_data'])}
     Return 4 key components in a JSON list: {{"components": ["comp1", "comp2", ...]}}
     """
-    response = llm.invoke([HumanMessage(content=prompt)])
+    response = get_llm().invoke([HumanMessage(content=prompt)])
     try:
         content = response.content
         if "```json" in content:

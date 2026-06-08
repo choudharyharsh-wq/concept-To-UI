@@ -8,36 +8,36 @@ export function LayoutStage({ stage }: { stage: PipelineStage }) {
   const isCompleted = stage.status === "completed";
 
   return (
-    <div className="relative pl-16">
+    <div className="relative pl-14">
       <div className={cn(
-        "absolute left-0 top-0 w-12 h-12 rounded-full flex items-center justify-center border-2 z-10 bg-slate-950 transition-all duration-500",
-        isActive ? "border-blue-500 text-blue-500 animate-glow" : 
-        isCompleted ? "border-emerald-500 text-emerald-500" : "border-slate-800 text-slate-700"
+        "absolute left-0 top-0 w-11 h-11 rounded-md flex items-center justify-center border z-10 bg-zinc-950 transition-all duration-500",
+        isActive ? "border-zinc-400 text-zinc-300" :
+        isCompleted ? "border-zinc-600 text-zinc-400" : "border-zinc-800 text-zinc-700"
       )}>
-        {isCompleted ? <CheckCircle2 size={24} /> : isActive ? <Loader2 size={24} className="animate-spin" /> : <Grid size={24} />}
+        {isCompleted ? <CheckCircle2 size={18} /> : isActive ? <Loader2 size={18} className="animate-spin" /> : <Grid size={18} />}
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-4 pt-2">
         <h3 className={cn(
-          "text-xl font-semibold transition-colors duration-500",
-          isActive ? "text-blue-400" : isCompleted ? "text-emerald-400" : "text-slate-500"
+          "text-sm font-semibold tracking-tight transition-colors duration-500",
+          isActive ? "text-zinc-200" : isCompleted ? "text-zinc-300" : "text-zinc-600"
         )}>
           {stage.name}
         </h3>
 
         {isActive && (
-          <p className="text-slate-400 animate-pulse">Binding layout logic to design system primitives...</p>
+          <p className="text-zinc-600 text-xs font-mono animate-pulse">Binding layout logic to design system primitives...</p>
         )}
 
         {isCompleted && stage.data && (
-          <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-4 max-w-lg shadow-lg animate-in fade-in slide-in-from-top-4 duration-700">
-            <div className="space-y-3">
+          <div className="bg-zinc-900/50 border border-zinc-800 rounded-lg p-4 max-w-sm animate-in fade-in slide-in-from-top-2 duration-500">
+            <div className="space-y-2">
               {stage.data.components.map((component: string, i: number) => (
-                <div key={i} className="flex items-start space-x-3 group">
-                  <div className="mt-1 w-5 h-5 rounded border border-emerald-500/50 flex items-center justify-center bg-emerald-500/10 text-emerald-500 shrink-0">
-                    <Check size={14} />
+                <div key={i} className="flex items-start gap-3 group">
+                  <div className="mt-0.5 w-4 h-4 rounded border border-zinc-700 flex items-center justify-center bg-zinc-800 text-zinc-400 shrink-0">
+                    <Check size={10} />
                   </div>
-                  <span className="text-sm font-mono text-slate-400 group-hover:text-slate-200 transition-colors">
+                  <span className="font-mono text-xs text-zinc-500 group-hover:text-zinc-300 transition-colors">
                     {component}
                   </span>
                 </div>

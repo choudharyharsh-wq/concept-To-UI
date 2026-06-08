@@ -9,7 +9,9 @@
       "Bash(npx tsc *)",
       "Bash(grep -v \"^$\")",
       "Bash(gh auth *)",
-      "Bash(git --version)"
+      "Bash(git --version)",
+      "Bash(python3 -c \"from server import server; print\\('OK'\\)\")",
+      "Bash(pip3 install *)"
     ]
   }
 }
