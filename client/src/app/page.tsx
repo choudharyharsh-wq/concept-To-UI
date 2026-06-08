@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 
 export default function Dashboard() {
   const [concept, setConcept] = useState("");
-  const [figmaUrl, setFigmaUrl] = useState("");
+  const [figmaUrl, setFigmaUrl] = useState("https://www.figma.com/file/123456789/Concept-To-UI-Test");
   const { isGenerating, stages, startGeneration } = useGenerationStream();
   const [hasStarted, setHasStarted] = useState(false);
 

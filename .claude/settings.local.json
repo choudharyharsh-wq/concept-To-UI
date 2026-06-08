@@ -6,7 +6,10 @@
       "Bash(mv frontend/* frontend/.* client/)",
       "Bash(mv src *)",
       "Bash(npm install *)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(grep -v \"^$\")",
+      "Bash(gh auth *)",
+      "Bash(git --version)"
     ]
   }
 }

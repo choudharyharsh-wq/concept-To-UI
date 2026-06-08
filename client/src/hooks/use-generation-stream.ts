@@ -21,14 +21,51 @@ const INITIAL_STAGES: PipelineStage[] = [
 
 const MOCK_DATA = {
   prd_node: {
-    target_audience: "Dog owners who value consistency and health for their pets.",
-    core_features: [
-      "Daily habit tracking (walking, feeding, meds)",
-      "Reward system with pet store discounts",
-      "Progress streaks and visualizations",
-      "Social sharing of pet achievements"
+    executive_summary: {
+      north_star: "Help dog owners build consistent daily care habits through a minimalist tracker that makes good behavior feel rewarded. The single most important action is logging today's pet care routine in under 10 seconds.",
+      primary_value_proposition: "Turn daily dog care into a rewarding streak that earns real pet store discounts.",
+    },
+    target_persona: {
+      name: "The Busy Pet Parent",
+      behavioral_constraint: "A dog owner who genuinely cares but forgets non-urgent tasks (meds, grooming) under daily work pressure and needs asynchronous reminders with zero-friction logging.",
+      core_pain_points: [
+        "Forgets recurring pet care tasks without a centralized tracker",
+        "Existing apps are overloaded with features that slow down a 10-second daily check-in",
+        "No tangible reward for consistency, so habit loops break within weeks",
+      ],
+    },
+    happy_path_scenario: {
+      title: "The Perfect Day — First-Time User Completes a Full Habit Loop",
+      steps: [
+        "User opens the app and sees today's empty habit checklist on the Dashboard",
+        "User taps 'Log Walk' and marks the morning walk as done in one tap",
+        "User logs feeding and medication, completing the daily checklist",
+        "App shows a 5-day streak badge and unlocks a 10% PetSmart discount coupon",
+        "User taps 'View Reward' and copies the coupon code to their clipboard",
+      ],
+    },
+    functional_requirements: {
+      p0_features: [
+        { feature: "Daily Habit Checklist", description: "List of today's tasks with one-tap completion", component_type: "list", action: "toggle_complete" },
+        { feature: "Streak Counter", description: "Displays current consecutive days of full completion", component_type: "dashboard_card", action: "display_data" },
+        { feature: "Reward Unlock Banner", description: "Shows discount coupon when streak milestone is hit", component_type: "modal", action: "trigger_reward" },
+        { feature: "Log Habit Button", description: "Primary CTA to mark a habit done", component_type: "button", action: "submit_form" },
+      ],
+      p1_features: [
+        { feature: "Social Share Card", description: "Share streak milestone image to Instagram/WhatsApp", component_type: "button", action: "share", state: "future" },
+        { feature: "Pet Health History", description: "Calendar view of past habit completion rates", component_type: "dashboard_card", action: "navigate", state: "future" },
+      ],
+    },
+    non_goals: [
+      "No payment processing or in-app purchases — coupon codes link to third-party retailer",
+      "No vet appointment booking or health records management",
+      "No multi-pet household management in this iteration",
     ],
-    success_metrics: "15% increase in pet care consistency within 30 days."
+    ux_anchor_directives: {
+      visual_posture: "minimalist-form-first",
+      tone: "warm-encouraging",
+      layout_hint: "Sticky top nav + large checklist cards + floating action button bottom-right",
+    },
   },
   ia_node: {
     screens: [

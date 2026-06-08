@@ -12,36 +12,89 @@ llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.2)
 
 def prd_node(state: GraphState):
     """
-    Analyzes concept and compiles PRD.
+    Analyzes concept and compiles a structured PRD (Google + Microsoft methodology).
     """
     print("--- Executing PRD Node ---")
     concept = state["concept"]
-    
-    prompt = f"""
-    You are an expert Product Manager. Based on the following concept, generate a structured Product Requirements Document (PRD).
-    Concept: {concept}
-    
-    Return the response in EXACTLY this JSON format:
-    {{
-        "target_audience": "string",
-        "core_features": ["feature 1", "feature 2", ...],
-        "success_metrics": "string"
-    }}
-    """
-    
-    response = llm.invoke([HumanMessage(content=prompt)])
+
+    system_prompt = """You are a senior Product Manager trained on Google and Microsoft's product development frameworks.
+Your sole job is to output a valid JSON object. Do not write any text, explanation, or markdown outside of the JSON block.
+
+GUARDRAILS YOU MUST FOLLOW:
+1. DATA ENFORCER: Populate every key listed in the schema below. Never omit a key or use free-form text where structured data is required.
+2. SCOPE CUTTER: For every 3 P0 features you identify, you MUST list at least 2 explicit Non-Goals. This keeps the wireframe footprint lean.
+3. UX HAND-OFF: Every item in p0_features and p1_features must include a "component_type" and "action" field so the downstream layout node can parse it without ambiguity."""
+
+    user_prompt = f"""Concept: {concept}
+
+Return ONLY a JSON object matching this exact schema — no markdown fences, no prose:
+
+{{
+  "executive_summary": {{
+    "north_star": "<max 3 sentences: why we build this and the single most important user action>",
+    "primary_value_proposition": "<one sentence>"
+  }},
+  "target_persona": {{
+    "name": "<persona name, e.g. 'The Busy Pet Parent'>",
+    "behavioral_constraint": "<define by behavioral friction, not demographics>",
+    "core_pain_points": ["<pain 1>", "<pain 2>", "<pain 3>"]
+  }},
+  "happy_path_scenario": {{
+    "title": "<scenario title>",
+    "steps": ["<step 1>", "<step 2>", "<step 3>", "<step 4>", "<step 5>"]
+  }},
+  "functional_requirements": {{
+    "p0_features": [
+      {{
+        "feature": "<feature name>",
+        "description": "<what it does>",
+        "component_type": "<e.g. form | button | dashboard_card | list | modal>",
+        "action": "<e.g. submit_form | navigate | display_data | trigger_reward>"
+      }}
+    ],
+    "p1_features": [
+      {{
+        "feature": "<feature name>",
+        "description": "<what it does>",
+        "component_type": "<component type>",
+        "action": "<action>",
+        "state": "future"
+      }}
+    ]
+  }},
+  "non_goals": ["<explicit exclusion 1>", "<explicit exclusion 2>"],
+  "ux_anchor_directives": {{
+    "visual_posture": "<e.g. utilitarian-dashboard | minimalist-form-first | content-rich-feed>",
+    "tone": "<e.g. warm-encouraging | professional-neutral | playful-rewarding>",
+    "layout_hint": "<structural guidance for the wireframe, e.g. sticky nav + card grid>"
+  }}
+}}"""
+
+    response = llm.invoke([
+        SystemMessage(content=system_prompt),
+        HumanMessage(content=user_prompt),
+    ])
+
     try:
-        # Extract JSON from response (handling potential markdown formatting)
-        content = response.content
+        content = response.content.strip()
         if "```json" in content:
             content = content.split("```json")[1].split("```")[0].strip()
         elif "```" in content:
             content = content.split("```")[1].split("```")[0].strip()
-        
+
         prd_data = json.loads(content)
+
+        required_keys = {
+            "executive_summary", "target_persona", "happy_path_scenario",
+            "functional_requirements", "non_goals", "ux_anchor_directives",
+        }
+        missing = required_keys - set(prd_data.keys())
+        if missing:
+            raise ValueError(f"LLM response missing required PRD sections: {missing}")
+
         return {
             "prd_data": prd_data,
-            "logs": ["[SYS] PRD generation completed."]
+            "logs": ["[SYS] PRD generation completed (6-section Google+Microsoft structure)."]
         }
     except Exception as e:
         return {
