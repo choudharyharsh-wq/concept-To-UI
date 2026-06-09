@@ -68,12 +68,56 @@ const MOCK_DATA = {
     },
   },
   ia_node: {
-    screens: [
-      { name: "01. Dashboard", description: "Main overview of pet health and daily tasks." },
-      { name: "02. Habit Tracker", description: "Checklist for daily activities with quick-log." },
-      { name: "03. Rewards Hub", description: "Visual gallery of unlocked coupons and points." },
-      { name: "04. Pet Profile", description: "Basic info and health history of the dog." }
-    ]
+    pages: [
+      {
+        id: "landing-page",
+        name: "Public Landing Page",
+        parent_id: null,
+        access_level: "public",
+        layout_pattern: "landing_page",
+        component_inventory: ["1x Hero Section with Title", "1x 'Get Started' CTA Button", "1x Features Grid"],
+      },
+      {
+        id: "login-auth",
+        name: "User Authentication",
+        parent_id: "landing-page",
+        access_level: "public",
+        layout_pattern: "split_form",
+        component_inventory: ["1x Brand Illustration", "1x Email Input Field", "1x Password Input Field", "1x Sign-In Button"],
+      },
+      {
+        id: "user-dashboard",
+        name: "Habits Dashboard",
+        parent_id: "login-auth",
+        access_level: "private",
+        layout_pattern: "dashboard_grid",
+        component_inventory: ["1x Sidebar Nav", "1x Habit Checklist Grid", "1x Progress Chart", "1x Add Habit FAB"],
+      },
+      {
+        id: "habit-detail",
+        name: "Habit Detail View",
+        parent_id: "user-dashboard",
+        access_level: "private",
+        layout_pattern: "modal_popup",
+        component_inventory: ["1x Habit Name Header", "1x 30-day Line Graph", "1x Archive Button", "1x Close Button"],
+      },
+      {
+        id: "rewards-hub",
+        name: "Rewards Hub",
+        parent_id: "user-dashboard",
+        access_level: "private",
+        layout_pattern: "list_feed",
+        component_inventory: ["1x Streak Counter Badge", "1x Coupon Gallery Grid", "1x Redeem Button"],
+      },
+      {
+        id: "account-settings",
+        name: "Account Settings",
+        parent_id: "user-dashboard",
+        access_level: "private",
+        layout_pattern: "detail_view",
+        component_inventory: ["1x Profile Picture Upload", "3x Profile Form Fields", "1x Save Changes Button"],
+      },
+    ],
   },
   copy_node: {
     copy_map: [

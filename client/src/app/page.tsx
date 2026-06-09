@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Sparkles, Figma, Send, Loader2 } from "lucide-react";
 import { useGenerationStream } from "@/hooks/use-generation-stream";
-import { PipelineContainer } from "@/components/pipeline/pipeline-container";
+import { PipelineCarousel } from "@/components/pipeline/pipeline-carousel";
 import { cn } from "@/lib/utils";
 
 export default function Dashboard() {
@@ -96,14 +96,14 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Pipeline Visualization */}
+        {/* Pipeline Carousel */}
         {(hasStarted || isGenerating) && (
-          <div className="mt-24 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="text-center mb-16">
+          <div className="mt-20 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="text-center mb-8">
               <p className="font-mono text-xs uppercase tracking-widest text-zinc-600 mb-3">Pipeline</p>
               <h2 className="text-xl font-semibold tracking-tight text-zinc-200">Live Generation</h2>
             </div>
-            <PipelineContainer stages={stages} />
+            <PipelineCarousel stages={stages} />
           </div>
         )}
 

@@ -1,4 +1,6 @@
 import json
+import queue
+import threading
 import asyncio
 from dotenv import load_dotenv
 
@@ -7,7 +9,6 @@ load_dotenv(override=True)  # must run before langsmith reads env vars
 from fastapi import FastAPI, Query
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
-from langsmith import traceable
 from src.graph import app as langgraph_app
 
 server = FastAPI()
@@ -20,12 +21,17 @@ server.add_middleware(
 )
 
 
-@traceable(name="concept-to-ui-pipeline", run_type="chain")
-def run_pipeline(concept: str, figma_url: str):
+async def generate_stream(concept: str, figma_url: str):
     """
-    Runs the full LangGraph pipeline.
-    Wrapping in @traceable gives LangSmith one top-level trace
-    with all 5 LangGraph nodes nested inside it.
+    Streams SSE events one-by-one as each LangGraph node completes.
+
+    LangGraph's .stream() is synchronous, so we run it in a background
+    thread and pass each node's output through a queue to the async
+    generator — this way the client receives each stage result the moment
+    it finishes, not after all five stages are done.
+
+    LangSmith tracing works automatically via LANGCHAIN_TRACING_V2=true
+    in .env — no explicit @traceable wrapper needed.
     """
     initial_state = {
         "concept": concept,
@@ -39,30 +45,45 @@ def run_pipeline(concept: str, figma_url: str):
         "errors": [],
     }
 
-    events = []
-    for event in langgraph_app.stream(initial_state):
-        for node_name, output in event.items():
-            events.append((node_name, output))
-    return events
+    event_queue: queue.Queue = queue.Queue()
 
+    def run_graph():
+        try:
+            for event in langgraph_app.stream(initial_state):
+                for node_name, output in event.items():
+                    event_queue.put(("event", node_name, output))
+            event_queue.put(("done", None, None))
+        except Exception as exc:
+            event_queue.put(("error", str(exc), None))
 
-async def generate_stream(concept: str, figma_url: str):
+    # Run the synchronous LangGraph stream in a background thread
+    thread = threading.Thread(target=run_graph, daemon=True)
+    thread.start()
+
+    loop = asyncio.get_event_loop()
+
     try:
-        # run_pipeline is synchronous (LangGraph .stream is sync);
-        # run it in a thread so we don't block the event loop.
-        loop = asyncio.get_event_loop()
-        events = await loop.run_in_executor(None, run_pipeline, concept, figma_url)
+        while True:
+            # Block-wait on the queue without freezing the event loop
+            kind, node_name, output = await loop.run_in_executor(
+                None, event_queue.get
+            )
 
-        for node_name, output in events:
+            if kind == "done":
+                yield f'data: {json.dumps({"phase": "done", "status": "done", "data": {}})}\n\n'
+                break
+
+            if kind == "error":
+                yield f'data: {json.dumps({"phase": "error", "status": "error", "data": {"message": node_name}})}\n\n'
+                break
+
+            # kind == "event" — emit immediately
             payload = {"phase": node_name, "status": "completed", "data": output}
             yield f"data: {json.dumps(payload)}\n\n"
-            await asyncio.sleep(0)
 
-    except Exception as e:
-        error_payload = {"phase": "error", "status": "error", "data": {"message": str(e)}}
-        yield f"data: {json.dumps(error_payload)}\n\n"
-    finally:
-        yield "data: {\"phase\": \"done\", \"status\": \"done\", \"data\": {}}\n\n"
+    except asyncio.CancelledError:
+        # Client disconnected — let the thread finish naturally (it's daemon)
+        pass
 
 
 @server.get("/api/generate")

@@ -1,11 +1,50 @@
 import os
 import json
+from typing import List, Literal, Optional
 from dotenv import load_dotenv
+from pydantic import BaseModel, Field
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage, SystemMessage
 from .state import GraphState
 
 load_dotenv(override=True)
+
+
+# ── IA Blueprint Pydantic schemas ────────────────────────────────────────────
+
+class PageNode(BaseModel):
+    id: str = Field(
+        description="Unique URL slug / machine-readable identifier, e.g. 'settings-billing'"
+    )
+    name: str = Field(
+        description="Clean human-readable UI name shown on the card, e.g. 'Billing Settings'"
+    )
+    parent_id: Optional[str] = Field(
+        default=None,
+        description="ID of the parent screen. Must be null for the primary entry-point / home page only."
+    )
+    access_level: Literal["public", "private"] = Field(
+        description="'public' = pre-login, 'private' = requires authentication"
+    )
+    layout_pattern: Literal[
+        "landing_page", "dashboard_grid", "split_form",
+        "list_feed", "detail_view", "modal_popup", "wizard_step"
+    ] = Field(
+        description="The dominant UI layout pattern that best describes this screen's function"
+    )
+    component_inventory: List[str] = Field(
+        description="Atomic, quantified list of every element required on this screen, "
+                    "e.g. ['1x Email Input Field', '1x Sign-In Button', '1x OAuth Google Button']"
+    )
+
+
+class InformationArchitectureBlueprint(BaseModel):
+    pages: List[PageNode] = Field(
+        description="Complete adjacency-list of all screens in the application"
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 
 
 def get_llm(max_tokens: int = 4096):
@@ -140,31 +179,88 @@ Return ONLY a raw JSON object — no markdown fences, no prose, no explanation:
 
 
 def ia_node(state: GraphState):
-    """Structures screen architectures based on PRD."""
+    """
+    Generates a production-grade Information Architecture Blueprint.
+
+    Uses .with_structured_output(InformationArchitectureBlueprint) so the LLM
+    is forced to return a fully-typed adjacency-list graph — no raw text, no
+    markdown, no missing fields. The result is serialised to dict for the
+    frontend canvas renderer.
+    """
     print("--- Executing IA Node ---")
     prd_data = state["prd_data"]
 
-    prompt = f"""Based on the following PRD, create an Information Architecture (IA) Map showing the core screens.
-PRD: {json.dumps(prd_data)}
+    system_prompt = """You are a Principal UX Architect and Information Architect.
+Your task is to analyse a Product Requirements Document and produce a complete,
+production-grade Information Architecture Blueprint as a structured data object.
 
-Return ONLY a raw JSON object — no markdown fences, no prose:
-{{
-    "screens": [
-        {{ "name": "01. Screen Name", "description": "Brief purpose" }}
-    ]
-}}"""
+Follow this exact analytical process — do not skip any step:
 
-    response = get_llm().invoke([HumanMessage(content=prompt)])
+STEP 1 — PARSE THE PRD
+Read every section of the PRD. Extract every user story, happy-path step,
+feature requirement (P0 and P1), and referenced UI element.
+
+STEP 2 — ENUMERATE ALL SCREENS
+Identify every distinct interface or view-state the user will encounter.
+A screen is anything that occupies the full viewport OR is a focused modal
+overlay. Include: entry points, authentication gates, dashboards, detail views,
+settings pages, success/error states that need their own layout, and modals.
+Do NOT merge distinct view-states into one screen.
+
+STEP 3 — BUILD THE ROUTING HIERARCHY
+Assign parent_id relationships so the graph has no orphan pages.
+Rules:
+  - Exactly ONE page must have parent_id = null (the primary entry point).
+  - Every other page must reference a valid id that exists in your pages list.
+  - Modal popups set their parent_id to the screen they float above.
+  - Wizard steps reference the previous step as parent_id.
+
+STEP 4 — CLASSIFY THE LAYOUT PATTERN
+For each screen choose the single most accurate layout_pattern:
+  landing_page   → hero + CTA sections, marketing-oriented
+  dashboard_grid → card grid, charts, KPI tiles, overview data
+  split_form     → two-column with illustration + form (auth, onboarding)
+  list_feed      → scrollable vertical list of similar items
+  detail_view    → single-item deep-dive with metadata and actions
+  modal_popup    → overlay above a parent screen
+  wizard_step    → sequential multi-step form or guided flow
+
+STEP 5 — ITEMISE COMPONENT INVENTORY
+For each screen list every atomic UI element required to fulfil the PRD features.
+Use quantified language: "2x Text Input Field", "1x Primary CTA Button".
+Be exhaustive — include navigation bars, empty states, error messages, loaders
+if the screen logically requires them."""
+
+    user_prompt = f"""Analyse the following PRD and generate the full
+InformationArchitectureBlueprint. Every page in the application must appear.
+No orphan pages. No missing parent_id links.
+
+PRD:
+{json.dumps(prd_data, indent=2)}"""
+
     try:
-        ia_data = parse_json(extract_text(response))
+        structured_llm = get_llm(max_tokens=4096).with_structured_output(
+            InformationArchitectureBlueprint
+        )
+        blueprint: InformationArchitectureBlueprint = structured_llm.invoke([
+            SystemMessage(content=system_prompt),
+            HumanMessage(content=user_prompt),
+        ])
+
+        # Serialise Pydantic → plain dict so it flows through GraphState cleanly
+        ia_data = blueprint.model_dump()
+
         return {
             "ia_data": ia_data,
-            "logs": ["[SYS] IA Map structured."]
+            "logs": [
+                f"[SYS] IA Blueprint generated — {len(blueprint.pages)} screens, "
+                f"{sum(1 for p in blueprint.pages if p.parent_id is None)} root node(s)."
+            ]
         }
     except Exception as e:
         return {
             "errors": [f"Error in IA node: {str(e)}"],
-            "logs": [f"[ERR] IA mapping failed: {str(e)}"]
+            "logs": [f"[ERR] IA Blueprint generation failed: {str(e)}"]
         }
 
 
