@@ -44,6 +44,38 @@ class InformationArchitectureBlueprint(BaseModel):
     )
 
 
+# ── User Flow schemas ─────────────────────────────────────────────────────────
+
+class FlowStep(BaseModel):
+    step_number: int = Field(description="1-based sequential step index")
+    source_page_id: str = Field(
+        description="The page_id the user is currently on — MUST match an id in the IA pages list"
+    )
+    trigger_element: str = Field(
+        description="The exact UI element the user interacts with, e.g. \"1x 'Book Now' Button\""
+    )
+    action_type: Literal["click", "submit_form", "swipe", "hover"] = Field(
+        description="The interaction type that triggers the transition"
+    )
+    destination_page_id: str = Field(
+        description="The page_id the user lands on after the action — MUST match an id in the IA pages list"
+    )
+
+
+class UserFlow(BaseModel):
+    flow_id: str = Field(description="URL-slug identifier, e.g. 'core-booking-flow'")
+    flow_name: str = Field(description="Clean human-readable title for the accordion, e.g. 'Book a Flight'")
+    description: str = Field(description="One sentence describing what this flow accomplishes")
+    ui_color_theme: str = Field(description="Hex colour string for frontend path colouring, e.g. '#10B981'")
+    steps: List[FlowStep] = Field(description="Chronological happy-path steps, nothing goes wrong")
+
+
+class UserFlowCollection(BaseModel):
+    flows: List[UserFlow] = Field(
+        description="Exactly 3 golden happy-path flows covering the app's most critical user goals"
+    )
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 
 
@@ -230,6 +262,78 @@ PRD (JSON):
         return {
             "errors": [f"Error in IA node: {str(e)}"],
             "logs": [f"[ERR] IA Blueprint generation failed: {str(e)}"]
+        }
+
+
+def user_flow_node(state: GraphState):
+    """
+    Generates exactly 3 Golden Happy Path user flows.
+
+    Cross-references the PRD + IA blueprint to produce strictly relational
+    FlowStep objects — every source_page_id and destination_page_id is
+    validated against the actual page IDs that exist in ia_data.
+    """
+    print("--- Executing User Flow Node ---")
+    prd_data  = state["prd_data"]
+    ia_data   = state["ia_data"]
+
+    # Extract valid page IDs so we can include them explicitly in the prompt
+    valid_page_ids = [p["id"] for p in ia_data.get("pages", [])]
+
+    system_prompt = """You are a Senior UX Strategist specialising in user journey mapping.
+Your job is to analyse a PRD and an Information Architecture and produce exactly 3 UserFlow objects.
+
+RULES — read carefully, do not break any:
+1. EXACTLY 3 FLOWS — no more, no fewer. Cover these 3 archetypes:
+   - Flow 1: Onboarding / Sign-up (how a brand-new user discovers and joins)
+   - Flow 2: Core Value Action (the single most important thing the app does for the user)
+   - Flow 3: Primary Account / Settings Action (profile, preferences, or a secondary key task)
+
+2. STRICT RELATIONAL INTEGRITY — every source_page_id and destination_page_id
+   MUST be an id taken verbatim from the IA page list provided. Never invent or hallucinate a page id.
+
+3. LINEAR HAPPY PATH — no branching, no error states, nothing goes wrong.
+   Each step flows directly into the next.
+
+4. TRIGGER ELEMENT must reference a real component from the source page's component_inventory.
+
+5. COLOUR THEMES — assign visually distinct hex colours:
+   Flow 1: a green family  (#10B981 or similar)
+   Flow 2: a blue family   (#3B82F6 or similar)
+   Flow 3: a purple family (#8B5CF6 or similar)"""
+
+    user_prompt = f"""Analyse the PRD and IA below. Generate exactly 3 user flows.
+
+Valid page IDs you MUST use (do not use any other id):
+{json.dumps(valid_page_ids, indent=2)}
+
+PRD:
+{json.dumps(prd_data, indent=2)}
+
+Information Architecture:
+{json.dumps(ia_data, indent=2)}"""
+
+    try:
+        structured_llm = get_llm(max_tokens=8192).with_structured_output(UserFlowCollection)
+        collection: UserFlowCollection = structured_llm.invoke([
+            SystemMessage(content=system_prompt),
+            HumanMessage(content=user_prompt),
+        ])
+
+        flow_data = collection.model_dump()
+
+        return {
+            "user_flow_data": flow_data,
+            "logs": [
+                f"[SYS] User Flow Builder complete — "
+                f"{len(collection.flows)} flows, "
+                f"{sum(len(f.steps) for f in collection.flows)} total steps."
+            ]
+        }
+    except Exception as e:
+        return {
+            "errors": [f"Error in User Flow node: {str(e)}"],
+            "logs":   [f"[ERR] User Flow generation failed: {str(e)}"]
         }
 
 

@@ -12,11 +12,12 @@ export interface PipelineStage {
 }
 
 const INITIAL_STAGES: PipelineStage[] = [
-  { id: "prd_node", name: "Product Requirements Document", status: "pending", data: null },
-  { id: "ia_node", name: "Information Architecture Map", status: "pending", data: null },
-  { id: "copy_node", name: "UX Copywriting Engine", status: "pending", data: null },
-  { id: "layout_node", name: "Layout Logic Selector", status: "pending", data: null },
-  { id: "render_node", name: "Figma Canvas Renderer", status: "pending", data: null },
+  { id: "prd_node",       name: "Product Requirements Document", status: "pending", data: null },
+  { id: "ia_node",        name: "Information Architecture Map",  status: "pending", data: null },
+  { id: "user_flow_node", name: "User Flow Builder",             status: "pending", data: null },
+  { id: "copy_node",      name: "UX Copywriting Engine",         status: "pending", data: null },
+  { id: "layout_node",    name: "Layout Logic Selector",         status: "pending", data: null },
+  { id: "render_node",    name: "Figma Canvas Renderer",         status: "pending", data: null },
 ];
 
 const MOCK_DATA = {
@@ -119,6 +120,43 @@ const MOCK_DATA = {
       },
     ],
   },
+  user_flow_node: {
+    flows: [
+      {
+        flow_id: "onboarding-flow",
+        flow_name: "New User Onboarding",
+        description: "A brand-new user discovers the app, signs up, and completes their first habit log.",
+        ui_color_theme: "#10B981",
+        steps: [
+          { step_number: 1, source_page_id: "landing-page",  trigger_element: "1x 'Get Started' CTA Button", action_type: "click",       destination_page_id: "login-auth"      },
+          { step_number: 2, source_page_id: "login-auth",    trigger_element: "1x Sign-In Button",           action_type: "submit_form", destination_page_id: "user-dashboard"  },
+          { step_number: 3, source_page_id: "user-dashboard",trigger_element: "1x Add Habit FAB",            action_type: "click",       destination_page_id: "habit-detail"    },
+        ],
+      },
+      {
+        flow_id: "core-habit-logging",
+        flow_name: "Daily Habit Check-In",
+        description: "An existing user opens the app, logs today's habits, and earns a streak reward.",
+        ui_color_theme: "#3B82F6",
+        steps: [
+          { step_number: 1, source_page_id: "user-dashboard", trigger_element: "1x Habit Checklist Grid item",  action_type: "click",       destination_page_id: "habit-detail"   },
+          { step_number: 2, source_page_id: "habit-detail",   trigger_element: "1x Log Today Button",           action_type: "click",       destination_page_id: "user-dashboard" },
+          { step_number: 3, source_page_id: "user-dashboard", trigger_element: "1x Streak Counter Badge",       action_type: "click",       destination_page_id: "rewards-hub"    },
+        ],
+      },
+      {
+        flow_id: "rewards-redemption",
+        flow_name: "Redeem Streak Reward",
+        description: "User navigates to the Rewards Hub and copies a discount coupon after hitting a milestone.",
+        ui_color_theme: "#8B5CF6",
+        steps: [
+          { step_number: 1, source_page_id: "user-dashboard", trigger_element: "1x Sidebar Nav — Rewards link", action_type: "click",       destination_page_id: "rewards-hub"        },
+          { step_number: 2, source_page_id: "rewards-hub",    trigger_element: "1x Redeem Button",              action_type: "click",       destination_page_id: "account-settings"   },
+          { step_number: 3, source_page_id: "account-settings", trigger_element: "1x Save Changes Button",      action_type: "submit_form", destination_page_id: "user-dashboard"     },
+        ],
+      },
+    ],
+  },
   copy_node: {
     copy_map: [
       { key: "Hero Header", value: "Good Boy deserves a Good Day!" },
@@ -151,11 +189,12 @@ const BACKEND_URL = "http://localhost:8000";
 
 // Maps each node name to the key inside the backend payload that holds its content.
 const NODE_DATA_KEY: Record<string, string> = {
-  prd_node: "prd_data",
-  ia_node: "ia_data",
-  copy_node: "copy_data",
-  layout_node: "layout_data",
-  render_node: "render_data",
+  prd_node:       "prd_data",
+  ia_node:        "ia_data",
+  user_flow_node: "user_flow_data",
+  copy_node:      "copy_data",
+  layout_node:    "layout_data",
+  render_node:    "render_data",
 };
 
 const STAGE_ORDER = INITIAL_STAGES.map((s) => s.id);

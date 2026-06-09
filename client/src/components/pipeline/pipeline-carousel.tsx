@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { PipelineStage } from "@/hooks/use-generation-stream";
 import { PRDStage } from "./prd-stage";
 import { IAStage } from "./ia-stage";
+import { UserFlowStage } from "./user-flow-stage";
 import { CopyStage } from "./copy-stage";
 import { LayoutStage } from "./layout-stage";
 import { RenderStage } from "./render-stage";
@@ -15,11 +16,12 @@ interface PipelineCarouselProps {
 }
 
 const STAGE_LABELS: Record<string, string> = {
-  prd_node:    "PRD",
-  ia_node:     "IA Map",
-  copy_node:   "Copy",
-  layout_node: "Layout",
-  render_node: "Render",
+  prd_node:       "PRD",
+  ia_node:        "IA Map",
+  user_flow_node: "Flows",
+  copy_node:      "Copy",
+  layout_node:    "Layout",
+  render_node:    "Render",
 };
 
 export function PipelineCarousel({ stages }: PipelineCarouselProps) {
@@ -113,7 +115,8 @@ export function PipelineCarousel({ stages }: PipelineCarouselProps) {
             >
               {/* Render the correct stage component */}
               {stage.id === "prd_node"    && <PRDStage stage={stage} />}
-              {stage.id === "ia_node"     && <IAStage stage={stage} />}
+              {stage.id === "ia_node"        && <IAStage stage={stage} />}
+              {stage.id === "user_flow_node" && <UserFlowStage stage={stage} />}
               {stage.id === "copy_node"   && <CopyStage stage={stage} />}
               {stage.id === "layout_node" && <LayoutStage stage={stage} />}
               {stage.id === "render_node" && <RenderStage stage={stage} allStages={stages} />}

@@ -38,6 +38,7 @@ async def generate_stream(concept: str, figma_url: str):
         "figma_url": figma_url,
         "prd_data": {},
         "ia_data": {},
+        "user_flow_data": {},
         "copy_data": {},
         "layout_data": {},
         "render_data": {},

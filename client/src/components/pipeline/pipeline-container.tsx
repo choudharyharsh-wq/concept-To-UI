@@ -2,6 +2,7 @@ import React from "react";
 import { PipelineStage } from "@/hooks/use-generation-stream";
 import { PRDStage } from "./prd-stage";
 import { IAStage } from "./ia-stage";
+import { UserFlowStage } from "./user-flow-stage";
 import { CopyStage } from "./copy-stage";
 import { LayoutStage } from "./layout-stage";
 import { RenderStage } from "./render-stage";
@@ -24,6 +25,8 @@ export function PipelineContainer({ stages }: PipelineContainerProps) {
                 return <PRDStage key={stage.id} stage={stage} />;
               case "ia_node":
                 return <IAStage key={stage.id} stage={stage} />;
+              case "user_flow_node":
+                return <UserFlowStage key={stage.id} stage={stage} />;
               case "copy_node":
                 return <CopyStage key={stage.id} stage={stage} />;
               case "layout_node":

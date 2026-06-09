@@ -9,6 +9,7 @@ class GraphState(TypedDict):
     figma_url: str
     prd_data: Dict[str, Any]
     ia_data: Dict[str, Any]
+    user_flow_data: Dict[str, Any]
     copy_data: Dict[str, Any]
     layout_data: Dict[str, Any]
     render_data: Dict[str, Any]
