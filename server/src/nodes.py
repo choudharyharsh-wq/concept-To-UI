@@ -76,6 +76,63 @@ class UserFlowCollection(BaseModel):
     )
 
 
+# ── UX Layout Planner schemas ─────────────────────────────────────────────────
+
+class UXPrincipleExplanation(BaseModel):
+    principle_name: str = Field(
+        description="Name of the UX/design principle, e.g. \"Fitts's Law\", \"Hick's Law\", \"Progressive Disclosure\""
+    )
+    rationale: str = Field(
+        description="One detailed sentence explaining exactly how this layout applies the principle to optimise the interface. Powers the frontend info-tooltip."
+    )
+
+
+class SpatialZone(BaseModel):
+    zone_id: str = Field(
+        description="Machine-readable zone identifier, e.g. 'left_rail_nav', 'main_focal_grid', 'top_actions', 'bottom_sticky_footer'"
+    )
+    visual_weight: Literal["P1_Dominant", "P2_Supporting", "P3_Subdued"] = Field(
+        description="P1 = primary focal point, P2 = supporting element, P3 = background/utility"
+    )
+    width_percentage: int = Field(
+        description="Zone's relative width as a percentage of total screen width (all zones in a row should sum to ~100)"
+    )
+    height_percentage: int = Field(
+        description="Zone's relative height as a percentage of total screen height"
+    )
+    rendering_sequence: List[str] = Field(
+        description="Ordered list mapping component names from the IA component_inventory into this zone, top-to-bottom"
+    )
+
+
+class ScreenLayoutPlan(BaseModel):
+    page_id: str = Field(
+        description="Must exactly match the 'id' of the corresponding page from the IA blueprint"
+    )
+    grid_system: Literal[
+        "fixed_left_sidebar", "twelve_column_fluid", "split_screen_50_50",
+        "single_column_centered", "canvas_viewport_locked"
+    ] = Field(description="The macro grid structure governing this screen's layout")
+    scroll_behavior: Literal[
+        "infinite_vertical", "viewport_locked", "sticky_header_fluid_body"
+    ] = Field(description="How the screen scrolls and whether the header is sticky")
+    spatial_zones: List[SpatialZone] = Field(
+        description="Abstract bounding blocks that divide the screen canvas into distinct layout areas"
+    )
+    ux_principles: List[UXPrincipleExplanation] = Field(
+        description="Exactly 2-3 UX principles justifying the spatial decisions on this screen"
+    )
+    empty_state_guidance: str = Field(
+        description="Clear strategy for what to display when this screen has no user data"
+    )
+
+
+class MasterUXLayoutCollection(BaseModel):
+    screen_layouts: List[ScreenLayoutPlan] = Field(
+        description="One ScreenLayoutPlan per screen from the IA node — no screens omitted"
+    )
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 
 
@@ -334,6 +391,94 @@ Information Architecture:
         return {
             "errors": [f"Error in User Flow node: {str(e)}"],
             "logs":   [f"[ERR] User Flow generation failed: {str(e)}"]
+        }
+
+
+def ux_layout_node(state: GraphState):
+    """
+    UX Layout Planner — generates a spatial zoning blueprint for every screen.
+
+    For flow-critical screens it pushes the primary action into P1_Dominant.
+    For utility/static screens it applies efficient template-driven grids.
+    Every screen gets 2-3 UX principle explanations that power frontend tooltips.
+    """
+    print("--- Executing UX Layout Node ---")
+    ia_data        = state["ia_data"]
+    user_flow_data = state["user_flow_data"]
+    prd_data       = state["prd_data"]
+
+    pages      = ia_data.get("pages", [])
+    page_ids   = [p["id"] for p in pages]
+
+    # Collect page IDs that appear in any flow step so the LLM knows which
+    # screens are "flow-critical" vs. utility
+    flow_critical_ids: set = set()
+    for flow in user_flow_data.get("flows", []):
+        for step in flow.get("steps", []):
+            flow_critical_ids.add(step.get("source_page_id", ""))
+            flow_critical_ids.add(step.get("destination_page_id", ""))
+
+    system_prompt = """You are a Senior UX Architect and Spatial Layout Designer.
+Your task: produce one ScreenLayoutPlan for EVERY page in the IA, no exceptions.
+
+TWO EVALUATION STRATEGIES — apply the correct one per screen:
+
+STRATEGY A — FLOW-CRITICAL SCREENS (pages whose id appears in the user flows):
+- Study which flow step lands on or departs from this screen and what action it requires.
+- Design spatial_zones so the primary action component sits in a P1_Dominant zone.
+- Choose grid_system and scroll_behavior to minimise interaction cost for that primary action.
+- Reference Fitts's Law, Visual Hierarchy, or Affordance Theory in ux_principles.
+
+STRATEGY B — UTILITY / STATIC SCREENS (pages not in any user flow):
+- Apply a standard efficient grid (single_column_centered or twelve_column_fluid).
+- Keep spatial_zones minimal (2 zones max).
+- Use Hick's Law or Progressive Disclosure in ux_principles to justify simplicity.
+
+RULES FOR ALL SCREENS:
+- page_id must exactly match the IA page id string.
+- rendering_sequence inside each SpatialZone must use component names verbatim from that page's component_inventory.
+- width_percentage values across sibling zones in the same row must sum to approximately 100.
+- Provide exactly 2 or 3 ux_principles per screen — no more, no less.
+- empty_state_guidance: write a concrete strategy (not just "show empty state").
+- Do not invent page_ids or component names not present in the IA data."""
+
+    user_prompt = f"""Generate a ScreenLayoutPlan for every one of these pages:
+{json.dumps(page_ids, indent=2)}
+
+Flow-critical page IDs (STRATEGY A):
+{json.dumps(sorted(flow_critical_ids), indent=2)}
+
+Full IA (pages with component_inventory):
+{json.dumps(pages, indent=2)}
+
+User Flows (for cross-referencing primary actions):
+{json.dumps(user_flow_data, indent=2)}
+
+PRD UX Directives (visual posture and tone):
+{json.dumps(prd_data.get("ux_anchor_directives", {}), indent=2)}"""
+
+    try:
+        structured_llm = get_llm(max_tokens=8192).with_structured_output(
+            MasterUXLayoutCollection
+        )
+        collection: MasterUXLayoutCollection = structured_llm.invoke([
+            SystemMessage(content=system_prompt),
+            HumanMessage(content=user_prompt),
+        ])
+
+        ux_layout_data = collection.model_dump()
+
+        return {
+            "ux_layout_data": ux_layout_data,
+            "logs": [
+                f"[SYS] UX Layout Planner complete — "
+                f"{len(collection.screen_layouts)} screen blueprints generated."
+            ]
+        }
+    except Exception as e:
+        return {
+            "errors": [f"Error in UX Layout node: {str(e)}"],
+            "logs":   [f"[ERR] UX Layout generation failed: {str(e)}"]
         }
 
 

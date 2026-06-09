@@ -15,6 +15,7 @@ const INITIAL_STAGES: PipelineStage[] = [
   { id: "prd_node",       name: "Product Requirements Document", status: "pending", data: null },
   { id: "ia_node",        name: "Information Architecture Map",  status: "pending", data: null },
   { id: "user_flow_node", name: "User Flow Builder",             status: "pending", data: null },
+  { id: "ux_layout_node", name: "UX Layout Planner",            status: "pending", data: null },
   { id: "copy_node",      name: "UX Copywriting Engine",         status: "pending", data: null },
   { id: "layout_node",    name: "Layout Logic Selector",         status: "pending", data: null },
   { id: "render_node",    name: "Figma Canvas Renderer",         status: "pending", data: null },
@@ -157,6 +158,40 @@ const MOCK_DATA = {
       },
     ],
   },
+  ux_layout_node: {
+    screen_layouts: [
+      {
+        page_id: "user-dashboard",
+        grid_system: "fixed_left_sidebar",
+        scroll_behavior: "sticky_header_fluid_body",
+        spatial_zones: [
+          { zone_id: "left_rail_nav",    visual_weight: "P2_Supporting", width_percentage: 20, height_percentage: 100, rendering_sequence: ["1x Sidebar Nav"] },
+          { zone_id: "main_focal_grid",  visual_weight: "P1_Dominant",   width_percentage: 80, height_percentage: 70,  rendering_sequence: ["1x Habit Checklist Grid", "1x Progress Chart"] },
+          { zone_id: "bottom_fab",       visual_weight: "P1_Dominant",   width_percentage: 80, height_percentage: 10,  rendering_sequence: ["1x Add Habit FAB"] },
+        ],
+        ux_principles: [
+          { principle_name: "Fitts's Law",         rationale: "The Add Habit FAB is placed in the bottom-right corner — the largest, most reachable target zone for thumb interaction on mobile, minimising motor effort for the app's primary action." },
+          { principle_name: "Visual Hierarchy",    rationale: "The checklist grid occupies 80% of the dominant zone, ensuring the user's primary task (logging habits) receives maximum visual attention before supporting elements." },
+          { principle_name: "Progressive Disclosure", rationale: "The sidebar nav collapses to icons on smaller viewports, surfacing only the current-context actions and reducing cognitive load from irrelevant navigation options." },
+        ],
+        empty_state_guidance: "Display an illustrated onboarding prompt with a single 'Add Your First Habit' CTA button centered in the main grid; suppress the progress chart section entirely until at least one habit is logged.",
+      },
+      {
+        page_id: "landing-page",
+        grid_system: "single_column_centered",
+        scroll_behavior: "infinite_vertical",
+        spatial_zones: [
+          { zone_id: "hero_section",   visual_weight: "P1_Dominant",   width_percentage: 100, height_percentage: 60, rendering_sequence: ["1x Hero Section with Title", "1x 'Get Started' CTA Button"] },
+          { zone_id: "features_grid",  visual_weight: "P2_Supporting", width_percentage: 100, height_percentage: 40, rendering_sequence: ["1x Features Grid"] },
+        ],
+        ux_principles: [
+          { principle_name: "Visual Hierarchy",    rationale: "The hero section commands 60% of viewport height to anchor brand messaging before the user scrolls, ensuring the value proposition lands before feature details." },
+          { principle_name: "Hick's Law",          rationale: "A single CTA ('Get Started') in the hero eliminates decision paralysis — the user has exactly one primary action, minimising choice-reaction time." },
+        ],
+        empty_state_guidance: "Landing page has no user-data dependency — always render full content; no empty state required.",
+      },
+    ],
+  },
   copy_node: {
     copy_map: [
       { key: "Hero Header", value: "Good Boy deserves a Good Day!" },
@@ -192,6 +227,7 @@ const NODE_DATA_KEY: Record<string, string> = {
   prd_node:       "prd_data",
   ia_node:        "ia_data",
   user_flow_node: "user_flow_data",
+  ux_layout_node: "ux_layout_data",
   copy_node:      "copy_data",
   layout_node:    "layout_data",
   render_node:    "render_data",

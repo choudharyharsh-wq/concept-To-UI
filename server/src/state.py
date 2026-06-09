@@ -10,6 +10,7 @@ class GraphState(TypedDict):
     prd_data: Dict[str, Any]
     ia_data: Dict[str, Any]
     user_flow_data: Dict[str, Any]
+    ux_layout_data: Dict[str, Any]
     copy_data: Dict[str, Any]
     layout_data: Dict[str, Any]
     render_data: Dict[str, Any]
