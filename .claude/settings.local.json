@@ -11,7 +11,13 @@
       "Bash(gh auth *)",
       "Bash(git --version)",
       "Bash(python3 -c \"from server import server; print\\('OK'\\)\")",
-      "Bash(pip3 install *)"
+      "Bash(pip3 install *)",
+      "Bash(python3 -c \"import langsmith; print\\(langsmith.__version__\\)\")",
+      "WebSearch",
+      "WebFetch(domain:developers.figma.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:southleft.com)",
+      "WebFetch(domain:www.bitovi.com)"
     ]
   }
 }

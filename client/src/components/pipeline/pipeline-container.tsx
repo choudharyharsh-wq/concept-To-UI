@@ -29,7 +29,7 @@ export function PipelineContainer({ stages }: PipelineContainerProps) {
               case "layout_node":
                 return <LayoutStage key={stage.id} stage={stage} />;
               case "render_node":
-                return <RenderStage key={stage.id} stage={stage} />;
+                return <RenderStage key={stage.id} stage={stage} allStages={stages} />;
               default:
                 return null;
             }

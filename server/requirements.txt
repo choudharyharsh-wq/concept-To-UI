@@ -2,5 +2,6 @@ langgraph
 langchain-anthropic
 python-dotenv
 langchain-core
+langsmith
 fastapi
 uvicorn[standard]
