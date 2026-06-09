@@ -18,7 +18,8 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:southleft.com)",
       "WebFetch(domain:www.bitovi.com)",
-      "Bash(python3 -c \"from src.nodes import ia_node, InformationArchitectureBlueprint, PageNode; print\\('OK'\\)\")"
+      "Bash(python3 -c \"from src.nodes import ia_node, InformationArchitectureBlueprint, PageNode; print\\('OK'\\)\")",
+      "Bash(python3 -c \"from src.nodes import ia_node; print\\('OK'\\)\")"
     ]
   }
 }

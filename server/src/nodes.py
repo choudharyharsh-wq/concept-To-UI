@@ -47,7 +47,7 @@ class InformationArchitectureBlueprint(BaseModel):
 # ─────────────────────────────────────────────────────────────────────────────
 
 
-def get_llm(max_tokens: int = 4096):
+def get_llm(max_tokens: int = 8192):
     """
     Lazily build the LLM so it reads ANTHROPIC_API_KEY after load_dotenv() has run.
     max_tokens is explicit — Claude Haiku's default is too low for large JSON outputs.
@@ -190,56 +190,25 @@ def ia_node(state: GraphState):
     print("--- Executing IA Node ---")
     prd_data = state["prd_data"]
 
-    system_prompt = """You are a Principal UX Architect and Information Architect.
-Your task is to analyse a Product Requirements Document and produce a complete,
-production-grade Information Architecture Blueprint as a structured data object.
+    system_prompt = """You are a Principal UX Architect. Analyse the PRD and produce a complete InformationArchitectureBlueprint.
 
-Follow this exact analytical process — do not skip any step:
-
-STEP 1 — PARSE THE PRD
-Read every section of the PRD. Extract every user story, happy-path step,
-feature requirement (P0 and P1), and referenced UI element.
-
-STEP 2 — ENUMERATE ALL SCREENS
-Identify every distinct interface or view-state the user will encounter.
-A screen is anything that occupies the full viewport OR is a focused modal
-overlay. Include: entry points, authentication gates, dashboards, detail views,
-settings pages, success/error states that need their own layout, and modals.
-Do NOT merge distinct view-states into one screen.
-
-STEP 3 — BUILD THE ROUTING HIERARCHY
-Assign parent_id relationships so the graph has no orphan pages.
 Rules:
-  - Exactly ONE page must have parent_id = null (the primary entry point).
-  - Every other page must reference a valid id that exists in your pages list.
-  - Modal popups set their parent_id to the screen they float above.
-  - Wizard steps reference the previous step as parent_id.
+- Enumerate every distinct screen/view-state (full viewport OR focused modal).
+- Exactly ONE page has parent_id=null (the primary entry point). All others reference a valid id.
+- Modal popups use the screen they float above as parent_id.
+- Choose the most accurate layout_pattern per screen:
+    landing_page | dashboard_grid | split_form | list_feed | detail_view | modal_popup | wizard_step
+- component_inventory: quantified atomic elements, e.g. "1x Email Input Field", "1x Sign-In Button".
+- Keep component_inventory concise: max 6 items per screen."""
 
-STEP 4 — CLASSIFY THE LAYOUT PATTERN
-For each screen choose the single most accurate layout_pattern:
-  landing_page   → hero + CTA sections, marketing-oriented
-  dashboard_grid → card grid, charts, KPI tiles, overview data
-  split_form     → two-column with illustration + form (auth, onboarding)
-  list_feed      → scrollable vertical list of similar items
-  detail_view    → single-item deep-dive with metadata and actions
-  modal_popup    → overlay above a parent screen
-  wizard_step    → sequential multi-step form or guided flow
+    user_prompt = f"""Generate the full InformationArchitectureBlueprint for this product.
+No orphan pages. Every page must have a valid parent_id (except the root).
 
-STEP 5 — ITEMISE COMPONENT INVENTORY
-For each screen list every atomic UI element required to fulfil the PRD features.
-Use quantified language: "2x Text Input Field", "1x Primary CTA Button".
-Be exhaustive — include navigation bars, empty states, error messages, loaders
-if the screen logically requires them."""
-
-    user_prompt = f"""Analyse the following PRD and generate the full
-InformationArchitectureBlueprint. Every page in the application must appear.
-No orphan pages. No missing parent_id links.
-
-PRD:
+PRD (JSON):
 {json.dumps(prd_data, indent=2)}"""
 
     try:
-        structured_llm = get_llm(max_tokens=4096).with_structured_output(
+        structured_llm = get_llm(max_tokens=8192).with_structured_output(
             InformationArchitectureBlueprint
         )
         blueprint: InformationArchitectureBlueprint = structured_llm.invoke([
