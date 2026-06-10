@@ -4,8 +4,6 @@ import { PRDStage } from "./prd-stage";
 import { IAStage } from "./ia-stage";
 import { UserFlowStage } from "./user-flow-stage";
 import { UXLayoutStage } from "./ux-layout-stage";
-import { CopyStage } from "./copy-stage";
-import { LayoutStage } from "./layout-stage";
 import { RenderStage } from "./render-stage";
 
 interface PipelineContainerProps {
@@ -30,10 +28,6 @@ export function PipelineContainer({ stages }: PipelineContainerProps) {
                 return <UserFlowStage key={stage.id} stage={stage} />;
               case "ux_layout_node":
                 return <UXLayoutStage key={stage.id} stage={stage} />;
-              case "copy_node":
-                return <CopyStage key={stage.id} stage={stage} />;
-              case "layout_node":
-                return <LayoutStage key={stage.id} stage={stage} />;
               case "render_node":
                 return <RenderStage key={stage.id} stage={stage} allStages={stages} />;
               default:

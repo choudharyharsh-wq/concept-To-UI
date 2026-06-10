@@ -15,9 +15,7 @@ const INITIAL_STAGES: PipelineStage[] = [
   { id: "prd_node",       name: "Product Requirements Document", status: "pending", data: null },
   { id: "ia_node",        name: "Information Architecture Map",  status: "pending", data: null },
   { id: "user_flow_node", name: "User Flow Builder",             status: "pending", data: null },
-  { id: "ux_layout_node", name: "UX Layout Planner",            status: "pending", data: null },
-  { id: "copy_node",      name: "UX Copywriting Engine",         status: "pending", data: null },
-  { id: "layout_node",    name: "Layout Logic Selector",         status: "pending", data: null },
+  { id: "ux_layout_node", name: "UX Layout Planner",             status: "pending", data: null },
   { id: "render_node",    name: "Figma Canvas Renderer",         status: "pending", data: null },
 ];
 
@@ -192,21 +190,6 @@ const MOCK_DATA = {
       },
     ],
   },
-  copy_node: {
-    copy_map: [
-      { key: "Hero Header", value: "Good Boy deserves a Good Day!" },
-      { key: "Primary Button", value: "Log Today's Walk" },
-      { key: "Success Message", value: "You're on a 5-day streak! 🐾" }
-    ]
-  },
-  layout_node: {
-    components: [
-      "Global Navigation Bar (sticky-top, variant: absolute-dark)",
-      "Metric Dashboard Card Component (3x Grid Layout)",
-      "Floating Action Input Button (bottom-right positioning)",
-      "Progress Radial Chart (Pet Health Overlay)"
-    ]
-  },
   render_node: {
     logs: [
       "[SYS] Connecting to Remote Figma MCP Server...",
@@ -228,8 +211,6 @@ const NODE_DATA_KEY: Record<string, string> = {
   ia_node:        "ia_data",
   user_flow_node: "user_flow_data",
   ux_layout_node: "ux_layout_data",
-  copy_node:      "copy_data",
-  layout_node:    "layout_data",
   render_node:    "render_data",
 };
 

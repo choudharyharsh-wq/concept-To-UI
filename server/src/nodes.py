@@ -482,58 +482,6 @@ PRD UX Directives (visual posture and tone):
         }
 
 
-def copy_node(state: GraphState):
-    """Drafts user interface copy."""
-    print("--- Executing Copy Node ---")
-    ia_data = state["ia_data"]
-
-    prompt = f"""Based on the following screen map, generate key UI copy (headers, buttons, labels, etc.).
-Screens: {json.dumps(ia_data)}
-
-Return ONLY a raw JSON object — no markdown fences, no prose:
-{{
-    "copy_map": [
-        {{ "key": "Element Name", "value": "Exact UI Text" }}
-    ]
-}}"""
-
-    response = get_llm().invoke([HumanMessage(content=prompt)])
-    try:
-        copy_data = parse_json(extract_text(response))
-        return {
-            "copy_data": copy_data,
-            "logs": ["[SYS] UI copy drafted."]
-        }
-    except Exception as e:
-        return {
-            "errors": [f"Error in Copy node: {str(e)}"],
-            "logs": [f"[ERR] Copywriting failed: {str(e)}"]
-        }
-
-
-def layout_node(state: GraphState):
-    """Binds layout logic to design system primitives."""
-    print("--- Executing Layout Node ---")
-
-    prompt = f"""Suggest design system components for these screens: {json.dumps(state['ia_data'])}
-
-Return ONLY a raw JSON object — no markdown fences, no prose:
-{{"components": ["component description 1", "component description 2", "component description 3", "component description 4"]}}"""
-
-    response = get_llm().invoke([HumanMessage(content=prompt)])
-    try:
-        layout_data = parse_json(extract_text(response))
-        return {
-            "layout_data": layout_data,
-            "logs": ["[SYS] Layout logic bound."]
-        }
-    except Exception as e:
-        return {
-            "layout_data": {"components": ["Global Nav", "Main Hero", "Action Button", "Footer"]},
-            "logs": [f"[SYS] Layout logic bound (fallback defaults). Parse error: {str(e)}"]
-        }
-
-
 def render_node(state: GraphState):
     """Simulates Figma Canvas rendering."""
     print("--- Executing Render Node ---")

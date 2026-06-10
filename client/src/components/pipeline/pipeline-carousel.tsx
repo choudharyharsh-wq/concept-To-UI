@@ -7,8 +7,6 @@ import { PRDStage } from "./prd-stage";
 import { IAStage } from "./ia-stage";
 import { UserFlowStage } from "./user-flow-stage";
 import { UXLayoutStage } from "./ux-layout-stage";
-import { CopyStage } from "./copy-stage";
-import { LayoutStage } from "./layout-stage";
 import { RenderStage } from "./render-stage";
 import { cn } from "@/lib/utils";
 
@@ -21,8 +19,6 @@ const STAGE_LABELS: Record<string, string> = {
   ia_node:        "IA Map",
   user_flow_node: "Flows",
   ux_layout_node: "UX Plan",
-  copy_node:      "Copy",
-  layout_node:    "Layout",
   render_node:    "Render",
 };
 
@@ -120,8 +116,6 @@ export function PipelineCarousel({ stages }: PipelineCarouselProps) {
               {stage.id === "ia_node"        && <IAStage stage={stage} />}
               {stage.id === "user_flow_node"  && <UserFlowStage stage={stage} />}
               {stage.id === "ux_layout_node"  && <UXLayoutStage stage={stage} />}
-              {stage.id === "copy_node"   && <CopyStage stage={stage} />}
-              {stage.id === "layout_node" && <LayoutStage stage={stage} />}
               {stage.id === "render_node" && <RenderStage stage={stage} allStages={stages} />}
 
               {/* Bottom padding so content clears the nav buttons */}

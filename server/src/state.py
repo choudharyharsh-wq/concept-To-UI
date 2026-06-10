@@ -11,8 +11,6 @@ class GraphState(TypedDict):
     ia_data: Dict[str, Any]
     user_flow_data: Dict[str, Any]
     ux_layout_data: Dict[str, Any]
-    copy_data: Dict[str, Any]
-    layout_data: Dict[str, Any]
     render_data: Dict[str, Any]
     logs: Annotated[List[str], operator.add]
     errors: List[str]
