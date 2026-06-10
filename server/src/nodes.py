@@ -457,22 +457,48 @@ User Flows (for cross-referencing primary actions):
 PRD UX Directives (visual posture and tone):
 {json.dumps(prd_data.get("ux_anchor_directives", {}), indent=2)}"""
 
+    BATCH_SIZE = 4
+    all_screen_layouts: List[ScreenLayoutPlan] = []
+
     try:
         structured_llm = get_llm(max_tokens=8192).with_structured_output(
             MasterUXLayoutCollection
         )
-        collection: MasterUXLayoutCollection = structured_llm.invoke([
-            SystemMessage(content=system_prompt),
-            HumanMessage(content=user_prompt),
-        ])
 
-        ux_layout_data = collection.model_dump()
+        for i in range(0, len(pages), BATCH_SIZE):
+            batch_pages = pages[i:i + BATCH_SIZE]
+            batch_page_ids = [p["id"] for p in batch_pages]
+            batch_flow_critical = [pid for pid in batch_page_ids if pid in flow_critical_ids]
+
+            batch_user_prompt = f"""Generate a ScreenLayoutPlan for each of these pages (batch {i // BATCH_SIZE + 1}):
+{json.dumps(batch_page_ids, indent=2)}
+
+Flow-critical page IDs (STRATEGY A):
+{json.dumps(batch_flow_critical, indent=2)}
+
+Full IA for this batch (pages with component_inventory):
+{json.dumps(batch_pages, indent=2)}
+
+User Flows (for cross-referencing primary actions):
+{json.dumps(user_flow_data, indent=2)}
+
+PRD UX Directives (visual posture and tone):
+{json.dumps(prd_data.get("ux_anchor_directives", {}), indent=2)}"""
+
+            collection: MasterUXLayoutCollection = structured_llm.invoke([
+                SystemMessage(content=system_prompt),
+                HumanMessage(content=batch_user_prompt),
+            ])
+            all_screen_layouts.extend(collection.screen_layouts)
+
+        master = MasterUXLayoutCollection(screen_layouts=all_screen_layouts)
+        ux_layout_data = master.model_dump()
 
         return {
             "ux_layout_data": ux_layout_data,
             "logs": [
                 f"[SYS] UX Layout Planner complete — "
-                f"{len(collection.screen_layouts)} screen blueprints generated."
+                f"{len(all_screen_layouts)} screen blueprints generated."
             ]
         }
     except Exception as e:
