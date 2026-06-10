@@ -12,11 +12,12 @@ export interface PipelineStage {
 }
 
 const INITIAL_STAGES: PipelineStage[] = [
-  { id: "prd_node",       name: "Product Requirements Document", status: "pending", data: null },
-  { id: "ia_node",        name: "Information Architecture Map",  status: "pending", data: null },
-  { id: "user_flow_node", name: "User Flow Builder",             status: "pending", data: null },
-  { id: "ux_layout_node", name: "UX Layout Planner",             status: "pending", data: null },
-  { id: "render_node",    name: "Figma Canvas Renderer",         status: "pending", data: null },
+  { id: "prd_node",                name: "Product Requirements Document", status: "pending", data: null },
+  { id: "ia_node",                 name: "Information Architecture Map",  status: "pending", data: null },
+  { id: "user_flow_node",          name: "User Flow Builder",             status: "pending", data: null },
+  { id: "ux_layout_node",          name: "UX Layout Planner",             status: "pending", data: null },
+  { id: "wireframe_compiler_node", name: "Wireframe Compiler",            status: "pending", data: null },
+  { id: "render_node",             name: "Figma Canvas Renderer",         status: "pending", data: null },
 ];
 
 const MOCK_DATA = {
@@ -207,11 +208,12 @@ const BACKEND_URL = "http://localhost:8000";
 
 // Maps each node name to the key inside the backend payload that holds its content.
 const NODE_DATA_KEY: Record<string, string> = {
-  prd_node:       "prd_data",
-  ia_node:        "ia_data",
-  user_flow_node: "user_flow_data",
-  ux_layout_node: "ux_layout_data",
-  render_node:    "render_data",
+  prd_node:                "prd_data",
+  ia_node:                 "ia_data",
+  user_flow_node:          "user_flow_data",
+  ux_layout_node:          "ux_layout_data",
+  wireframe_compiler_node: "wireframe_payload",
+  render_node:             "render_data",
 };
 
 const STAGE_ORDER = INITIAL_STAGES.map((s) => s.id);

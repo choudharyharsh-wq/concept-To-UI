@@ -508,20 +508,178 @@ PRD UX Directives (visual posture and tone):
         }
 
 
+# ── Wireframe Compiler schemas ────────────────────────────────────────────────
+
+# Closed vocabulary of generic UI primitives the LLM is allowed to output.
+# The Figma plugin maps each type to the appropriate Figma API calls.
+ALLOWED_ELEMENT_TYPES = [
+    "FRAME", "NAV_BAR", "BOTTOM_TAB_BAR", "BUTTON", "FAB",
+    "INPUT_FIELD", "CARD", "LIST_ITEM", "TEXT_HEADING", "TEXT_BODY",
+    "IMAGE_PLACEHOLDER", "DIVIDER", "ICON_BUTTON", "BADGE", "MODAL_OVERLAY",
+]
+
+class ElementSpec(BaseModel):
+    id: str = Field(description="Unique element id within the screen, e.g. 'btn_login'")
+    type: str = Field(description=f"Must be one of: {', '.join(ALLOWED_ELEMENT_TYPES)}")
+    label: str = Field(description="Visible text or aria-label for the element")
+    x: int = Field(description="Left offset in pixels from screen origin")
+    y: int = Field(description="Top offset in pixels from screen origin")
+    width: int = Field(description="Width in pixels")
+    height: int = Field(description="Height in pixels")
+    fill_color: str = Field(description="Hex fill colour, e.g. '#1A1A2E'")
+    text_color: str = Field(description="Hex text colour, e.g. '#FFFFFF'")
+    corner_radius: int = Field(default=0, description="Corner radius in pixels")
+    font_size: int = Field(default=14, description="Font size in pixels")
+    font_weight: Literal["Regular", "Medium", "SemiBold", "Bold"] = Field(default="Regular")
+    children: List[str] = Field(default_factory=list, description="ids of direct child elements nested inside this element")
+    zone_id: str = Field(default="", description="The spatial_zone this element belongs to")
+
+class ScreenWireframe(BaseModel):
+    screen_id: str = Field(description="Must match the page id from the IA")
+    screen_name: str = Field(description="Human-readable screen name")
+    width: int = Field(default=390, description="Canvas width in pixels (390 = mobile, 1440 = desktop)")
+    height: int = Field(default=844, description="Canvas height in pixels")
+    background_color: str = Field(default="#FFFFFF")
+    elements: List[ElementSpec] = Field(description="All UI elements on this screen, ordered back-to-front")
+
+class WireframePayloadCollection(BaseModel):
+    screens: List[ScreenWireframe] = Field(description="One ScreenWireframe per screen from the IA")
+
+
+def wireframe_compiler_node(state: GraphState):
+    """
+    Converts ux_layout_data spatial zones into a concrete pixel-positioned
+    element tree for every screen. Output is the render payload consumed by
+    the Figma plugin via the bridge server.
+    """
+    print("--- Executing Wireframe Compiler Node ---")
+
+    ia_data        = state["ia_data"]
+    ux_layout_data = state["ux_layout_data"]
+    prd_data       = state["prd_data"]
+
+    pages          = ia_data.get("pages", [])
+    screen_layouts = ux_layout_data.get("screen_layouts", [])
+
+    system_prompt = f"""You are a Wireframe Compiler. Your job is to translate spatial layout blueprints
+into concrete, pixel-precise UI element trees that a Figma plugin can render directly.
+
+ALLOWED ELEMENT TYPES (you may ONLY use these):
+{json.dumps(ALLOWED_ELEMENT_TYPES, indent=2)}
+
+RULES:
+1. Every element must have a unique `id` within its screen (snake_case, e.g. "nav_bar_main").
+2. `type` must be exactly one value from the allowed list above — no custom types.
+3. Coordinates are absolute pixels from the top-left corner of the screen canvas.
+4. Parent FRAME elements should have children[] listing child element ids.
+5. Non-container elements (BUTTON, TEXT_HEADING, etc.) should have empty children[].
+6. Use mobile canvas 390×844 unless the IA layout_pattern suggests desktop (then 1440×900).
+7. Produce a complete, non-overlapping layout — elements should not exceed screen bounds.
+8. `zone_id` must match a zone_id from the corresponding ScreenLayoutPlan.
+9. Fill colors should reflect a coherent visual hierarchy: primary actions get brand color, backgrounds get neutral.
+10. Every screen must have at least one NAV_BAR or BOTTOM_TAB_BAR unless it is a modal/onboarding screen."""
+
+    user_prompt = f"""Compile a ScreenWireframe for every screen listed below.
+
+IA Pages (component_inventory tells you what elements to include):
+{json.dumps(pages, indent=2)}
+
+UX Layout Plans (spatial_zones and rendering_sequence tell you how to arrange them):
+{json.dumps(screen_layouts, indent=2)}
+
+PRD UX Directives (visual tone, brand colors):
+{json.dumps(prd_data.get("ux_anchor_directives", {}), indent=2)}
+
+Output one WireframePayloadCollection containing all screens."""
+
+    BATCH_SIZE = 3
+    all_screens: List[ScreenWireframe] = []
+
+    try:
+        structured_llm = get_llm(max_tokens=8192).with_structured_output(WireframePayloadCollection)
+
+        for i in range(0, len(pages), BATCH_SIZE):
+            batch_pages = pages[i:i + BATCH_SIZE]
+            batch_ids   = [p["id"] for p in batch_pages]
+            batch_layouts = [sl for sl in screen_layouts if sl.get("page_id") in batch_ids]
+
+            batch_prompt = f"""Compile a ScreenWireframe for these screens only (batch {i // BATCH_SIZE + 1}):
+{json.dumps(batch_ids, indent=2)}
+
+IA Pages (this batch):
+{json.dumps(batch_pages, indent=2)}
+
+UX Layout Plans (this batch):
+{json.dumps(batch_layouts, indent=2)}
+
+PRD UX Directives:
+{json.dumps(prd_data.get("ux_anchor_directives", {}), indent=2)}"""
+
+            collection: WireframePayloadCollection = structured_llm.invoke([
+                SystemMessage(content=system_prompt),
+                HumanMessage(content=batch_prompt),
+            ])
+            all_screens.extend(collection.screens)
+
+        payload = WireframePayloadCollection(screens=all_screens)
+        payload_dict = payload.model_dump()
+
+        return {
+            "wireframe_payload": payload_dict,
+            "logs": [f"[SYS] Wireframe Compiler complete — {len(all_screens)} screens compiled."]
+        }
+    except Exception as e:
+        return {
+            "errors": [f"Error in Wireframe Compiler node: {str(e)}"],
+            "logs":   [f"[ERR] Wireframe compilation failed: {str(e)}"]
+        }
+
+
 def render_node(state: GraphState):
-    """Simulates Figma Canvas rendering."""
+    """
+    Pushes the compiled wireframe payload to the bridge server so the
+    Figma plugin can pick it up and render it onto the canvas.
+    """
+    import requests as req
     print("--- Executing Render Node ---")
-    figma_url = state["figma_url"]
 
-    logs = [
-        "[SYS] Connecting to Remote Figma MCP Server...",
-        f"[MCP] use_figma tool active: accessing canvas {figma_url}",
-        "[MCP] use_figma node created: Frame \"Main View\" [w:1440, h:1024]",
-        "[MCP] Injecting layout tokens and components...",
-        "[SUCCESS] Render Completed."
-    ]
+    wireframe_payload = state.get("wireframe_payload", {})
+    figma_url         = state.get("figma_url", "")
+    screen_count      = len(wireframe_payload.get("screens", []))
 
-    return {
-        "render_data": {"figma_url": figma_url, "status": "success"},
-        "logs": logs
-    }
+    bridge_url = "http://localhost:5001/payload"
+
+    logs = [f"[SYS] Render node starting — {screen_count} screens to push to bridge."]
+
+    try:
+        response = req.post(bridge_url, json=wireframe_payload, timeout=10)
+        response.raise_for_status()
+        logs += [
+            f"[BRIDGE] Payload delivered to bridge server (HTTP {response.status_code}).",
+            f"[BRIDGE] {screen_count} screen frames queued for Figma plugin.",
+            "[SYS] Open the Figma plugin and click 'Fetch & Render' to draw wireframes.",
+            "[SUCCESS] Render payload ready.",
+        ]
+        return {
+            "render_data": {
+                "figma_url": figma_url,
+                "status": "payload_delivered",
+                "screen_count": screen_count,
+                "bridge_url": bridge_url,
+            },
+            "logs": logs,
+        }
+    except Exception as e:
+        logs += [
+            f"[WARN] Bridge server unreachable: {str(e)}",
+            "[WARN] Start bridge with: python bridge.py",
+            "[INFO] Wireframe payload is still available in state (wireframe_payload).",
+        ]
+        return {
+            "render_data": {
+                "figma_url": figma_url,
+                "status": "bridge_offline",
+                "screen_count": screen_count,
+            },
+            "logs": logs,
+        }

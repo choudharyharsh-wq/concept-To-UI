@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Concept-to-UI Renderer</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #1a1a1a;
+      color: #e0e0e0;
+      padding: 16px;
+      font-size: 12px;
+    }
+    h2 { font-size: 14px; font-weight: 600; margin-bottom: 12px; color: #fff; }
+    .status-box {
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      font-family: monospace;
+      font-size: 11px;
+      min-height: 60px;
+      max-height: 140px;
+      overflow-y: auto;
+      color: #aaa;
+    }
+    .log-line { margin-bottom: 3px; }
+    .log-line.success { color: #4ade80; }
+    .log-line.error   { color: #f87171; }
+    .log-line.info    { color: #60a5fa; }
+    button {
+      width: 100%;
+      padding: 9px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    #fetchBtn  { background: #3b82f6; color: #fff; }
+    #fetchBtn:hover { background: #2563eb; }
+    #fetchBtn:disabled { background: #374151; color: #6b7280; cursor: default; }
+    #clearBtn  { background: #27272a; color: #a1a1aa; }
+    #clearBtn:hover { background: #3f3f46; }
+    .pill {
+      display: inline-block;
+      background: #27272a;
+      border: 1px solid #3f3f46;
+      border-radius: 99px;
+      padding: 2px 8px;
+      font-size: 10px;
+      color: #71717a;
+      margin-bottom: 12px;
+    }
+    .pill span { color: #a1a1aa; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <h2>Concept-to-UI Renderer</h2>
+  <div class="pill">Bridge: <span>localhost:5001</span></div>
+
+  <div class="status-box" id="logBox">
+    <div class="log-line">Waiting for action…</div>
+  </div>
+
+  <button id="fetchBtn">Fetch &amp; Render Wireframes</button>
+  <button id="clearBtn">Clear Canvas Selection</button>
+
+  <script>
+    const BRIDGE = "http://localhost:5001/payload";
+    const logBox = document.getElementById("logBox");
+    const fetchBtn = document.getElementById("fetchBtn");
+
+    function log(msg, type = "") {
+      const div = document.createElement("div");
+      div.className = "log-line" + (type ? " " + type : "");
+      div.textContent = msg;
+      logBox.appendChild(div);
+      logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    function clearLog() {
+      logBox.innerHTML = "";
+    }
+
+    fetchBtn.addEventListener("click", async () => {
+      fetchBtn.disabled = true;
+      clearLog();
+      log("[UI] Fetching payload from bridge…");
+
+      try {
+        const res = await fetch(BRIDGE);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const payload = await res.json();
+        const count = payload.screens?.length ?? 0;
+
+        if (count === 0) {
+          log("[WARN] Bridge returned 0 screens. Run the pipeline first.", "error");
+          fetchBtn.disabled = false;
+          return;
+        }
+
+        log(`[UI] Got ${count} screen(s) — sending to plugin sandbox…`, "info");
+        parent.postMessage({ pluginMessage: { type: "RENDER", payload } }, "*");
+      } catch (e) {
+        log(`[ERROR] ${e.message}`, "error");
+        log("[HINT] Make sure bridge.py is running on port 5001.", "error");
+        fetchBtn.disabled = false;
+      }
+    });
+
+    document.getElementById("clearBtn").addEventListener("click", () => {
+      parent.postMessage({ pluginMessage: { type: "CLEAR" } }, "*");
+      clearLog();
+      log("[UI] Sent clear command.");
+    });
+
+    // Receive messages back from the plugin sandbox
+    window.onmessage = (event) => {
+      const msg = event.data?.pluginMessage;
+      if (!msg) return;
+      if (msg.type === "LOG")     log(msg.text, msg.level || "");
+      if (msg.type === "DONE")  { log(`[SUCCESS] ${msg.text}`, "success"); fetchBtn.disabled = false; }
+      if (msg.type === "ERROR") { log(`[ERROR] ${msg.text}`, "error");   fetchBtn.disabled = false; }
+    };
+  </script>
+</body>
+</html>

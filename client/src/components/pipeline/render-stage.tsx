@@ -5,135 +5,135 @@ import { CheckCircle2, Loader2, ExternalLink, Monitor, MousePointer, Type, Squar
 import { PipelineStage } from "@/hooks/use-generation-stream";
 import { cn } from "@/lib/utils";
 
-// ─── Types mirroring backend output shapes ───────────────────────────────────
+// ─── Types mirroring wireframe_payload schema ─────────────────────────────────
 
-interface Screen { name: string; description: string; }
-interface CopyItem { key: string; value: string; }
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function screenLabel(name: string) {
-  const parts = name.split(".");
-  return { num: parts[0]?.trim(), title: parts.slice(1).join(".").trim() || name };
+interface ElementSpec {
+  id: string;
+  type: string;
+  label: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  fill_color: string;
+  text_color: string;
+  corner_radius?: number;
+  font_size?: number;
+  children?: string[];
+  zone_id?: string;
 }
 
-function copyForScreen(title: string, copyMap: CopyItem[]): CopyItem[] {
-  const lower = title.toLowerCase();
-  return copyMap.filter(c =>
-    c.key.toLowerCase().includes(lower) ||
-    lower.includes(c.key.toLowerCase().split(" ")[0])
-  );
+interface ScreenWireframe {
+  screen_id: string;
+  screen_name: string;
+  width: number;
+  height: number;
+  background_color: string;
+  elements: ElementSpec[];
 }
 
-// Map a component description to a simple icon + colour tag
-function componentChip(comp: string, i: number) {
-  const lower = comp.toLowerCase();
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function elementChip(type: string, i: number) {
   const variants = [
-    { match: ["nav", "header", "menu"], icon: Monitor, color: "text-blue-400 border-blue-800 bg-blue-950/40" },
-    { match: ["button", "cta", "action", "floating"], icon: MousePointer, color: "text-emerald-400 border-emerald-800 bg-emerald-950/40" },
-    { match: ["card", "dashboard", "metric", "chart"], icon: Square, color: "text-violet-400 border-violet-800 bg-violet-950/40" },
-    { match: ["text", "copy", "label", "input", "form"], icon: Type, color: "text-amber-400 border-amber-800 bg-amber-950/40" },
+    { match: ["NAV_BAR", "BOTTOM_TAB_BAR"], icon: Monitor,      color: "text-blue-400 border-blue-800 bg-blue-950/40" },
+    { match: ["BUTTON", "FAB", "ICON_BUTTON"], icon: MousePointer, color: "text-emerald-400 border-emerald-800 bg-emerald-950/40" },
+    { match: ["CARD", "FRAME", "MODAL_OVERLAY"], icon: Square,   color: "text-violet-400 border-violet-800 bg-violet-950/40" },
+    { match: ["TEXT_HEADING", "TEXT_BODY", "INPUT_FIELD", "BADGE", "DIVIDER", "LIST_ITEM", "IMAGE_PLACEHOLDER"], icon: Type, color: "text-amber-400 border-amber-800 bg-amber-950/40" },
   ];
-  const v = variants.find(v => v.match.some(m => lower.includes(m))) ?? variants[i % variants.length];
+  const v = variants.find(v => v.match.includes(type)) ?? variants[i % variants.length];
   return { icon: v.icon, color: v.color };
 }
 
-// ─── Single screen wireframe card ────────────────────────────────────────────
+// ─── Mini pixel-preview of a screen ──────────────────────────────────────────
 
-function ScreenWireframe({
-  screen,
-  index,
-  copyMap,
-  components,
-}: {
-  screen: Screen;
-  index: number;
-  copyMap: CopyItem[];
-  components: string[];
-}) {
-  const { num, title } = screenLabel(screen.name);
-  const relevantCopy = copyForScreen(title, copyMap);
-  // Show at most 2 copy items inline, fall back to first 2 from the map
-  const displayCopy = relevantCopy.length ? relevantCopy.slice(0, 2) : copyMap.slice(0, 2);
+function ScreenPreview({ screen }: { screen: ScreenWireframe }) {
+  const PREVIEW_W = 120;
+  const PREVIEW_H = 220;
+  const scaleX = PREVIEW_W / (screen.width || 390);
+  const scaleY = PREVIEW_H / (screen.height || 844);
+
+  // Only render top-level elements (not children of other elements)
+  const childIds = new Set(screen.elements.flatMap(e => e.children ?? []));
+  const topLevel = screen.elements.filter(e => !childIds.has(e.id));
 
   return (
-    <div className="shrink-0 w-64 bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden flex flex-col">
+    <div
+      className="shrink-0 rounded-lg overflow-hidden border border-zinc-700/50"
+      style={{ width: PREVIEW_W, height: PREVIEW_H, background: screen.background_color || "#fff", position: "relative" }}
+    >
+      {topLevel.map((el) => {
+        const { color } = elementChip(el.type, 0);
+        const bgClass =
+          el.type.includes("NAV") || el.type.includes("TAB") ? "bg-blue-900/60" :
+          el.type.includes("BUTTON") || el.type.includes("FAB") ? "bg-emerald-900/60" :
+          el.type.includes("CARD") || el.type.includes("FRAME") ? "bg-violet-900/40" :
+          "bg-zinc-700/40";
+        return (
+          <div
+            key={el.id}
+            title={`${el.type}: ${el.label}`}
+            className={cn("absolute border border-white/10 overflow-hidden", bgClass)}
+            style={{
+              left:   el.x * scaleX,
+              top:    el.y * scaleY,
+              width:  Math.max(4, el.width * scaleX),
+              height: Math.max(3, el.height * scaleY),
+              borderRadius: (el.corner_radius ?? 0) * Math.min(scaleX, scaleY),
+            }}
+          />
+        );
+      })}
+    </div>
+  );
+}
 
-      {/* Screen chrome — browser-like top bar */}
+// ─── Single screen card ───────────────────────────────────────────────────────
+
+function ScreenCard({ screen, index }: { screen: ScreenWireframe; index: number }) {
+  // Group elements by type for the chip list
+  const typeGroups = Array.from(new Set(screen.elements.map(e => e.type))).slice(0, 4);
+
+  return (
+    <div className="shrink-0 w-52 bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden flex flex-col">
+
+      {/* Screen chrome */}
       <div className="bg-zinc-800/80 px-3 py-2 flex items-center gap-2 border-b border-zinc-700/60">
         <div className="flex gap-1">
-          <span className="w-2 h-2 rounded-full bg-zinc-600" />
-          <span className="w-2 h-2 rounded-full bg-zinc-600" />
-          <span className="w-2 h-2 rounded-full bg-zinc-600" />
+          {[0,1,2].map(i => <span key={i} className="w-2 h-2 rounded-full bg-zinc-600" />)}
         </div>
         <div className="flex-1 bg-zinc-700/50 rounded text-[9px] font-mono text-zinc-500 px-2 py-0.5 truncate">
-          /{title.toLowerCase().replace(/\s+/g, "-")}
+          /{screen.screen_id}
         </div>
       </div>
 
-      {/* Screen body */}
-      <div className="flex-1 p-3 space-y-2">
-
-        {/* Screen number + title */}
-        <div className="flex items-baseline gap-2 mb-3">
-          <span className="font-mono text-[10px] text-zinc-600">{num}</span>
-          <span className="text-xs font-semibold text-zinc-200 truncate">{title}</span>
+      {/* Body */}
+      <div className="flex-1 p-3 space-y-2.5">
+        <div className="flex items-baseline gap-1.5">
+          <span className="font-mono text-[9px] text-zinc-600">{index + 1}</span>
+          <span className="text-xs font-semibold text-zinc-200 truncate">{screen.screen_name}</span>
         </div>
 
-        {/* Nav bar wireframe */}
-        <div className="h-5 bg-zinc-800 rounded flex items-center px-2 gap-1.5">
-          <div className="w-8 h-1.5 bg-zinc-600 rounded-full" />
-          <div className="flex-1" />
-          <div className="w-4 h-1.5 bg-zinc-700 rounded-full" />
-          <div className="w-4 h-1.5 bg-zinc-700 rounded-full" />
-        </div>
+        {/* Pixel preview */}
+        <ScreenPreview screen={screen} />
 
-        {/* Hero / main content area */}
-        <div className="bg-zinc-800/50 border border-zinc-700/40 rounded-lg p-2.5 space-y-1.5">
-          {/* Hero text from copy */}
-          {displayCopy[0] && (
-            <div className="space-y-0.5">
-              <p className="text-[8px] font-mono text-zinc-600 uppercase tracking-wider">{displayCopy[0].key}</p>
-              <p className="text-[10px] text-zinc-300 font-medium leading-tight line-clamp-2">{displayCopy[0].value}</p>
-            </div>
-          )}
-
-          {/* Second copy item */}
-          {displayCopy[1] && (
-            <div className="space-y-0.5">
-              <p className="text-[8px] font-mono text-zinc-600 uppercase tracking-wider">{displayCopy[1].key}</p>
-              <p className="text-[10px] text-zinc-400 leading-tight line-clamp-1">{displayCopy[1].value}</p>
-            </div>
-          )}
-
-          {/* Placeholder content blocks */}
-          <div className="space-y-1 pt-1">
-            <div className="h-1 bg-zinc-700 rounded-full w-full" />
-            <div className="h-1 bg-zinc-700 rounded-full w-4/5" />
-            <div className="h-1 bg-zinc-700 rounded-full w-3/5" />
-          </div>
-        </div>
-
-        {/* Component chips */}
-        <div className="space-y-1">
-          {components.slice(0, 3).map((comp, i) => {
-            const { icon: Icon, color } = componentChip(comp, i);
-            const label = comp.split("(")[0].trim();
+        {/* Element type chips */}
+        <div className="space-y-1 pt-0.5">
+          {typeGroups.map((type, i) => {
+            const { icon: Icon, color } = elementChip(type, i);
+            const count = screen.elements.filter(e => e.type === type).length;
             return (
-              <div
-                key={i}
-                className={cn("flex items-center gap-1.5 border rounded px-2 py-1 text-[9px] font-mono", color)}
-              >
+              <div key={type} className={cn("flex items-center gap-1.5 border rounded px-2 py-0.5 text-[9px] font-mono", color)}>
                 <Icon size={9} />
-                <span className="truncate">{label}</span>
+                <span className="truncate">{type}</span>
+                <span className="ml-auto opacity-60">×{count}</span>
               </div>
             );
           })}
         </div>
 
-        {/* Screen description */}
-        <p className="text-[9px] text-zinc-600 leading-relaxed border-t border-zinc-800 pt-1.5 mt-1">
-          {screen.description}
+        <p className="text-[9px] text-zinc-600 font-mono">
+          {screen.elements.length} elements · {screen.width}×{screen.height}
         </p>
       </div>
     </div>
@@ -150,34 +150,32 @@ interface RenderStageProps {
 export function RenderStage({ stage, allStages }: RenderStageProps) {
   const [logs, setLogs] = useState<string[]>([]);
   const terminalRef = useRef<HTMLDivElement>(null);
-  const isActive = stage.status === "active";
+  const isActive    = stage.status === "active";
   const isCompleted = stage.status === "completed";
 
-  // Pull data from sibling stages
-  const iaStage    = allStages.find(s => s.id === "ia_node");
-  const copyStage  = allStages.find(s => s.id === "copy_node");
-  const layoutStage = allStages.find(s => s.id === "layout_node");
+  // Pull compiled wireframe screens from the compiler stage
+  const compilerStage = allStages.find(s => s.id === "wireframe_compiler_node");
+  const screens: ScreenWireframe[] = compilerStage?.data?.screens ?? [];
 
-  const screens: Screen[]      = iaStage?.data?.screens ?? [];
-  const copyMap: CopyItem[]    = copyStage?.data?.copy_map ?? [];
-  const components: string[]   = layoutStage?.data?.components ?? [];
+  const renderStatus: string  = stage.data?.status ?? "";
+  const figmaUrl:     string  = stage.data?.figma_url ?? "";
+  const bridgeOffline: boolean = renderStatus === "bridge_offline";
 
-  // Stream logs while active
+  // Stream logs while active, show real logs when completed
   useEffect(() => {
     if (isActive) {
       const fullLogs = [
-        "[SYS] Connecting to Remote Figma MCP Server...",
-        "[MCP] use_figma tool active: creating canvas viewport 'Draft-Run-01'",
-        `[MCP] use_figma node created: ${screens.length} screens queued [w:1440, h:1024]`,
-        "[MCP] Injecting layout token: var(--color-brand-primary)",
-        "[MCP] Instantiating native component: Button/Primary",
-        "[SUCCESS] Render Completed.",
+        "[SYS] Render node starting…",
+        `[SYS] ${screens.length} compiled screen(s) queued.`,
+        "[BRIDGE] Connecting to bridge server on port 5001…",
+        "[BRIDGE] Delivering wireframe payload…",
+        "[SYS] Open the Figma plugin and click 'Fetch & Render'.",
       ];
       let idx = 0;
       const interval = setInterval(() => {
-        if (idx < fullLogs.length) { setLogs(prev => [...prev, fullLogs[idx++]]); }
-        else { clearInterval(interval); }
-      }, 700);
+        if (idx < fullLogs.length) setLogs(prev => [...prev, fullLogs[idx++]]);
+        else clearInterval(interval);
+      }, 600);
       return () => clearInterval(interval);
     } else if (isCompleted && stage.data?.logs) {
       setLogs(stage.data.logs);
@@ -193,13 +191,17 @@ export function RenderStage({ stage, allStages }: RenderStageProps) {
 
   return (
     <div className="relative pl-14">
-      {/* Stage node icon */}
+      {/* Stage icon */}
       <div className={cn(
         "absolute left-0 top-0 w-11 h-11 rounded-md flex items-center justify-center border z-10 bg-zinc-950 transition-all duration-500",
         isActive    ? "border-zinc-400 text-zinc-300" :
         isCompleted ? "border-zinc-600 text-zinc-400" : "border-zinc-800 text-zinc-700"
       )}>
-        {isCompleted ? <CheckCircle2 size={18} /> : isActive ? <Loader2 size={18} className="animate-spin" /> : <div className="w-4 h-4 bg-zinc-800 rounded-sm" />}
+        {isCompleted
+          ? <CheckCircle2 size={18} />
+          : isActive
+            ? <Loader2 size={18} className="animate-spin" />
+            : <div className="w-4 h-4 bg-zinc-800 rounded-sm" />}
       </div>
 
       <div className="space-y-4 pt-2">
@@ -213,7 +215,7 @@ export function RenderStage({ stage, allStages }: RenderStageProps) {
         {(isActive || isCompleted) && (
           <div className="space-y-5 animate-in fade-in slide-in-from-top-2 duration-500">
 
-            {/* Terminal log */}
+            {/* Terminal */}
             <div
               ref={terminalRef}
               className="bg-black border border-zinc-800 rounded-lg p-4 font-mono text-xs h-32 overflow-y-auto no-scrollbar"
@@ -222,15 +224,17 @@ export function RenderStage({ stage, allStages }: RenderStageProps) {
                 <div key={i} className={cn(
                   "mb-1 leading-relaxed",
                   log.includes("[SUCCESS]") ? "text-zinc-200 font-semibold" :
+                  log.includes("[WARN]")    ? "text-amber-400" :
                   log.includes("[SYS]")     ? "text-zinc-600" :
-                  log.includes("[MCP]")     ? "text-zinc-400" : "text-zinc-500"
+                  log.includes("[BRIDGE]")  ? "text-blue-400" :
+                  log.includes("[ERR]")     ? "text-red-400" : "text-zinc-500"
                 )}>
                   {log}
                 </div>
               ))}
               {isActive && (
                 <div className="flex items-center gap-2 text-zinc-700 text-[10px]">
-                  <span>Rendering canvas</span>
+                  <span>Pushing to bridge</span>
                   <span className="flex gap-0.5">
                     {["-0.3s", "-0.15s", "0s"].map((d, i) => (
                       <span key={i} className="w-1 h-1 bg-zinc-700 rounded-full animate-bounce" style={{ animationDelay: d }} />
@@ -240,26 +244,29 @@ export function RenderStage({ stage, allStages }: RenderStageProps) {
               )}
             </div>
 
-            {/* Wireframe preview — only when completed and we have screen data */}
+            {/* Bridge offline warning */}
+            {isCompleted && bridgeOffline && (
+              <div className="bg-amber-950/30 border border-amber-800/50 rounded-lg p-3 text-[11px] text-amber-300 font-mono space-y-1">
+                <p className="font-semibold">Bridge server offline</p>
+                <p className="text-amber-400/70">Start it with: <code className="bg-amber-950/60 px-1 rounded">python server/bridge.py</code></p>
+                <p className="text-amber-400/70">Then re-run the pipeline or POST the payload manually.</p>
+              </div>
+            )}
+
+            {/* Compiled screen previews */}
             {isCompleted && screens.length > 0 && (
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <Monitor size={12} className="text-zinc-500" />
                   <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">
-                    User Journey Wireframe — {screens.length} screens
+                    Compiled Wireframes — {screens.length} screens
                   </p>
                 </div>
 
-                {/* Horizontal scroll of screen cards */}
                 <div className="flex gap-3 overflow-x-auto pb-3 no-scrollbar">
                   {screens.map((screen, i) => (
-                    <React.Fragment key={i}>
-                      <ScreenWireframe
-                        screen={screen}
-                        index={i}
-                        copyMap={copyMap}
-                        components={components}
-                      />
+                    <React.Fragment key={screen.screen_id}>
+                      <ScreenCard screen={screen} index={i} />
                       {i < screens.length - 1 && (
                         <div className="flex items-center text-zinc-700 shrink-0 self-center">
                           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -271,13 +278,12 @@ export function RenderStage({ stage, allStages }: RenderStageProps) {
                   ))}
                 </div>
 
-                {/* Legend */}
                 <div className="flex flex-wrap gap-3 pt-1 border-t border-zinc-800/60">
                   {[
-                    { color: "bg-blue-500/60", label: "Navigation" },
-                    { color: "bg-violet-500/60", label: "Dashboard Cards" },
-                    { color: "bg-emerald-500/60", label: "CTAs / Buttons" },
-                    { color: "bg-amber-500/60", label: "Text / Forms" },
+                    { color: "bg-blue-500/60",    label: "Nav / Tab Bars" },
+                    { color: "bg-violet-500/60",  label: "Cards / Frames" },
+                    { color: "bg-emerald-500/60", label: "Buttons / FABs" },
+                    { color: "bg-amber-500/60",   label: "Text / Inputs" },
                   ].map(({ color, label }) => (
                     <div key={label} className="flex items-center gap-1.5 text-[9px] font-mono text-zinc-500">
                       <span className={cn("w-2 h-2 rounded-sm", color)} />
@@ -288,10 +294,10 @@ export function RenderStage({ stage, allStages }: RenderStageProps) {
               </div>
             )}
 
-            {/* Open in Figma CTA */}
-            {isCompleted && (
+            {/* Open in Figma CTA — only shown when bridge delivered successfully */}
+            {isCompleted && !bridgeOffline && figmaUrl && (
               <a
-                href={stage.data?.figma_url || "#"}
+                href={figmaUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-100 text-black text-xs font-semibold hover:bg-zinc-200 transition-colors active:scale-[0.98]"
@@ -299,6 +305,16 @@ export function RenderStage({ stage, allStages }: RenderStageProps) {
                 <span>Open in Figma Canvas</span>
                 <ExternalLink size={13} />
               </a>
+            )}
+
+            {/* Plugin instructions when bridge delivered */}
+            {isCompleted && !bridgeOffline && (
+              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-3 text-[11px] text-zinc-400 space-y-1.5 font-mono">
+                <p className="text-zinc-300 font-semibold">Next: render in Figma</p>
+                <p>1. Open Figma → Plugins → <span className="text-zinc-200">Concept-to-UI Renderer</span></p>
+                <p>2. Click <span className="text-zinc-200">Fetch &amp; Render Wireframes</span></p>
+                <p>3. Frames will appear on your canvas automatically.</p>
+              </div>
             )}
           </div>
         )}

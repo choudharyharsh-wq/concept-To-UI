@@ -40,6 +40,7 @@ async def generate_stream(concept: str, figma_url: str):
         "ia_data": {},
         "user_flow_data": {},
         "ux_layout_data": {},
+        "wireframe_payload": {},
         "render_data": {},
         "logs": [],
         "errors": [],

@@ -11,6 +11,7 @@ class GraphState(TypedDict):
     ia_data: Dict[str, Any]
     user_flow_data: Dict[str, Any]
     ux_layout_data: Dict[str, Any]
+    wireframe_payload: Dict[str, Any]
     render_data: Dict[str, Any]
     logs: Annotated[List[str], operator.add]
     errors: List[str]

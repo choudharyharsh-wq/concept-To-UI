@@ -21,7 +21,10 @@
       "Bash(python3 -c \"from src.nodes import ia_node, InformationArchitectureBlueprint, PageNode; print\\('OK'\\)\")",
       "Bash(python3 -c \"from src.nodes import ia_node; print\\('OK'\\)\")",
       "Bash(python3 -c \"from src.graph import app; print\\('OK — nodes:', list\\(app.get_graph\\(\\).nodes.keys\\(\\)\\)\\)\")",
-      "Bash(python3 -c \"from src.graph import app; print\\('Nodes:', list\\(app.get_graph\\(\\).nodes.keys\\(\\)\\)\\)\")"
+      "Bash(python3 -c \"from src.graph import app; print\\('Nodes:', list\\(app.get_graph\\(\\).nodes.keys\\(\\)\\)\\)\")",
+      "Bash(pip show *)",
+      "Bash(pip install *)",
+      "Bash(pip3 show *)"
     ]
   }
 }

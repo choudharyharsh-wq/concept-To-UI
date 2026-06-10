@@ -7,6 +7,7 @@ import { PRDStage } from "./prd-stage";
 import { IAStage } from "./ia-stage";
 import { UserFlowStage } from "./user-flow-stage";
 import { UXLayoutStage } from "./ux-layout-stage";
+import { WireframeCompilerStage } from "./wireframe-compiler-stage";
 import { RenderStage } from "./render-stage";
 import { cn } from "@/lib/utils";
 
@@ -15,11 +16,12 @@ interface PipelineCarouselProps {
 }
 
 const STAGE_LABELS: Record<string, string> = {
-  prd_node:       "PRD",
-  ia_node:        "IA Map",
-  user_flow_node: "Flows",
-  ux_layout_node: "UX Plan",
-  render_node:    "Render",
+  prd_node:                "PRD",
+  ia_node:                 "IA Map",
+  user_flow_node:          "Flows",
+  ux_layout_node:          "UX Plan",
+  wireframe_compiler_node: "Compiler",
+  render_node:             "Render",
 };
 
 export function PipelineCarousel({ stages }: PipelineCarouselProps) {
@@ -112,11 +114,12 @@ export function PipelineCarousel({ stages }: PipelineCarouselProps) {
               )}
             >
               {/* Render the correct stage component */}
-              {stage.id === "prd_node"    && <PRDStage stage={stage} />}
-              {stage.id === "ia_node"        && <IAStage stage={stage} />}
-              {stage.id === "user_flow_node"  && <UserFlowStage stage={stage} />}
-              {stage.id === "ux_layout_node"  && <UXLayoutStage stage={stage} />}
-              {stage.id === "render_node" && <RenderStage stage={stage} allStages={stages} />}
+              {stage.id === "prd_node"                && <PRDStage stage={stage} />}
+              {stage.id === "ia_node"                 && <IAStage stage={stage} />}
+              {stage.id === "user_flow_node"          && <UserFlowStage stage={stage} />}
+              {stage.id === "ux_layout_node"          && <UXLayoutStage stage={stage} />}
+              {stage.id === "wireframe_compiler_node" && <WireframeCompilerStage stage={stage} />}
+              {stage.id === "render_node"             && <RenderStage stage={stage} allStages={stages} />}
 
               {/* Bottom padding so content clears the nav buttons */}
               <div className="h-20" />
