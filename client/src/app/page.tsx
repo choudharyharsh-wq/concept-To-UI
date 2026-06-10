@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Sparkles, Figma, Send, Loader2 } from "lucide-react";
 import { useGenerationStream } from "@/hooks/use-generation-stream";
 import { PipelineCarousel } from "@/components/pipeline/pipeline-carousel";
@@ -11,6 +11,33 @@ export default function Dashboard() {
   const [figmaUrl, setFigmaUrl] = useState("https://www.figma.com/file/123456789/Concept-To-UI-Test");
   const { isGenerating, stages, startGeneration } = useGenerationStream();
   const [hasStarted, setHasStarted] = useState(false);
+
+  // Guard 1: tab close / hard refresh / address-bar navigation
+  useEffect(() => {
+    if (!isGenerating) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isGenerating]);
+
+  // Guard 2: in-app back button (Next.js App Router has no beforePopState)
+  useEffect(() => {
+    if (!isGenerating) return;
+    window.history.pushState(null, "", window.location.href);
+    const handler = () => {
+      const confirmed = window.confirm(
+        "Pipeline is still running. Going back will stop the generation. Are you sure?"
+      );
+      if (!confirmed) {
+        window.history.pushState(null, "", window.location.href);
+      }
+    };
+    window.addEventListener("popstate", handler);
+    return () => window.removeEventListener("popstate", handler);
+  }, [isGenerating]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

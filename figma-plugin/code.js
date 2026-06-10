@@ -197,61 +197,38 @@ async function createElement(spec) {
 // ── Render a full screen ──────────────────────────────────────────────────────
 
 async function renderScreen(screenSpec, offsetX) {
-  // Top-level screen frame
+  // Create the top-level screen frame first and add it to the page.
+  // All child elements must be appended INTO this frame immediately after
+  // creation — if we call figma.create*() without immediately reparenting,
+  // Figma auto-appends the node to figma.currentPage at its raw coordinates,
+  // which causes all elements to pile up on the page canvas instead of
+  // sitting inside their screen frame.
   const screenFrame = figma.createFrame();
-  screenFrame.name    = screenSpec.screen_name || screenSpec.screen_id;
-  screenFrame.x       = offsetX;
-  screenFrame.y       = 100;
+  screenFrame.name         = screenSpec.screen_name || screenSpec.screen_id;
+  screenFrame.x            = offsetX;
+  screenFrame.y            = 100;
   screenFrame.resize(screenSpec.width || 390, screenSpec.height || 844);
-  screenFrame.fills   = [{ type: "SOLID", color: hexToRgb(screenSpec.background_color || "#FFFFFF") }];
+  screenFrame.fills        = [{ type: "SOLID", color: hexToRgb(screenSpec.background_color || "#FFFFFF") }];
   screenFrame.clipsContent = true;
-
-  // Build id→node map for child wiring
-  const nodeMap = {};
-
-  // First pass: create all elements
-  const elements = screenSpec.elements || [];
-  for (const spec of elements) {
-    try {
-      const node = await createElement(spec);
-      nodeMap[spec.id] = node;
-    } catch (err) {
-      send("LOG", `  [SKIP] ${spec.id}: ${err.message}`, "");
-    }
-  }
-
-  // Second pass: append children to parents, orphans go to screen frame
-  const childIds = new Set(elements.flatMap(e => e.children || []));
-
-  for (const spec of elements) {
-    const node = nodeMap[spec.id];
-    if (!node) continue;
-
-    if (childIds.has(spec.id)) continue; // will be appended by parent
-
-    // Check if this element is a child of another
-    const parent = elements.find(e => (e.children || []).includes(spec.id));
-    if (parent && nodeMap[parent.id]) {
-      nodeMap[parent.id].appendChild(node);
-    } else {
-      screenFrame.appendChild(node);
-    }
-  }
-
-  // Append nested children
-  for (const spec of elements) {
-    const parentNode = nodeMap[spec.id];
-    if (!parentNode || !(spec.children || []).length) continue;
-    for (const childId of spec.children) {
-      const childNode = nodeMap[childId];
-      if (childNode && childNode.parent === null) {
-        // Not yet parented — shouldn't happen after second pass but safety net
-        parentNode.appendChild(childNode);
-      }
-    }
-  }
-
   figma.currentPage.appendChild(screenFrame);
+
+  const elements = screenSpec.elements || [];
+
+  // Single pass: create each element and append it to screenFrame immediately.
+  // The LLM outputs x/y as coordinates relative to the screen canvas origin,
+  // which maps directly to Figma's coordinate space inside the screen frame.
+  // We intentionally flatten the hierarchy — no nested frames — to keep
+  // coordinate math simple and avoid double-offset bugs.
+  for (var i = 0; i < elements.length; i++) {
+    var spec = elements[i];
+    try {
+      var node = await createElement(spec);
+      screenFrame.appendChild(node);
+    } catch (err) {
+      send("LOG", "  [SKIP] " + spec.id + ": " + err.message);
+    }
+  }
+
   return screenFrame;
 }
 

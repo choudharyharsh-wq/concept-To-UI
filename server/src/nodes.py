@@ -239,7 +239,7 @@ Return ONLY a raw JSON object — no markdown fences, no prose, no explanation:
   }}
 }}"""
 
-    # Use higher max_tokens — PRD JSON can exceed 1000 tokens easily
+    print("    Calling LLM for PRD…")
     response = get_llm(max_tokens=4096).invoke([
         SystemMessage(content=system_prompt),
         HumanMessage(content=user_prompt),
@@ -256,11 +256,13 @@ Return ONLY a raw JSON object — no markdown fences, no prose, no explanation:
         if missing:
             raise ValueError(f"LLM response missing required PRD sections: {missing}")
 
+        print(f"    PRD complete — north star: {prd_data.get('executive_summary', {}).get('north_star', '')[:80]}…")
         return {
             "prd_data": prd_data,
             "logs": ["[SYS] PRD generation completed (6-section Google+Microsoft structure)."]
         }
     except Exception as e:
+        print(f"    [ERR] PRD failed: {e}")
         return {
             "errors": [f"Error in PRD node: {str(e)}"],
             "logs": [f"[ERR] PRD generation failed: {str(e)}"]
@@ -296,6 +298,7 @@ No orphan pages. Every page must have a valid parent_id (except the root).
 PRD (JSON):
 {json.dumps(prd_data, indent=2)}"""
 
+    print("    Calling LLM for IA blueprint…")
     try:
         structured_llm = get_llm(max_tokens=8192).with_structured_output(
             InformationArchitectureBlueprint
@@ -305,9 +308,9 @@ PRD (JSON):
             HumanMessage(content=user_prompt),
         ])
 
-        # Serialise Pydantic → plain dict so it flows through GraphState cleanly
         ia_data = blueprint.model_dump()
-
+        page_names = [p.name for p in blueprint.pages]
+        print(f"    IA complete — {len(blueprint.pages)} screens: {page_names}")
         return {
             "ia_data": ia_data,
             "logs": [
@@ -316,6 +319,7 @@ PRD (JSON):
             ]
         }
     except Exception as e:
+        print(f"    [ERR] IA failed: {e}")
         return {
             "errors": [f"Error in IA node: {str(e)}"],
             "logs": [f"[ERR] IA Blueprint generation failed: {str(e)}"]
@@ -370,6 +374,7 @@ PRD:
 Information Architecture:
 {json.dumps(ia_data, indent=2)}"""
 
+    print("    Calling LLM for user flows…")
     try:
         structured_llm = get_llm(max_tokens=8192).with_structured_output(UserFlowCollection)
         collection: UserFlowCollection = structured_llm.invoke([
@@ -378,6 +383,8 @@ Information Architecture:
         ])
 
         flow_data = collection.model_dump()
+        for f in collection.flows:
+            print(f"    Flow: '{f.flow_name}' — {len(f.steps)} steps")
 
         return {
             "user_flow_data": flow_data,
@@ -388,6 +395,7 @@ Information Architecture:
             ]
         }
     except Exception as e:
+        print(f"    [ERR] User Flow failed: {e}")
         return {
             "errors": [f"Error in User Flow node: {str(e)}"],
             "logs":   [f"[ERR] User Flow generation failed: {str(e)}"]
@@ -459,6 +467,8 @@ PRD UX Directives (visual posture and tone):
 
     BATCH_SIZE = 4
     all_screen_layouts: List[ScreenLayoutPlan] = []
+    total_batches = (len(pages) + BATCH_SIZE - 1) // BATCH_SIZE
+    print(f"    Total screens: {len(pages)}, batches: {total_batches}")
 
     try:
         structured_llm = get_llm(max_tokens=8192).with_structured_output(
@@ -466,11 +476,14 @@ PRD UX Directives (visual posture and tone):
         )
 
         for i in range(0, len(pages), BATCH_SIZE):
-            batch_pages = pages[i:i + BATCH_SIZE]
+            batch_pages    = pages[i:i + BATCH_SIZE]
             batch_page_ids = [p["id"] for p in batch_pages]
+            batch_num      = i // BATCH_SIZE + 1
             batch_flow_critical = [pid for pid in batch_page_ids if pid in flow_critical_ids]
 
-            batch_user_prompt = f"""Generate a ScreenLayoutPlan for each of these pages (batch {i // BATCH_SIZE + 1}):
+            print(f"    UX Layout batch {batch_num}/{total_batches}: {batch_page_ids}")
+
+            batch_user_prompt = f"""Generate a ScreenLayoutPlan for each of these pages (batch {batch_num}/{total_batches}):
 {json.dumps(batch_page_ids, indent=2)}
 
 Flow-critical page IDs (STRATEGY A):
@@ -489,11 +502,13 @@ PRD UX Directives (visual posture and tone):
                 SystemMessage(content=system_prompt),
                 HumanMessage(content=batch_user_prompt),
             ])
+            print(f"    Batch {batch_num} done — {len(collection.screen_layouts)} layout(s).")
             all_screen_layouts.extend(collection.screen_layouts)
 
-        master = MasterUXLayoutCollection(screen_layouts=all_screen_layouts)
+        master         = MasterUXLayoutCollection(screen_layouts=all_screen_layouts)
         ux_layout_data = master.model_dump()
 
+        print(f"    UX Layout complete — {len(all_screen_layouts)} layouts total.")
         return {
             "ux_layout_data": ux_layout_data,
             "logs": [
@@ -502,6 +517,7 @@ PRD UX Directives (visual posture and tone):
             ]
         }
     except Exception as e:
+        print(f"    [ERR] UX Layout failed: {e}")
         return {
             "errors": [f"Error in UX Layout node: {str(e)}"],
             "logs":   [f"[ERR] UX Layout generation failed: {str(e)}"]
@@ -551,6 +567,7 @@ def wireframe_compiler_node(state: GraphState):
     Converts ux_layout_data spatial zones into a concrete pixel-positioned
     element tree for every screen. Output is the render payload consumed by
     the Figma plugin via the bridge server.
+    Batches 2 screens at a time to stay within max_tokens.
     """
     print("--- Executing Wireframe Compiler Node ---")
 
@@ -560,75 +577,92 @@ def wireframe_compiler_node(state: GraphState):
 
     pages          = ia_data.get("pages", [])
     screen_layouts = ux_layout_data.get("screen_layouts", [])
+    ux_directives  = prd_data.get("ux_anchor_directives", {})
 
-    system_prompt = f"""You are a Wireframe Compiler. Your job is to translate spatial layout blueprints
-into concrete, pixel-precise UI element trees that a Figma plugin can render directly.
+    print(f"    Total screens to compile: {len(pages)}")
 
-ALLOWED ELEMENT TYPES (you may ONLY use these):
-{json.dumps(ALLOWED_ELEMENT_TYPES, indent=2)}
+    system_prompt = f"""You are a Wireframe Compiler. Translate a spatial layout blueprint into a
+pixel-precise UI element tree that a Figma plugin renders directly.
+
+ALLOWED ELEMENT TYPES (use ONLY these exact strings):
+{json.dumps(ALLOWED_ELEMENT_TYPES)}
 
 RULES:
-1. Every element must have a unique `id` within its screen (snake_case, e.g. "nav_bar_main").
-2. `type` must be exactly one value from the allowed list above — no custom types.
-3. Coordinates are absolute pixels from the top-left corner of the screen canvas.
-4. Parent FRAME elements should have children[] listing child element ids.
-5. Non-container elements (BUTTON, TEXT_HEADING, etc.) should have empty children[].
-6. Use mobile canvas 390×844 unless the IA layout_pattern suggests desktop (then 1440×900).
-7. Produce a complete, non-overlapping layout — elements should not exceed screen bounds.
-8. `zone_id` must match a zone_id from the corresponding ScreenLayoutPlan.
-9. Fill colors should reflect a coherent visual hierarchy: primary actions get brand color, backgrounds get neutral.
-10. Every screen must have at least one NAV_BAR or BOTTOM_TAB_BAR unless it is a modal/onboarding screen."""
+1. Every element id is unique within its screen (snake_case).
+2. type must be exactly one value from the allowed list — no custom types.
+3. Coordinates are absolute pixels from top-left of the canvas (390x844 mobile default).
+4. FRAME / CARD / NAV_BAR / BOTTOM_TAB_BAR may have children[] listing child element ids.
+5. Leaf elements (BUTTON, TEXT_HEADING, etc.) have empty children[].
+6. No element may exceed canvas bounds.
+7. Fill colors: primary actions = brand color, backgrounds = neutral dark/light.
+8. Every screen needs a NAV_BAR or BOTTOM_TAB_BAR unless it is modal/onboarding.
+9. Keep element count to 8-14 per screen — quality over quantity."""
 
-    user_prompt = f"""Compile a ScreenWireframe for every screen listed below.
-
-IA Pages (component_inventory tells you what elements to include):
-{json.dumps(pages, indent=2)}
-
-UX Layout Plans (spatial_zones and rendering_sequence tell you how to arrange them):
-{json.dumps(screen_layouts, indent=2)}
-
-PRD UX Directives (visual tone, brand colors):
-{json.dumps(prd_data.get("ux_anchor_directives", {}), indent=2)}
-
-Output one WireframePayloadCollection containing all screens."""
-
-    BATCH_SIZE = 3
+    BATCH_SIZE = 2
     all_screens: List[ScreenWireframe] = []
 
     try:
-        structured_llm = get_llm(max_tokens=8192).with_structured_output(WireframePayloadCollection)
+        structured_llm = get_llm(max_tokens=16000).with_structured_output(WireframePayloadCollection)
+
+        total_batches = (len(pages) + BATCH_SIZE - 1) // BATCH_SIZE
 
         for i in range(0, len(pages), BATCH_SIZE):
-            batch_pages = pages[i:i + BATCH_SIZE]
-            batch_ids   = [p["id"] for p in batch_pages]
-            batch_layouts = [sl for sl in screen_layouts if sl.get("page_id") in batch_ids]
+            batch_pages   = pages[i:i + BATCH_SIZE]
+            batch_ids     = [p["id"] for p in batch_pages]
+            batch_num     = i // BATCH_SIZE + 1
 
-            batch_prompt = f"""Compile a ScreenWireframe for these screens only (batch {i // BATCH_SIZE + 1}):
-{json.dumps(batch_ids, indent=2)}
+            # Send only the fields the compiler needs from each layout plan
+            # (strips verbose ux_principles / empty_state to save tokens)
+            batch_layouts = []
+            for sl in screen_layouts:
+                if sl.get("page_id") not in batch_ids:
+                    continue
+                batch_layouts.append({
+                    "page_id":     sl.get("page_id"),
+                    "grid_system": sl.get("grid_system"),
+                    "spatial_zones": [
+                        {
+                            "zone_id":            z.get("zone_id"),
+                            "visual_weight":      z.get("visual_weight"),
+                            "width_percentage":   z.get("width_percentage"),
+                            "height_percentage":  z.get("height_percentage"),
+                            "rendering_sequence": z.get("rendering_sequence", []),
+                        }
+                        for z in sl.get("spatial_zones", [])
+                    ],
+                })
 
-IA Pages (this batch):
+            print(f"    Compiling batch {batch_num}/{total_batches}: {batch_ids}")
+
+            batch_prompt = f"""Compile a ScreenWireframe for each of these screens (batch {batch_num}/{total_batches}):
+{json.dumps(batch_ids)}
+
+IA Pages:
 {json.dumps(batch_pages, indent=2)}
 
-UX Layout Plans (this batch):
+UX Layout zones:
 {json.dumps(batch_layouts, indent=2)}
 
-PRD UX Directives:
-{json.dumps(prd_data.get("ux_anchor_directives", {}), indent=2)}"""
+Brand/UX directives:
+{json.dumps(ux_directives, indent=2)}"""
 
             collection: WireframePayloadCollection = structured_llm.invoke([
                 SystemMessage(content=system_prompt),
                 HumanMessage(content=batch_prompt),
             ])
+            print(f"    Batch {batch_num} done — {len(collection.screens)} screen(s) compiled.")
             all_screens.extend(collection.screens)
 
-        payload = WireframePayloadCollection(screens=all_screens)
+        payload      = WireframePayloadCollection(screens=all_screens)
         payload_dict = payload.model_dump()
 
+        print(f"    Wireframe Compiler complete — {len(all_screens)} total screens.")
         return {
             "wireframe_payload": payload_dict,
             "logs": [f"[SYS] Wireframe Compiler complete — {len(all_screens)} screens compiled."]
         }
     except Exception as e:
+        print(f"    [ERR] Wireframe Compiler failed: {e}")
         return {
             "errors": [f"Error in Wireframe Compiler node: {str(e)}"],
             "logs":   [f"[ERR] Wireframe compilation failed: {str(e)}"]
@@ -646,39 +680,61 @@ def render_node(state: GraphState):
     wireframe_payload = state.get("wireframe_payload", {})
     figma_url         = state.get("figma_url", "")
     screen_count      = len(wireframe_payload.get("screens", []))
+    errors            = state.get("errors", [])
 
     bridge_url = "http://localhost:5001/payload"
 
-    logs = [f"[SYS] Render node starting — {screen_count} screens to push to bridge."]
+    print(f"    Screens in payload: {screen_count}")
+
+    if screen_count == 0:
+        compiler_errors = [e for e in errors if "Wireframe" in e or "compiler" in e.lower()]
+        reason = compiler_errors[0] if compiler_errors else "Wireframe Compiler produced no screens."
+        print(f"    [WARN] Nothing to push — {reason}")
+        logs = [
+            "[WARN] Wireframe Compiler produced 0 screens — nothing sent to bridge.",
+            f"[WARN] Reason: {reason}",
+            "[INFO] Check server logs for the compiler error and re-run the pipeline.",
+        ]
+        return {
+            "render_data": {"figma_url": figma_url, "status": "empty_payload", "screen_count": 0},
+            "logs": logs,
+        }
+
+    logs = [f"[SYS] Render node starting — pushing {screen_count} screen(s) to bridge."]
+    print(f"    Connecting to bridge at {bridge_url} …")
 
     try:
         response = req.post(bridge_url, json=wireframe_payload, timeout=10)
         response.raise_for_status()
+        bridge_response = response.json()
+        print(f"    Bridge responded: {bridge_response}")
         logs += [
-            f"[BRIDGE] Payload delivered to bridge server (HTTP {response.status_code}).",
-            f"[BRIDGE] {screen_count} screen frames queued for Figma plugin.",
-            "[SYS] Open the Figma plugin and click 'Fetch & Render' to draw wireframes.",
-            "[SUCCESS] Render payload ready.",
+            f"[BRIDGE] Connected — HTTP {response.status_code}.",
+            f"[BRIDGE] {screen_count} screen(s) delivered and queued.",
+            "[SYS] Pipeline complete. Open the Figma plugin → 'Fetch & Render Wireframes'.",
+            "[SUCCESS] All done.",
         ]
+        print("    [SUCCESS] Payload delivered to bridge.")
         return {
             "render_data": {
-                "figma_url": figma_url,
-                "status": "payload_delivered",
+                "figma_url":    figma_url,
+                "status":       "payload_delivered",
                 "screen_count": screen_count,
-                "bridge_url": bridge_url,
+                "bridge_url":   bridge_url,
             },
             "logs": logs,
         }
     except Exception as e:
+        print(f"    [WARN] Bridge unreachable: {e}")
         logs += [
             f"[WARN] Bridge server unreachable: {str(e)}",
-            "[WARN] Start bridge with: python bridge.py",
-            "[INFO] Wireframe payload is still available in state (wireframe_payload).",
+            "[WARN] Is bridge.py running on port 5001? Start it with: python bridge.py",
+            f"[INFO] Payload has {screen_count} screens ready — restart bridge and re-run.",
         ]
         return {
             "render_data": {
-                "figma_url": figma_url,
-                "status": "bridge_offline",
+                "figma_url":    figma_url,
+                "status":       "bridge_offline",
                 "screen_count": screen_count,
             },
             "logs": logs,
