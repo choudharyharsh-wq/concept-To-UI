@@ -1,5 +1,6 @@
 import os
 import json
+from pathlib import Path
 from typing import List, Literal, Optional
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
@@ -8,6 +9,27 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from .state import GraphState
 
 load_dotenv(override=True)
+
+# ── Component registry (Figma DS) ─────────────────────────────────────────────
+# Loaded once at import time. If registry.json exists (built by
+# scripts/build_registry.py) the pipeline uses real DS component names.
+# Otherwise it falls back to the generic invented vocabulary.
+
+_REGISTRY_PATH = Path(__file__).parent.parent / "registry.json"
+
+def _load_registry() -> list:
+    if _REGISTRY_PATH.exists():
+        with open(_REGISTRY_PATH) as f:
+            reg = json.load(f)
+        print(f"[REGISTRY] Loaded {len(reg)} components from registry.json")
+        return reg
+    print("[REGISTRY] registry.json not found — using invented component vocabulary.")
+    return []
+
+DS_REGISTRY: list = _load_registry()
+
+# Build a name→key lookup for the Figma plugin
+DS_REGISTRY_MAP: dict = {c["name"]: c["key"] for c in DS_REGISTRY}
 
 
 # ── IA Blueprint Pydantic schemas ────────────────────────────────────────────
@@ -526,40 +548,112 @@ PRD UX Directives (visual posture and tone):
 
 # ── Wireframe Compiler schemas ────────────────────────────────────────────────
 
-# Closed vocabulary of generic UI primitives the LLM is allowed to output.
-# The Figma plugin maps each type to the appropriate Figma API calls.
-ALLOWED_ELEMENT_TYPES = [
+# Fallback generic vocabulary used when no registry.json is present.
+FALLBACK_ELEMENT_TYPES = [
     "FRAME", "NAV_BAR", "BOTTOM_TAB_BAR", "BUTTON", "FAB",
     "INPUT_FIELD", "CARD", "LIST_ITEM", "TEXT_HEADING", "TEXT_BODY",
     "IMAGE_PLACEHOLDER", "DIVIDER", "ICON_BUTTON", "BADGE", "MODAL_OVERLAY",
 ]
 
+def _get_vocabulary() -> tuple[list[str], bool]:
+    """Returns (vocabulary_list, is_ds_mode).
+    DS mode  → vocabulary is real DS component names from registry.json.
+    Fallback → vocabulary is the generic invented type list.
+    """
+    if DS_REGISTRY:
+        return [c["name"] for c in DS_REGISTRY], True
+    return FALLBACK_ELEMENT_TYPES, False
+
+
 class ElementSpec(BaseModel):
     id: str = Field(description="Unique element id within the screen, e.g. 'btn_login'")
-    type: str = Field(description=f"Must be one of: {', '.join(ALLOWED_ELEMENT_TYPES)}")
+    type: str = Field(description="Component name — must be taken verbatim from the allowed vocabulary list")
+    ds_key: str = Field(default="", description="Figma component key from the DS registry (leave empty in fallback mode)")
     label: str = Field(description="Visible text or aria-label for the element")
-    x: int = Field(description="Left offset in pixels from screen origin")
-    y: int = Field(description="Top offset in pixels from screen origin")
-    width: int = Field(description="Width in pixels")
-    height: int = Field(description="Height in pixels")
+    x: float = Field(description="Left offset in pixels from screen origin")
+    y: float = Field(description="Top offset in pixels from screen origin")
+    width: float = Field(description="Width in pixels")
+    height: float = Field(description="Height in pixels")
     fill_color: str = Field(description="Hex fill colour, e.g. '#1A1A2E'")
     text_color: str = Field(description="Hex text colour, e.g. '#FFFFFF'")
-    corner_radius: int = Field(default=0, description="Corner radius in pixels")
-    font_size: int = Field(default=14, description="Font size in pixels")
+    corner_radius: float = Field(default=0, description="Corner radius in pixels")
+    font_size: float = Field(default=14, description="Font size in pixels")
     font_weight: Literal["Regular", "Medium", "SemiBold", "Bold"] = Field(default="Regular")
     children: List[str] = Field(default_factory=list, description="ids of direct child elements nested inside this element")
     zone_id: str = Field(default="", description="The spatial_zone this element belongs to")
 
+    def model_post_init(self, __context) -> None:
+        # Round all pixel values to integers after parsing — prevents the LLM
+        # from outputting fractional coords (e.g. 97.5) that break Figma's API.
+        object.__setattr__(self, "x",             round(self.x))
+        object.__setattr__(self, "y",             round(self.y))
+        object.__setattr__(self, "width",         max(1, round(self.width)))
+        object.__setattr__(self, "height",        max(1, round(self.height)))
+        object.__setattr__(self, "corner_radius", round(self.corner_radius))
+        object.__setattr__(self, "font_size",     max(1, round(self.font_size)))
+
 class ScreenWireframe(BaseModel):
     screen_id: str = Field(description="Must match the page id from the IA")
     screen_name: str = Field(description="Human-readable screen name")
-    width: int = Field(default=390, description="Canvas width in pixels (390 = mobile, 1440 = desktop)")
-    height: int = Field(default=844, description="Canvas height in pixels")
+    width: float = Field(default=390, description="Canvas width in pixels (390 = mobile, 1440 = desktop)")
+    height: float = Field(default=844, description="Canvas height in pixels")
     background_color: str = Field(default="#FFFFFF")
     elements: List[ElementSpec] = Field(description="All UI elements on this screen, ordered back-to-front")
 
+    def model_post_init(self, __context) -> None:
+        object.__setattr__(self, "width",  max(1, round(self.width)))
+        object.__setattr__(self, "height", max(1, round(self.height)))
+
 class WireframePayloadCollection(BaseModel):
     screens: List[ScreenWireframe] = Field(description="One ScreenWireframe per screen from the IA")
+
+
+def _filter_registry_for_batch(batch_pages: list, top_n: int = 40) -> list:
+    """
+    Returns the top_n most relevant DS components for a batch of pages.
+    Scores each DS component by counting how many keywords from the pages'
+    component_inventory and layout_pattern appear in the component name.
+    Falls back to a broad structural set if nothing scores.
+    """
+    # Collect all keyword tokens from this batch
+    keywords: set = set()
+    for page in batch_pages:
+        # from layout pattern e.g. "list_feed" → ["list", "feed"]
+        for tok in page.get("layout_pattern", "").lower().replace("_", " ").split():
+            keywords.add(tok)
+        # from component_inventory e.g. "1x Sign-In Button" → ["sign", "in", "button"]
+        for item in page.get("component_inventory", []):
+            for tok in item.lower().replace("-", " ").replace("_", " ").split():
+                if len(tok) > 2:
+                    keywords.add(tok)
+        # page name tokens
+        for tok in page.get("name", "").lower().replace("-", " ").split():
+            if len(tok) > 2:
+                keywords.add(tok)
+
+    # Score every DS component
+    scored = []
+    for comp in DS_REGISTRY:
+        name_lower = comp["name"].lower()
+        score = sum(1 for kw in keywords if kw in name_lower)
+        if score > 0:
+            scored.append((score, comp))
+
+    scored.sort(key=lambda x: x[0], reverse=True)
+    filtered = [c for _, c in scored[:top_n]]
+
+    # Always include a few essential structural components so every screen
+    # has at least navigation + button + text options available
+    essential_keywords = ["button", "nav", "tab", "card", "text", "input", "header"]
+    already_names = {c["name"].lower() for c in filtered}
+    for comp in DS_REGISTRY:
+        name_lower = comp["name"].lower()
+        if any(kw in name_lower for kw in essential_keywords):
+            if name_lower not in already_names and len(filtered) < top_n + 20:
+                filtered.append(comp)
+                already_names.add(name_lower)
+
+    return filtered
 
 
 def wireframe_compiler_node(state: GraphState):
@@ -567,7 +661,8 @@ def wireframe_compiler_node(state: GraphState):
     Converts ux_layout_data spatial zones into a concrete pixel-positioned
     element tree for every screen. Output is the render payload consumed by
     the Figma plugin via the bridge server.
-    Batches 2 screens at a time to stay within max_tokens.
+    Batches 2 screens at a time. In DS mode, injects only the ~40 most
+    relevant components per batch to stay well within the token limit.
     """
     print("--- Executing Wireframe Compiler Node ---")
 
@@ -579,24 +674,45 @@ def wireframe_compiler_node(state: GraphState):
     screen_layouts = ux_layout_data.get("screen_layouts", [])
     ux_directives  = prd_data.get("ux_anchor_directives", {})
 
-    print(f"    Total screens to compile: {len(pages)}")
+    # Force fallback mode until the DS library is accessible from the
+    # logged-in Figma account. Set to True once library access is confirmed.
+    _, _ds_available = _get_vocabulary()
+    is_ds_mode = False  # flip to _ds_available when library access is ready
+    mode_label = "DS mode (real components)" if is_ds_mode else "fallback mode (invented types)"
+    print(f"    Total screens to compile: {len(pages)} | {mode_label}")
 
-    system_prompt = f"""You are a Wireframe Compiler. Translate a spatial layout blueprint into a
+    SYSTEM_PROMPT_BASE = """You are a Wireframe Compiler. Translate a spatial layout blueprint into a
 pixel-precise UI element tree that a Figma plugin renders directly.
 
-ALLOWED ELEMENT TYPES (use ONLY these exact strings):
-{json.dumps(ALLOWED_ELEMENT_TYPES)}
+COORDINATE SYSTEM — read this carefully:
+- The canvas origin (0, 0) is the TOP-LEFT corner of the screen frame.
+- ALL x and y values are ABSOLUTE distances from that origin — not relative to any parent.
+- Example: if a CARD sits at y:400 height:160, and you want text 12px from the card's top,
+  the text element's y must be 412 (400 + 12), NOT 12.
+- There is NO nesting in the final render — every element is a direct child of the screen frame
+  at its absolute position. `children[]` is metadata only; it does not change coordinate origin.
+
+OVERLAP PREVENTION:
+- Before finalising coordinates, mentally stack all elements top-to-bottom.
+- No two sibling elements should share the same y range unless they are intentionally side-by-side (same row).
+- Minimum 8px gap between the bottom edge of one element and the top of the next.
+- Bottom-most element y + height must be ≤ screen height (844 for mobile).
 
 RULES:
 1. Every element id is unique within its screen (snake_case).
-2. type must be exactly one value from the allowed list — no custom types.
-3. Coordinates are absolute pixels from top-left of the canvas (390x844 mobile default).
-4. FRAME / CARD / NAV_BAR / BOTTOM_TAB_BAR may have children[] listing child element ids.
-5. Leaf elements (BUTTON, TEXT_HEADING, etc.) have empty children[].
-6. No element may exceed canvas bounds.
-7. Fill colors: primary actions = brand color, backgrounds = neutral dark/light.
-8. Every screen needs a NAV_BAR or BOTTOM_TAB_BAR unless it is modal/onboarding.
-9. Keep element count to 8-14 per screen — quality over quantity."""
+2. `type` must be exactly one value from the allowed vocabulary below — no custom types.
+3. Canvas size: 390×844 (mobile). Use 1440×900 only if layout_pattern is desktop.
+4. No element may exceed canvas bounds (x+width ≤ 390, y+height ≤ 844 for mobile).
+5. Fill colors: primary actions = brand color, backgrounds = neutral dark/light.
+6. Every screen needs a navigation element unless it is modal/onboarding.
+7. Keep element count to 8-14 per screen — quality over quantity.
+8. `children` is a metadata hint only — coordinates are always absolute.
+9. Leaf elements have empty children[]."""
+
+    DS_RULES = """10. `type` must be the exact DS component name string — capitalisation matters.
+11. `ds_key` must be the matching Figma component key from the vocabulary table."""
+
+    FALLBACK_RULES = "10. Leave `ds_key` as an empty string."
 
     BATCH_SIZE = 2
     all_screens: List[ScreenWireframe] = []
@@ -611,8 +727,25 @@ RULES:
             batch_ids     = [p["id"] for p in batch_pages]
             batch_num     = i // BATCH_SIZE + 1
 
-            # Send only the fields the compiler needs from each layout plan
-            # (strips verbose ux_principles / empty_state to save tokens)
+            # ── Build per-batch vocabulary ────────────────────────────────────
+            if is_ds_mode:
+                batch_registry = _filter_registry_for_batch(batch_pages, top_n=40)
+                batch_names    = [c["name"] for c in batch_registry]
+                batch_key_map  = {c["name"]: c["key"] for c in batch_registry}
+                vocab_section  = (
+                    f"ALLOWED COMPONENT NAMES (your Figma DS — use ONLY these as `type`):\n"
+                    f"{json.dumps(batch_names)}\n\n"
+                    f"name → ds_key lookup:\n{json.dumps(batch_key_map)}"
+                )
+                extra_rules = DS_RULES
+                print(f"    Batch {batch_num}: {len(batch_names)} DS components injected for {batch_ids}")
+            else:
+                vocab_section = f"ALLOWED ELEMENT TYPES:\n{json.dumps(FALLBACK_ELEMENT_TYPES)}"
+                extra_rules   = FALLBACK_RULES
+                print(f"    Compiling batch {batch_num}/{total_batches}: {batch_ids}")
+
+            system_prompt = f"{SYSTEM_PROMPT_BASE}\n\n{vocab_section}\n\n{extra_rules}"
+
             batch_layouts = []
             for sl in screen_layouts:
                 if sl.get("page_id") not in batch_ids:
@@ -632,8 +765,6 @@ RULES:
                     ],
                 })
 
-            print(f"    Compiling batch {batch_num}/{total_batches}: {batch_ids}")
-
             batch_prompt = f"""Compile a ScreenWireframe for each of these screens (batch {batch_num}/{total_batches}):
 {json.dumps(batch_ids)}
 
@@ -650,11 +781,21 @@ Brand/UX directives:
                 SystemMessage(content=system_prompt),
                 HumanMessage(content=batch_prompt),
             ])
+
+            # Backfill any ds_key the LLM missed
+            if is_ds_mode:
+                for screen in collection.screens:
+                    for el in screen.elements:
+                        if not el.ds_key:
+                            el.ds_key = DS_REGISTRY_MAP.get(el.type, "")
+
             print(f"    Batch {batch_num} done — {len(collection.screens)} screen(s) compiled.")
             all_screens.extend(collection.screens)
 
         payload      = WireframePayloadCollection(screens=all_screens)
         payload_dict = payload.model_dump()
+        # Attach mode flag so the plugin knows which render path to use
+        payload_dict["ds_mode"] = is_ds_mode
 
         print(f"    Wireframe Compiler complete — {len(all_screens)} total screens.")
         return {

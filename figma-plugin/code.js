@@ -7,32 +7,77 @@ function send(type, text, level) {
   figma.ui.postMessage({ type, text, level });
 }
 
-// ── Type → Figma primitive mapping ───────────────────────────────────────────
+// ── Type detection helpers ────────────────────────────────────────────────────
+// Use keyword matching so LLM variants like "Label", "Heading", "Body", "Text"
+// all route to the right Figma primitive regardless of exact casing.
 
-const CONTAINER_TYPES = new Set([
-  "FRAME", "NAV_BAR", "BOTTOM_TAB_BAR", "CARD",
-  "MODAL_OVERLAY", "LIST_ITEM",
-]);
+function isTextType(type) {
+  if (!type) return false;
+  var t = type.toUpperCase();
+  return t === "TEXT_HEADING" || t === "TEXT_BODY" || t === "BADGE"
+    || t === "TEXT" || t === "LABEL" || t === "HEADING" || t === "BODY"
+    || t === "CAPTION" || t === "SUBHEADING" || t === "LINK"
+    || t.indexOf("TEXT") !== -1 || t.indexOf("HEADING") !== -1
+    || t.indexOf("LABEL") !== -1 || t.indexOf("BODY") !== -1;
+}
 
-const TEXT_TYPES = new Set([
-  "TEXT_HEADING", "TEXT_BODY", "BADGE",
-]);
+function isButtonType(type) {
+  if (!type) return false;
+  var t = type.toUpperCase();
+  return t === "BUTTON" || t === "FAB" || t === "ICON_BUTTON"
+    || t === "CTA" || t === "CHIP"
+    || (t.indexOf("BUTTON") !== -1 && t.indexOf("TAB") === -1 && t.indexOf("RADIO") === -1);
+}
 
-// Elements that are rendered as a frame with a text child
-const BUTTON_TYPES = new Set([
-  "BUTTON", "FAB", "ICON_BUTTON",
-]);
+function isDividerType(type) {
+  if (!type) return false;
+  var t = type.toUpperCase();
+  return t === "DIVIDER" || t === "SEPARATOR" || t === "RULE";
+}
 
-function hexToRgb(hex) {
-  const clean = hex.replace("#", "");
-  const full  = clean.length === 3
-    ? clean.split("").map(c => c + c).join("")
-    : clean;
-  return {
-    r: parseInt(full.slice(0, 2), 16) / 255,
-    g: parseInt(full.slice(2, 4), 16) / 255,
-    b: parseInt(full.slice(4, 6), 16) / 255,
-  };
+function isImageType(type) {
+  if (!type) return false;
+  var t = type.toUpperCase();
+  return t === "IMAGE_PLACEHOLDER" || t === "IMAGE" || t === "AVATAR"
+    || t === "THUMBNAIL" || t.indexOf("IMAGE") !== -1 || t.indexOf("PHOTO") !== -1;
+}
+
+// ── DS mode: instantiate a real component by its Figma key ───────────────────
+
+async function createDSInstance(spec) {
+  if (!spec.ds_key) {
+    // No key — fall back to generic render for this element
+    send("LOG", "  [FALLBACK] No ds_key for " + spec.type + " — rendering as primitive.");
+    return createElement(spec);
+  }
+  try {
+    var component = await figma.importComponentByKeyAsync(spec.ds_key);
+    var instance  = component.createInstance();
+    instance.name = spec.label || spec.type;
+    instance.x    = spec.x;
+    instance.y    = spec.y;
+    // Resize only if the instance allows it (some components are fixed-size)
+    try { instance.resize(spec.width, spec.height); } catch(e) {}
+    return instance;
+  } catch (err) {
+    send("LOG", "  [FALLBACK] importComponentByKeyAsync failed for " + spec.type + ": " + err.message);
+    return createElement(spec);
+  }
+}
+
+function hexToRgb(hex, fallback) {
+  fallback = fallback || { r: 0, g: 0, b: 0 };
+  if (!hex || typeof hex !== "string") return fallback;
+  var clean = hex.replace("#", "").trim();
+  if (clean.length === 3) {
+    clean = clean.split("").map(function(c) { return c + c; }).join("");
+  }
+  if (clean.length !== 6) return fallback;
+  var r = parseInt(clean.slice(0, 2), 16);
+  var g = parseInt(clean.slice(2, 4), 16);
+  var b = parseInt(clean.slice(4, 6), 16);
+  if (isNaN(r) || isNaN(g) || isNaN(b)) return fallback;
+  return { r: r / 255, g: g / 255, b: b / 255 };
 }
 
 async function loadFont(weight) {
@@ -50,153 +95,131 @@ async function loadFont(weight) {
 // ── Render a single ElementSpec ───────────────────────────────────────────────
 
 async function createElement(spec) {
-  const fillRgb = hexToRgb(spec.fill_color || "#FFFFFF");
-  const textRgb = hexToRgb(spec.text_color || "#000000");
+  // Safe colour parsing — never produces NaN
+  var fillRgb  = hexToRgb(spec.fill_color, { r: 1,   g: 1,   b: 1   });
+  var textRgb  = hexToRgb(spec.text_color, { r: 0.1, g: 0.1, b: 0.1 });
+  var specType = (spec.type || "").toUpperCase();
 
-  // ── Text-only elements ────────────────────────────────────────────────────
-  if (TEXT_TYPES.has(spec.type)) {
-    const font = await loadFont(spec.font_weight || "Regular");
-    const node = figma.createText();
-    node.name       = spec.label || spec.id;
-    node.x          = spec.x;
-    node.y          = spec.y;
-    node.resize(spec.width, spec.height);
-    await figma.loadFontAsync(font);
-    node.fontName   = font;
-    node.fontSize   = spec.font_size || (spec.type === "TEXT_HEADING" ? 20 : 14);
-    node.characters = spec.label || "";
-    node.fills      = [{ type: "SOLID", color: textRgb }];
-    if (spec.type === "TEXT_HEADING") {
-      node.textAlignHorizontal = "LEFT";
-    }
-    return node;
+  // ── Text / Label / Heading / Body ────────────────────────────────────────
+  if (isTextType(spec.type)) {
+    var isHeading = specType.indexOf("HEADING") !== -1 || specType.indexOf("HEADER") !== -1;
+    var txtFont   = await loadFont(spec.font_weight || (isHeading ? "SemiBold" : "Regular"));
+    var txtNode   = figma.createText();
+    txtNode.name  = spec.label || spec.id;
+    txtNode.x     = spec.x;
+    txtNode.y     = spec.y;
+    await figma.loadFontAsync(txtFont);
+    txtNode.fontName        = txtFont;
+    txtNode.fontSize        = spec.font_size || (isHeading ? 20 : 14);
+    txtNode.characters      = spec.label || "";
+    txtNode.fills           = [{ type: "SOLID", color: textRgb }];
+    txtNode.textAutoResize  = "HEIGHT";
+    try { txtNode.resize(spec.width, spec.height); } catch(e) {}
+    return txtNode;
   }
 
-  // ── Divider ───────────────────────────────────────────────────────────────
-  if (spec.type === "DIVIDER") {
-    const node = figma.createLine();
-    node.name = spec.id;
-    node.x    = spec.x;
-    node.y    = spec.y;
-    node.resize(spec.width, 0);
-    node.strokes = [{ type: "SOLID", color: fillRgb }];
-    node.strokeWeight = 1;
-    return node;
+  // ── Divider / Separator ───────────────────────────────────────────────────
+  if (isDividerType(spec.type)) {
+    var divNode       = figma.createLine();
+    divNode.name      = spec.id;
+    divNode.x         = spec.x;
+    divNode.y         = spec.y;
+    divNode.resize(spec.width, 0);
+    divNode.strokes   = [{ type: "SOLID", color: hexToRgb("#E5E7EB", { r: 0.9, g: 0.9, b: 0.9 }) }];
+    divNode.strokeWeight = 1;
+    return divNode;
   }
 
-  // ── Image placeholder ─────────────────────────────────────────────────────
-  if (spec.type === "IMAGE_PLACEHOLDER") {
-    const node  = figma.createFrame();
-    node.name   = spec.label || spec.id;
-    node.x      = spec.x;
-    node.y      = spec.y;
-    node.resize(spec.width, spec.height);
-    node.cornerRadius   = spec.corner_radius || 8;
-    node.fills = [{ type: "SOLID", color: hexToRgb("#D1D5DB") }];
-
-    // Diagonal cross lines to signal "image area"
-    const line1 = figma.createLine();
-    line1.x = 0; line1.y = 0;
-    line1.resize(spec.width, 0);
-    line1.rotation = Math.atan2(spec.height, spec.width) * (180 / Math.PI);
-    line1.strokes = [{ type: "SOLID", color: hexToRgb("#9CA3AF") }];
-    line1.strokeWeight = 1;
-    node.appendChild(line1);
-
-    const font = await loadFont("Regular");
-    const label = figma.createText();
-    await figma.loadFontAsync(font);
-    label.fontName   = font;
-    label.fontSize   = 10;
-    label.characters = spec.label || "Image";
-    label.fills = [{ type: "SOLID", color: hexToRgb("#6B7280") }];
-    label.x = 8; label.y = 8;
-    node.appendChild(label);
-    return node;
+  // ── Image / Avatar / Thumbnail placeholder ────────────────────────────────
+  if (isImageType(spec.type)) {
+    var imgNode          = figma.createFrame();
+    imgNode.name         = spec.label || spec.id;
+    imgNode.x            = spec.x;
+    imgNode.y            = spec.y;
+    imgNode.resize(spec.width, spec.height);
+    imgNode.cornerRadius = spec.corner_radius || 8;
+    imgNode.fills        = [{ type: "SOLID", color: hexToRgb("#D1D5DB", { r: 0.82, g: 0.84, b: 0.86 }) }];
+    var imgFont          = await loadFont("Regular");
+    var imgLbl           = figma.createText();
+    await figma.loadFontAsync(imgFont);
+    imgLbl.fontName      = imgFont;
+    imgLbl.fontSize      = 10;
+    imgLbl.characters    = spec.label || "Image";
+    imgLbl.fills         = [{ type: "SOLID", color: hexToRgb("#6B7280", { r: 0.42, g: 0.45, b: 0.5 }) }];
+    imgLbl.x = 8;
+    imgLbl.y = 8;
+    imgNode.appendChild(imgLbl);
+    return imgNode;
   }
 
-  // ── Button / FAB / Icon Button ─────────────────────────────────────────────
-  if (BUTTON_TYPES.has(spec.type)) {
-    const node  = figma.createFrame();
-    node.name   = spec.label || spec.id;
-    node.x      = spec.x;
-    node.y      = spec.y;
-    node.resize(spec.width, spec.height);
-    node.cornerRadius = (spec.corner_radius !== undefined && spec.corner_radius !== null) ? spec.corner_radius : (spec.type === "FAB" ? spec.height / 2 : 8);
-    node.fills  = [{ type: "SOLID", color: fillRgb }];
-    node.layoutMode = "HORIZONTAL";
-    node.primaryAxisAlignItems   = "CENTER";
-    node.counterAxisAlignItems   = "CENTER";
-    node.paddingLeft = node.paddingRight = 16;
-
-    const font = await loadFont(spec.font_weight || "SemiBold");
-    const label = figma.createText();
-    await figma.loadFontAsync(font);
-    label.fontName   = font;
-    label.fontSize   = spec.font_size || 14;
-    label.characters = spec.label || "";
-    label.fills = [{ type: "SOLID", color: textRgb }];
-    node.appendChild(label);
-    return node;
+  // ── Button / FAB / CTA ────────────────────────────────────────────────────
+  if (isButtonType(spec.type)) {
+    var btnNode          = figma.createFrame();
+    btnNode.name         = spec.label || spec.id;
+    btnNode.x            = spec.x;
+    btnNode.y            = spec.y;
+    btnNode.resize(spec.width, spec.height);
+    var isFab            = specType === "FAB";
+    btnNode.cornerRadius = (spec.corner_radius !== undefined && spec.corner_radius !== null)
+      ? spec.corner_radius : (isFab ? spec.height / 2 : 8);
+    btnNode.fills        = [{ type: "SOLID", color: fillRgb }];
+    btnNode.layoutMode   = "HORIZONTAL";
+    btnNode.primaryAxisAlignItems = "CENTER";
+    btnNode.counterAxisAlignItems = "CENTER";
+    btnNode.paddingLeft  = btnNode.paddingRight = 16;
+    var btnFont          = await loadFont(spec.font_weight || "SemiBold");
+    var btnLbl           = figma.createText();
+    await figma.loadFontAsync(btnFont);
+    btnLbl.fontName      = btnFont;
+    btnLbl.fontSize      = spec.font_size || 14;
+    btnLbl.characters    = spec.label || "";
+    btnLbl.fills         = [{ type: "SOLID", color: textRgb }];
+    btnNode.appendChild(btnLbl);
+    return btnNode;
   }
 
-  // ── Container types (FRAME, NAV_BAR, CARD, etc.) ─────────────────────────
-  const node = figma.createFrame();
-  node.name   = spec.label || spec.id;
-  node.x      = spec.x;
-  node.y      = spec.y;
-  node.resize(spec.width, spec.height);
-  node.cornerRadius = spec.corner_radius || 0;
-  node.fills  = [{ type: "SOLID", color: fillRgb }];
+  // ── Container (FRAME, NAV_BAR, CARD, MODAL, etc.) ─────────────────────────
+  var ctnNode          = figma.createFrame();
+  ctnNode.name         = spec.label || spec.id;
+  ctnNode.x            = spec.x;
+  ctnNode.y            = spec.y;
+  ctnNode.resize(spec.width, spec.height);
+  ctnNode.cornerRadius = spec.corner_radius || 0;
+  ctnNode.fills        = [{ type: "SOLID", color: fillRgb }];
 
-  if (spec.type === "NAV_BAR") {
-    node.layoutMode = "HORIZONTAL";
-    node.primaryAxisAlignItems   = "SPACE_BETWEEN";
-    node.counterAxisAlignItems   = "CENTER";
-    node.paddingLeft = node.paddingRight = 16;
-    node.paddingTop  = node.paddingBottom = 0;
+  if (specType.indexOf("NAV") !== -1 || specType === "HEADER") {
+    ctnNode.layoutMode              = "HORIZONTAL";
+    ctnNode.primaryAxisAlignItems   = "SPACE_BETWEEN";
+    ctnNode.counterAxisAlignItems   = "CENTER";
+    ctnNode.paddingLeft = ctnNode.paddingRight = 16;
+    ctnNode.paddingTop  = ctnNode.paddingBottom = 0;
   }
 
-  if (spec.type === "BOTTOM_TAB_BAR") {
-    node.layoutMode = "HORIZONTAL";
-    node.primaryAxisAlignItems   = "SPACE_BETWEEN";
-    node.counterAxisAlignItems   = "CENTER";
-    node.paddingLeft = node.paddingRight = 24;
+  if (specType.indexOf("TAB_BAR") !== -1 || specType.indexOf("BOTTOM_TAB") !== -1 || specType.indexOf("NAVIGATION") !== -1) {
+    ctnNode.layoutMode              = "HORIZONTAL";
+    ctnNode.primaryAxisAlignItems   = "SPACE_BETWEEN";
+    ctnNode.counterAxisAlignItems   = "CENTER";
+    ctnNode.paddingLeft = ctnNode.paddingRight = 24;
   }
 
-  if (spec.type === "CARD") {
-    node.cornerRadius = spec.corner_radius || 12;
-    node.effects = [{
+  if (specType.indexOf("CARD") !== -1) {
+    ctnNode.cornerRadius = spec.corner_radius || 12;
+    ctnNode.effects      = [{
       type: "DROP_SHADOW",
       color: { r: 0, g: 0, b: 0, a: 0.08 },
       offset: { x: 0, y: 2 },
-      radius: 8,
-      spread: 0,
-      visible: true,
-      blendMode: "NORMAL",
+      radius: 8, spread: 0,
+      visible: true, blendMode: "NORMAL",
     }];
   }
 
-  // Add a label inside for non-trivial containers so layout is visible
-  if (spec.label && spec.type !== "FRAME") {
-    const font = await loadFont("Medium");
-    const label = figma.createText();
-    await figma.loadFontAsync(font);
-    label.fontName   = font;
-    label.fontSize   = spec.font_size || 13;
-    label.characters = spec.label;
-    label.fills = [{ type: "SOLID", color: textRgb }];
-    label.x = 12;
-    label.y = Math.max(0, (spec.height - (spec.font_size || 13)) / 2);
-    node.appendChild(label);
-  }
-
-  return node;
+  // Container labels are layer names only — no visible text rendered inside.
+  return ctnNode;
 }
 
 // ── Render a full screen ──────────────────────────────────────────────────────
 
-async function renderScreen(screenSpec, offsetX) {
+async function renderScreen(screenSpec, offsetX, dsMode) {
   // Create the top-level screen frame first and add it to the page.
   // All child elements must be appended INTO this frame immediately after
   // creation — if we call figma.create*() without immediately reparenting,
@@ -208,21 +231,19 @@ async function renderScreen(screenSpec, offsetX) {
   screenFrame.x            = offsetX;
   screenFrame.y            = 100;
   screenFrame.resize(screenSpec.width || 390, screenSpec.height || 844);
-  screenFrame.fills        = [{ type: "SOLID", color: hexToRgb(screenSpec.background_color || "#FFFFFF") }];
+  screenFrame.fills        = [{ type: "SOLID", color: hexToRgb(screenSpec.background_color, { r: 1, g: 1, b: 1 }) }];
   screenFrame.clipsContent = true;
   figma.currentPage.appendChild(screenFrame);
 
   const elements = screenSpec.elements || [];
 
   // Single pass: create each element and append it to screenFrame immediately.
-  // The LLM outputs x/y as coordinates relative to the screen canvas origin,
-  // which maps directly to Figma's coordinate space inside the screen frame.
-  // We intentionally flatten the hierarchy — no nested frames — to keep
-  // coordinate math simple and avoid double-offset bugs.
+  // dsMode = true  → use importComponentByKeyAsync (real DS instances)
+  // dsMode = false → use createElement (generic Figma primitives)
   for (var i = 0; i < elements.length; i++) {
     var spec = elements[i];
     try {
-      var node = await createElement(spec);
+      var node = dsMode ? await createDSInstance(spec) : await createElement(spec);
       screenFrame.appendChild(node);
     } catch (err) {
       send("LOG", "  [SKIP] " + spec.id + ": " + err.message);
@@ -242,13 +263,16 @@ figma.ui.onmessage = async (msg) => {
   }
 
   if (msg.type === "RENDER") {
-    const screens = (msg.payload && msg.payload.screens) ? msg.payload.screens : [];
+    var screens = (msg.payload && msg.payload.screens) ? msg.payload.screens : [];
+    var dsMode  = (msg.payload && msg.payload.ds_mode) ? true : false;
+
     if (screens.length === 0) {
       send("ERROR", "Payload has no screens.");
       return;
     }
 
-    send("LOG", `[SYS] Rendering ${screens.length} screen(s)…`, "info");
+    send("LOG", "[SYS] Mode: " + (dsMode ? "DS components (real instances)" : "fallback primitives"));
+    send("LOG", "[SYS] Rendering " + screens.length + " screen(s)…", "info");
 
     const GAP     = 60;
     let   offsetX = 100;
@@ -257,7 +281,7 @@ figma.ui.onmessage = async (msg) => {
       const screen = screens[i];
       send("LOG", `[${i + 1}/${screens.length}] Drawing "${screen.screen_name}"…`);
       try {
-        const frame = await renderScreen(screen, offsetX);
+        const frame = await renderScreen(screen, offsetX, dsMode);
         offsetX += (screen.width || 390) + GAP;
 
         // Scroll viewport to the first rendered screen
