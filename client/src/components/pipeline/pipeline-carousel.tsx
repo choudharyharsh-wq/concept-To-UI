@@ -9,14 +9,22 @@ import { UserFlowStage } from "./user-flow-stage";
 import { UXLayoutStage } from "./ux-layout-stage";
 import { WireframeCompilerStage } from "./wireframe-compiler-stage";
 import { RenderStage } from "./render-stage";
+import { ReviewStage } from "./review-stage";
 import { cn } from "@/lib/utils";
 
 interface PipelineCarouselProps {
   stages: PipelineStage[];
+  onSubmitReviewFeedback: (feedback: {
+    answered_questions: Record<string, string>;
+    accepted_suggestion_ids: string[];
+    human_notes: string;
+    confirmed_proceed: boolean;
+  }) => void;
 }
 
 const STAGE_LABELS: Record<string, string> = {
   prd_node:                "PRD",
+  prd_review_node:         "Review",
   ia_node:                 "IA Map",
   user_flow_node:          "Flows",
   ux_layout_node:          "UX Plan",
@@ -24,7 +32,7 @@ const STAGE_LABELS: Record<string, string> = {
   render_node:             "Render",
 };
 
-export function PipelineCarousel({ stages }: PipelineCarouselProps) {
+export function PipelineCarousel({ stages, onSubmitReviewFeedback }: PipelineCarouselProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [sliding, setSliding] = useState(false);
   const [slideDir, setSlideDir] = useState<"left" | "right">("left");
@@ -34,6 +42,16 @@ export function PipelineCarousel({ stages }: PipelineCarouselProps) {
   useEffect(() => {
     slideRefs.current[activeIndex]?.scrollTo({ top: 0, behavior: "smooth" });
   }, [activeIndex]);
+
+  // ── Auto-jump to review stage when it becomes active (awaiting human) ──────
+  useEffect(() => {
+    const reviewIdx = stages.findIndex(s => s.id === "prd_review_node");
+    if (reviewIdx === -1) return;
+    const reviewStage = stages[reviewIdx];
+    if (reviewStage.status === "active" && reviewStage.data?.awaiting_human) {
+      goTo(reviewIdx, "left");
+    }
+  }, [stages]);
 
   function goTo(index: number, dir: "left" | "right") {
     if (sliding || index === activeIndex) return;
@@ -115,6 +133,7 @@ export function PipelineCarousel({ stages }: PipelineCarouselProps) {
             >
               {/* Render the correct stage component */}
               {stage.id === "prd_node"                && <PRDStage stage={stage} />}
+              {stage.id === "prd_review_node"         && <ReviewStage stage={stage} onSubmitFeedback={onSubmitReviewFeedback} />}
               {stage.id === "ia_node"                 && <IAStage stage={stage} />}
               {stage.id === "user_flow_node"          && <UserFlowStage stage={stage} />}
               {stage.id === "ux_layout_node"          && <UXLayoutStage stage={stage} />}

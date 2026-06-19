@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage, SystemMessage
 from .state import GraphState
+from .design_head import run_prd_evaluator, apply_prd_feedback
 
 load_dotenv(override=True)
 
@@ -879,4 +880,139 @@ def render_node(state: GraphState):
                 "screen_count": screen_count,
             },
             "logs": logs,
+        }
+
+
+# ── Design Head: PRD Review Node ──────────────────────────────────────────────
+
+def prd_review_node(state: GraphState):
+    """
+    Runs the Design Head's PRD Evaluator vertical.
+    Evaluates the PRD, generates questions + suggestions, then pauses
+    the pipeline by emitting review_status = 'awaiting_human'.
+    The graph will re-enter prd_apply_feedback_node once the human responds.
+    """
+    print("--- Executing PRD Review Node ---")
+
+    prd_data       = state.get("prd_data", {})
+    concept        = state.get("concept", "")
+    human_feedback = state.get("human_feedback", {})
+    round_number   = human_feedback.get("round_number", 1)
+
+    print(f"    Running PRD Evaluator (round {round_number})…")
+
+    try:
+        review = run_prd_evaluator(
+            prd_data=prd_data,
+            concept=concept,
+            previous_feedback=human_feedback if round_number > 1 else None,
+            round_number=round_number,
+        )
+
+        review_dict = review.model_dump()
+        print(f"    PRD quality score: {review.quality_score}/10 | is_ready: {review.is_ready}")
+        print(f"    Questions: {len(review.questions)} | Suggestions: {len(review.suggestions)}")
+
+        return {
+            "review_data": {
+                "stage":          "prd",
+                "round":          round_number,
+                "review":         review_dict,
+            },
+            "review_status": "awaiting_human",
+            "logs": [
+                f"[DESIGN HEAD] PRD Evaluator complete — score {review.quality_score}/10.",
+                f"[DESIGN HEAD] {len(review.questions)} question(s), {len(review.suggestions)} suggestion(s).",
+                "[DESIGN HEAD] Waiting for human feedback before proceeding…",
+            ],
+        }
+    except Exception as e:
+        print(f"    [ERR] PRD Review failed: {e}")
+        return {
+            "review_data":   {"stage": "prd", "error": str(e)},
+            "review_status": "approved",   # skip review on error, don't block pipeline
+            "errors":        [f"PRD Review error: {str(e)}"],
+            "logs":          [f"[ERR] PRD Review failed — proceeding without review: {str(e)}"],
+        }
+
+
+def prd_apply_feedback_node(state: GraphState):
+    """
+    Called after the human submits feedback on the PRD review.
+    Applies accepted suggestions + question answers to the PRD,
+    then re-runs the evaluator to get a fresh score.
+    If the evaluator marks is_ready=True AND human confirmed, sets review_status='approved'.
+    """
+    print("--- Executing PRD Apply Feedback Node ---")
+
+    prd_data       = state.get("prd_data", {})
+    concept        = state.get("concept", "")
+    human_feedback = state.get("human_feedback", {})
+    review_data    = state.get("review_data", {})
+
+    prev_review_dict = review_data.get("review", {})
+    round_number     = human_feedback.get("round_number", 1)
+
+    # Reconstruct the previous PRDReviewOutput for suggestion lookup
+    from .design_head import PRDReviewOutput, ReviewSuggestion, ReviewQuestion
+    try:
+        prev_review = PRDReviewOutput(**prev_review_dict)
+    except Exception:
+        prev_review = None
+
+    human_confirmed = human_feedback.get("confirmed_proceed", False)
+
+    print(f"    Applying feedback (round {round_number}) — confirmed_proceed: {human_confirmed}")
+
+    try:
+        # Apply changes to PRD
+        updated_prd = apply_prd_feedback(
+            prd_data=prd_data,
+            concept=concept,
+            feedback=human_feedback,
+            review=prev_review,
+        )
+
+        # Re-evaluate with updated PRD
+        new_review = run_prd_evaluator(
+            prd_data=updated_prd,
+            concept=concept,
+            previous_feedback=human_feedback,
+            round_number=round_number + 1,
+        )
+
+        print(f"    Updated PRD score: {new_review.quality_score}/10 | is_ready: {new_review.is_ready}")
+
+        # Determine if we're done with review
+        if human_confirmed and new_review.is_ready:
+            review_status = "approved"
+            print("    PRD review approved — proceeding to IA node.")
+        else:
+            review_status = "awaiting_human"
+
+        return {
+            "prd_data":      updated_prd,
+            "review_data": {
+                "stage":  "prd",
+                "round":  round_number + 1,
+                "review": new_review.model_dump(),
+            },
+            "review_status": review_status,
+            "human_feedback": {
+                **human_feedback,
+                "round_number": round_number + 1,
+                "confirmed_proceed": False,   # reset for next round
+            },
+            "logs": [
+                f"[DESIGN HEAD] PRD updated (round {round_number + 1}) — score {new_review.quality_score}/10.",
+                "[DESIGN HEAD] PRD review approved — proceeding to IA." if review_status == "approved"
+                else "[DESIGN HEAD] Another round of review needed.",
+            ],
+        }
+    except Exception as e:
+        print(f"    [ERR] Apply feedback failed: {e}")
+        return {
+            "review_status": "approved",   # don't block forever on error
+            "errors":        [f"Apply feedback error: {str(e)}"],
+            "logs":          [f"[ERR] Feedback apply failed — proceeding: {str(e)}"],
         }

@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 export default function Dashboard() {
   const [concept, setConcept] = useState("");
   const [figmaUrl, setFigmaUrl] = useState("https://www.figma.com/file/123456789/Concept-To-UI-Test");
-  const { isGenerating, stages, startGeneration } = useGenerationStream();
+  const { isGenerating, stages, startGeneration, submitReviewFeedback } = useGenerationStream();
   const [hasStarted, setHasStarted] = useState(false);
 
   // Guard 1: tab close / hard refresh / address-bar navigation
@@ -130,7 +130,7 @@ export default function Dashboard() {
               <p className="font-mono text-xs uppercase tracking-widest text-zinc-600 mb-3">Pipeline</p>
               <h2 className="text-xl font-semibold tracking-tight text-zinc-200">Live Generation</h2>
             </div>
-            <PipelineCarousel stages={stages} />
+            <PipelineCarousel stages={stages} onSubmitReviewFeedback={submitReviewFeedback} />
           </div>
         )}
 

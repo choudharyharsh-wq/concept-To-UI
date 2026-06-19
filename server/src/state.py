@@ -1,4 +1,4 @@
-from typing import Annotated, TypedDict, List, Dict, Any
+from typing import Annotated, TypedDict, List, Dict, Any, Optional
 import operator
 
 class GraphState(TypedDict):
@@ -15,3 +15,9 @@ class GraphState(TypedDict):
     render_data: Dict[str, Any]
     logs: Annotated[List[str], operator.add]
     errors: List[str]
+
+    # ── Design Head review fields ─────────────────────────────────────────────
+    # Populated by review nodes; cleared between stages.
+    review_data: Dict[str, Any]      # questions + suggestions from Design Head
+    human_feedback: Dict[str, Any]   # answers + accepted suggestions from human
+    review_status: str               # "awaiting_human" | "feedback_received" | "approved"

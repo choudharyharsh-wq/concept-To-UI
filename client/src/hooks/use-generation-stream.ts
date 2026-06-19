@@ -13,6 +13,7 @@ export interface PipelineStage {
 
 const INITIAL_STAGES: PipelineStage[] = [
   { id: "prd_node",                name: "Product Requirements Document", status: "pending", data: null },
+  { id: "prd_review_node",         name: "Design Head — PRD Review",      status: "pending", data: null },
   { id: "ia_node",                 name: "Information Architecture Map",  status: "pending", data: null },
   { id: "user_flow_node",          name: "User Flow Builder",             status: "pending", data: null },
   { id: "ux_layout_node",          name: "UX Layout Planner",             status: "pending", data: null },
@@ -209,6 +210,7 @@ const BACKEND_URL = "http://localhost:8000";
 // Maps each node name to the key inside the backend payload that holds its content.
 const NODE_DATA_KEY: Record<string, string> = {
   prd_node:                "prd_data",
+  prd_review_node:         "review_data",
   ia_node:                 "ia_data",
   user_flow_node:          "user_flow_data",
   ux_layout_node:          "ux_layout_data",
@@ -222,6 +224,7 @@ export function useGenerationStream() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [stages, setStages] = useState<PipelineStage[]>(INITIAL_STAGES);
   const eventSourceRef = useRef<EventSource | null>(null);
+  const sessionIdRef   = useRef<string>("default");
 
   const setStageStatus = useCallback(
     (id: string, status: PipelineStageStatus, data?: any) =>
@@ -253,12 +256,14 @@ export function useGenerationStream() {
       // Activate the first stage immediately so the UI shows progress right away.
       setStageStatus(STAGE_ORDER[0], "active");
 
-      const url = `${BACKEND_URL}/api/generate?concept=${encodeURIComponent(concept)}&figma_url=${encodeURIComponent(figmaUrl)}`;
+      const sessionId = `session_${Date.now()}`;
+      sessionIdRef.current = sessionId;
+      const url = `${BACKEND_URL}/api/generate?concept=${encodeURIComponent(concept)}&figma_url=${encodeURIComponent(figmaUrl)}&session_id=${sessionId}`;
       const es = new EventSource(url);
       eventSourceRef.current = es;
 
       es.onmessage = (event) => {
-        const { phase, data } = JSON.parse(event.data) as {
+        const { phase, status, data } = JSON.parse(event.data) as {
           phase: string;
           status: string;
           data: Record<string, any>;
@@ -277,8 +282,22 @@ export function useGenerationStream() {
           return;
         }
 
+        // Human-in-the-loop pause: Design Head is waiting for feedback
+        if (status === "awaiting_human") {
+          const innerKey = NODE_DATA_KEY[phase];
+          const stageData = innerKey
+            ? { ...data[innerKey], ...(data.logs ? { logs: data.logs } : {}), awaiting_human: true }
+            : { ...data, awaiting_human: true };
+          setStageStatus(phase, "active", stageData);
+          return; // don't advance — wait for human
+        }
+
+        // Backend re-ran apply_feedback, just update review stage silently
+        if (phase === "prd_feedback_received") {
+          return;
+        }
+
         // Extract the stage-specific content from the wrapper key (e.g. data.prd_data).
-        // For render_node the logs live at the top level of data, so merge them in.
         const innerKey = NODE_DATA_KEY[phase];
         const stageData = innerKey
           ? { ...data[innerKey], ...(data.logs ? { logs: data.logs } : {}) }
@@ -303,5 +322,18 @@ export function useGenerationStream() {
     [setStageStatus, runSimulation]
   );
 
-  return { isGenerating, stages, startGeneration };
+  const submitReviewFeedback = useCallback(async (feedback: {
+    answered_questions: Record<string, string>;
+    accepted_suggestion_ids: string[];
+    human_notes: string;
+    confirmed_proceed: boolean;
+  }) => {
+    await fetch(`${BACKEND_URL}/api/review/respond`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ session_id: sessionIdRef.current, ...feedback }),
+    });
+  }, []);
+
+  return { isGenerating, stages, startGeneration, submitReviewFeedback };
 }
