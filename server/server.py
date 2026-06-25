@@ -10,6 +10,7 @@ Flow:
 No custom threading or queues — LangGraph handles interrupts and state natively.
 """
 
+import asyncio
 import json
 import os
 from dotenv import load_dotenv
@@ -39,6 +40,48 @@ server.add_middleware(
 
 def _sse(phase: str, status: str, data: dict) -> str:
     return f"data: {json.dumps({'phase': phase, 'status': status, 'data': data})}\n\n"
+
+
+# Heartbeat interval (seconds). Must be shorter than the proxy's idle timeout.
+# Long-running nodes (e.g. ux_layout) emit no SSE bytes while computing; without
+# a heartbeat the edge proxy severs the idle HTTP/2 connection and the browser
+# reports net::ERR_HTTP2_PROTOCOL_ERROR.
+_HEARTBEAT_SECS = 15
+
+
+async def _with_heartbeat(inner):
+    """
+    Wrap an async generator of SSE strings, injecting a comment heartbeat
+    (': hb\\n\\n', ignored by EventSource) during any gap longer than
+    _HEARTBEAT_SECS so the connection never goes idle. Surfaces inner
+    exceptions as an SSE 'error' event instead of silently dropping the stream.
+    """
+    queue: asyncio.Queue = asyncio.Queue()
+    _DONE = object()
+
+    async def _producer():
+        try:
+            async for item in inner:
+                await queue.put(item)
+        except Exception as exc:  # noqa: BLE001 — surface to client + logs
+            print(f"[ERROR] graph stream failed: {exc!r}")
+            await queue.put(_sse("error", "error", {"message": str(exc)}))
+        finally:
+            await queue.put(_DONE)
+
+    task = asyncio.create_task(_producer())
+    try:
+        while True:
+            try:
+                item = await asyncio.wait_for(queue.get(), timeout=_HEARTBEAT_SECS)
+            except asyncio.TimeoutError:
+                yield ": hb\n\n"
+                continue
+            if item is _DONE:
+                break
+            yield item
+    finally:
+        task.cancel()
 
 
 async def _run_graph(config: dict, input_val):
@@ -77,7 +120,7 @@ async def generate(
     }
 
     return StreamingResponse(
-        _run_graph(config, initial_state),
+        _with_heartbeat(_run_graph(config, initial_state)),
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
@@ -128,7 +171,7 @@ async def generate_resume(session_id: str = Query(default="default")):
         return JSONResponse({"error": "Session not found"}, status_code=404)
 
     return StreamingResponse(
-        _run_graph(config, None),
+        _with_heartbeat(_run_graph(config, None)),
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
