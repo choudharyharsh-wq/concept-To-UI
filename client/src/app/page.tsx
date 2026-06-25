@@ -1,10 +1,84 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Sparkles, Figma, Send, Loader2 } from "lucide-react";
+import { Sparkles, Send, Loader2, Lightbulb } from "lucide-react";
 import { useGenerationStream } from "@/hooks/use-generation-stream";
 import { PipelineWorkspace } from "@/components/pipeline/pipeline-workspace";
 import { cn } from "@/lib/utils";
+
+// ── Idea starters — one-click concept one-pagers ──────────────────────────────
+const IDEA_STARTERS: { label: string; concept: string }[] = [
+  {
+    label: "E-com app for pet parents",
+    concept: `Product: A mobile-first e-commerce app for pet parents to shop for their pets.
+
+Target user: Busy urban dog and cat owners (25–40) who care deeply about their pets but have little time to research products. They currently buy across scattered marketplaces and struggle to find trustworthy, pet-appropriate items.
+
+Core problem: Generic shopping apps don't understand pets — no size/breed guidance, no recurring-need reminders, no curation, so owners overbuy or buy the wrong thing.
+
+Goals:
+- Let a user create a pet profile (species, breed, age, weight) and get a personalized store.
+- Browse curated categories (food, treats, toys, grooming, health) with breed/size-aware recommendations.
+- One-tap reorder and subscriptions for recurring essentials like food and litter.
+- Frictionless checkout with saved addresses and payment.
+
+Key features:
+- Personalized home feed driven by the pet profile.
+- Product detail pages with suitability ("good for puppies", "grain-free") and reviews from similar pets.
+- Cart, subscriptions, order tracking, and reorder history.
+- Wishlist and price-drop alerts.
+
+Non-goals: vet appointment booking, social networking, marketplace for third-party sellers.
+
+Tone: warm, trustworthy, playful.`,
+  },
+  {
+    label: "Habit tracker with rewards",
+    concept: `Product: A minimalist daily habit tracker that rewards consistency with real-world perks.
+
+Target user: People (20–35) who repeatedly start habits and quit within two weeks because they get no tangible payoff and the apps feel like chores.
+
+Core problem: Existing trackers are cluttered and rely only on streaks for motivation, which break and demoralize users.
+
+Goals:
+- Log a habit in under 10 seconds with one tap.
+- Visualize streaks and progress in a calm, glanceable dashboard.
+- Convert consistency into unlockable rewards (discount coupons, badges).
+
+Key features:
+- Daily checklist with one-tap completion.
+- Streak counter and a weekly progress chart.
+- Reward unlock screen when milestones are hit.
+- Gentle reminders and an empty/first-run onboarding state.
+
+Non-goals: social feed, in-app purchases, multi-user/team habits.
+
+Tone: encouraging, focused, rewarding.`,
+  },
+  {
+    label: "Personal finance dashboard",
+    concept: `Product: A personal finance dashboard that gives individuals a clear, single view of their money.
+
+Target user: Salaried professionals (25–45) who have multiple accounts and cards and feel anxious because they never know where their money actually goes.
+
+Core problem: Money is fragmented across banks and apps; people lack a simple, trustworthy overview and actionable insight without spreadsheets.
+
+Goals:
+- Aggregate balances, spending, and upcoming bills into one dashboard.
+- Categorize transactions automatically and surface monthly trends.
+- Set budgets per category and get nudged before overspending.
+
+Key features:
+- Net-worth and cash-flow summary cards.
+- Spending breakdown by category with trend charts.
+- Budget setup and progress tracking.
+- Bills/subscriptions tracker and alerts.
+
+Non-goals: investment trading, tax filing, lending products.
+
+Tone: professional, calm, trustworthy.`,
+  },
+];
 
 export default function Dashboard() {
   const [concept, setConcept]   = useState("");
@@ -33,7 +107,7 @@ export default function Dashboard() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!concept || !figmaUrl) return;
+    if (!concept) return;
     setHasStarted(true);
     startGeneration(concept, figmaUrl);
   };
@@ -73,28 +147,29 @@ export default function Dashboard() {
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-2">
                 <label className="font-mono text-xs uppercase tracking-widest text-zinc-500">Your Concept</label>
+
+                {/* Idea starters — click to drop in a full concept one-pager */}
+                <div className="flex flex-wrap gap-2 pb-1">
+                  {IDEA_STARTERS.map((idea) => (
+                    <button
+                      key={idea.label}
+                      type="button"
+                      onClick={() => setConcept(idea.concept)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-800/60 border border-zinc-700 text-zinc-300 text-xs hover:bg-zinc-700/70 hover:border-zinc-600 active:scale-[0.98] transition-all"
+                    >
+                      <Lightbulb size={12} className="text-amber-400/80" />
+                      {idea.label}
+                    </button>
+                  ))}
+                </div>
+
                 <textarea
                   value={concept}
                   onChange={e => setConcept(e.target.value)}
                   placeholder="e.g., A minimalist habit tracker for dog owners that rewards consistency with pet store discounts."
-                  className="w-full h-36 bg-zinc-950 border border-zinc-800 rounded-lg p-4 focus:border-zinc-600 outline-none transition-colors resize-none text-zinc-200 placeholder:text-zinc-700 text-sm"
+                  className="w-full h-48 bg-zinc-950 border border-zinc-800 rounded-lg p-4 focus:border-zinc-600 outline-none transition-colors resize-none text-zinc-200 placeholder:text-zinc-700 text-sm"
                   required
                 />
-              </div>
-
-              <div className="space-y-2">
-                <label className="font-mono text-xs uppercase tracking-widest text-zinc-500">Figma File URL</label>
-                <div className="relative">
-                  <Figma size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" />
-                  <input
-                    type="url"
-                    value={figmaUrl}
-                    onChange={e => setFigmaUrl(e.target.value)}
-                    placeholder="https://www.figma.com/file/..."
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-3 pl-11 pr-4 focus:border-zinc-600 outline-none transition-colors text-zinc-200 placeholder:text-zinc-700 text-sm"
-                    required
-                  />
-                </div>
               </div>
 
               <button

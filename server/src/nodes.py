@@ -960,12 +960,10 @@ def prd_apply_feedback_node(state: GraphState):
     except Exception:
         prev_review = None
 
-    human_confirmed = human_feedback.get("confirmed_proceed", False)
-
-    print(f"    Applying feedback (round {round_number}) — confirmed_proceed: {human_confirmed}")
+    print(f"    Applying feedback (round {round_number})…")
 
     try:
-        # Apply changes to PRD
+        # Apply the human's requested changes to the PRD.
         updated_prd = apply_prd_feedback(
             prd_data=prd_data,
             concept=concept,
@@ -973,7 +971,7 @@ def prd_apply_feedback_node(state: GraphState):
             review=prev_review,
         )
 
-        # Re-evaluate with updated PRD
+        # Re-evaluate the updated PRD to produce a fresh review for the next round.
         new_review = run_prd_evaluator(
             prd_data=updated_prd,
             concept=concept,
@@ -983,13 +981,10 @@ def prd_apply_feedback_node(state: GraphState):
 
         print(f"    Updated PRD score: {new_review.quality_score}/10 | is_ready: {new_review.is_ready}")
 
-        # Determine if we're done with review
-        if human_confirmed and new_review.is_ready:
-            review_status = "approved"
-            print("    PRD review approved — proceeding to IA node.")
-        else:
-            review_status = "awaiting_human"
-
+        # Filling the feedback form always means "I want changes" — so we always
+        # return to review. The ONLY way out of the review loop is the human's
+        # explicit "this PRD is perfect" override, which approves before this node
+        # ever runs (handled in /api/review/respond).
         return {
             "prd_data":      updated_prd,
             "review_data": {
@@ -997,7 +992,7 @@ def prd_apply_feedback_node(state: GraphState):
                 "round":  round_number + 1,
                 "review": new_review.model_dump(),
             },
-            "review_status": review_status,
+            "review_status": "awaiting_human",
             "human_feedback": {
                 **human_feedback,
                 "round_number": round_number + 1,
@@ -1005,8 +1000,7 @@ def prd_apply_feedback_node(state: GraphState):
             },
             "logs": [
                 f"[DESIGN HEAD] PRD updated (round {round_number + 1}) — score {new_review.quality_score}/10.",
-                "[DESIGN HEAD] PRD review approved — proceeding to IA." if review_status == "approved"
-                else "[DESIGN HEAD] Another round of review needed.",
+                "[DESIGN HEAD] Revised PRD ready for another review round.",
             ],
         }
     except Exception as e:

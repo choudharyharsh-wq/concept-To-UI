@@ -89,13 +89,22 @@ async def review_respond(request: Request):
 
     current_round = graph_state.values.get("human_feedback", {}).get("round_number", 1)
 
+    # Human hard-override: "this PRD is perfect, proceed to IA with it as-is".
+    # Approve directly — the graph routes "approved" → ia_node, skipping the
+    # apply-feedback node entirely, so the current PRD is used unchanged.
+    if body.get("confirmed_proceed", False):
+        langgraph_app.update_state(config, {"review_status": "approved"})
+        return {"status": "ok"}
+
+    # Otherwise the human wants changes — store feedback and route to the
+    # apply-feedback node, which rewrites the PRD and triggers a new review round.
     langgraph_app.update_state(config, {
         "human_feedback": {
             **graph_state.values.get("human_feedback", {}),
             "answered_questions":      body.get("answered_questions", {}),
             "accepted_suggestion_ids": body.get("accepted_suggestion_ids", []),
             "human_notes":             body.get("human_notes", ""),
-            "confirmed_proceed":       body.get("confirmed_proceed", False),
+            "confirmed_proceed":       False,
             "round_number":            current_round,
         },
         "review_status": "feedback_received",

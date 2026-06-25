@@ -144,6 +144,20 @@ export function ReviewPanel({ stage, onSubmitFeedback }: ReviewPanelProps) {
   return (
     <div className="flex flex-col gap-5 pb-4">
 
+      {/* Human override — accept the current PRD as-is and move on. Independent of
+          the feedback form below; this is the only way to leave the review loop. */}
+      {isAwaiting && (
+        <button
+          onClick={() => submit(true)}
+          disabled={submitting}
+          className="w-full px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+        >
+          <CheckCircle2 size={15} />
+          {submitting ? "Proceeding…" : "This PRD is perfect — proceed to IA"}
+          <ChevronRight size={14} />
+        </button>
+      )}
+
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="space-y-1">
@@ -247,34 +261,16 @@ export function ReviewPanel({ stage, onSubmitFeedback }: ReviewPanelProps) {
         </div>
       )}
 
-      {/* Action buttons */}
+      {/* Apply & Re-do — submit the feedback above to rewrite the PRD and start a
+          fresh review round. This always loops back to review (never proceeds). */}
       {isAwaiting && (
-        <div className="grid grid-cols-2 gap-3 pt-1">
-          <button
-            onClick={() => submit(false)}
-            disabled={submitting}
-            className="px-4 py-3 rounded-xl border border-zinc-700 bg-zinc-800/60 text-zinc-300 text-sm font-semibold hover:bg-zinc-700 transition-colors disabled:opacity-50"
-          >
-            {submitting ? "Applying…" : "Apply & Re-do"}
-          </button>
-          <button
-            onClick={() => submit(true)}
-            disabled={submitting}
-            className={cn(
-              "px-4 py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-colors disabled:opacity-50",
-              review.is_ready
-                ? "bg-violet-600 hover:bg-violet-500 text-white"
-                : "bg-zinc-700 border border-zinc-600 text-zinc-300 hover:bg-zinc-600"
-            )}
-          >
-            {submitting ? "Sending…" : (
-              <>
-                I am satisfied, move to next stage
-                <ChevronRight size={14} />
-              </>
-            )}
-          </button>
-        </div>
+        <button
+          onClick={() => submit(false)}
+          disabled={submitting}
+          className="w-full px-4 py-3 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold transition-colors disabled:opacity-50"
+        >
+          {submitting ? "Applying…" : "Apply changes & re-do PRD"}
+        </button>
       )}
 
     </div>
