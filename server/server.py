@@ -11,6 +11,7 @@ No custom threading or queues — LangGraph handles interrupts and state nativel
 """
 
 import json
+import os
 from dotenv import load_dotenv
 
 load_dotenv(override=True)
@@ -23,9 +24,14 @@ from src.graph import app as langgraph_app
 
 server = FastAPI()
 
+# Comma-separated exact origins, e.g. "http://localhost:3000,https://my-app.vercel.app"
+_origins = [o.strip() for o in os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",") if o.strip()]
+
 server.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=_origins,
+    # Also allow Vercel preview deployments (https://<branch>-<project>.vercel.app)
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )

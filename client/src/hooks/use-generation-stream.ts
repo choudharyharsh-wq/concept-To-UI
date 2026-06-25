@@ -21,7 +21,7 @@ const INITIAL_STAGES: PipelineStage[] = [
   { id: "render_node",             name: "Render to Figma", status: "pending", data: null },
 ];
 
-const BACKEND_URL = "http://localhost:8000";
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000";
 
 // Maps each node name to the key inside the backend payload that holds its content.
 const NODE_DATA_KEY: Record<string, string> = {
