@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 from typing import List, Literal, Optional
 from dotenv import load_dotenv
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage, SystemMessage
 from .state import GraphState
@@ -600,6 +600,51 @@ class ScreenWireframe(BaseModel):
     height: float = Field(default=844, description="Canvas height in pixels")
     background_color: str = Field(default="#FFFFFF")
     elements: List[ElementSpec] = Field(description="All UI elements on this screen, ordered back-to-front")
+
+    @model_validator(mode="before")
+    @classmethod
+    def _flatten_nested_children(cls, data):
+        """
+        The render expects a FLAT element list with `children` holding only id
+        strings (coordinates are absolute). Haiku sometimes nests full element
+        dicts inside `children` instead of ids. Hoist any such nested dicts up
+        into `elements` and replace them with their id strings — recursively —
+        so a flaky model response never crashes the compiler and nothing is lost.
+        """
+        if not isinstance(data, dict):
+            return data
+        elements = data.get("elements")
+        if not isinstance(elements, list):
+            return data
+
+        flat: list = []
+        seen: set = set()
+
+        def visit(el):
+            if not isinstance(el, dict) or not el.get("id"):
+                return
+            children = el.get("children")
+            ids: list = []
+            nested: list = []
+            if isinstance(children, list):
+                for c in children:
+                    if isinstance(c, dict) and c.get("id"):
+                        ids.append(c["id"])
+                        nested.append(c)
+                    elif isinstance(c, str):
+                        ids.append(c)
+            el["children"] = ids
+            if el["id"] not in seen:
+                seen.add(el["id"])
+                flat.append(el)
+            for n in nested:
+                visit(n)
+
+        for el in elements:
+            visit(el)
+
+        data["elements"] = flat
+        return data
 
     def model_post_init(self, __context) -> None:
         object.__setattr__(self, "width",  max(1, round(self.width)))
