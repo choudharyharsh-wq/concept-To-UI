@@ -869,7 +869,7 @@ def render_node(state: GraphState):
     screen_count      = len(wireframe_payload.get("screens", []))
     errors            = state.get("errors", [])
 
-    bridge_url = "http://localhost:5001/payload"
+    bridge_url = os.getenv("BRIDGE_URL", "http://localhost:5001/payload")
 
     print(f"    Screens in payload: {screen_count}")
 
