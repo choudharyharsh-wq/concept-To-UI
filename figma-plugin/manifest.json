@@ -6,7 +6,7 @@
   "ui": "ui.html",
   "editorType": ["figma"],
   "networkAccess": {
-    "allowedDomains": ["none"],
+    "allowedDomains": ["https://plugin-backend-81m7.onrender.com"],
     "devAllowedDomains": ["http://localhost:5001"]
   }
 }
