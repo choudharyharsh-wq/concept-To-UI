@@ -19,7 +19,7 @@ from typing import Any
 from dotenv import load_dotenv
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage, SystemMessage
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import List
 
 load_dotenv(override=True)
@@ -57,9 +57,11 @@ class PRDReviewOutput(BaseModel):
         description="Quality score 1-10. 8+ means ready to proceed."
     )
     questions: List[ReviewQuestion] = Field(
+        default_factory=list,
         description="Up to 3 focused clarifying questions. Empty list if none needed."
     )
     suggestions: List[ReviewSuggestion] = Field(
+        default_factory=list,
         description="3-5 concrete improvement suggestions the human can accept or skip."
     )
     is_ready: bool = Field(
@@ -69,6 +71,27 @@ class PRDReviewOutput(BaseModel):
         description="If is_ready=True: brief statement of what makes this PRD solid. "
                     "If is_ready=False: what still needs to be addressed."
     )
+
+    @field_validator("questions", "suggestions", mode="before")
+    @classmethod
+    def _coerce_list(cls, v):
+        """
+        Haiku's structured output occasionally returns these fields as a
+        JSON-encoded string instead of a list, or omits them entirely.
+        Coerce gracefully so a flaky model response never crashes the pipeline.
+        """
+        if v is None:
+            return []
+        if isinstance(v, str):
+            v = v.strip()
+            if not v:
+                return []
+            try:
+                parsed = json.loads(v)
+                return parsed if isinstance(parsed, list) else []
+            except Exception:
+                return []
+        return v
 
 
 # ── Design Head master prompt ─────────────────────────────────────────────────

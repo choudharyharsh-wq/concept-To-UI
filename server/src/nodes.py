@@ -1011,8 +1011,15 @@ def prd_apply_feedback_node(state: GraphState):
         }
     except Exception as e:
         print(f"    [ERR] Apply feedback failed: {e}")
+        # Do NOT silently approve and advance — route back to review so the
+        # human stays in control and the failure is visible.
         return {
-            "review_status": "approved",   # don't block forever on error
-            "errors":        [f"Apply feedback error: {str(e)}"],
-            "logs":          [f"[ERR] Feedback apply failed — proceeding: {str(e)}"],
+            "review_status": "awaiting_human",
+            "human_feedback": {
+                **human_feedback,
+                "round_number": round_number,
+                "confirmed_proceed": False,
+            },
+            "errors": [f"Apply feedback error: {str(e)}"],
+            "logs":   [f"[ERR] Feedback apply failed — returning to review: {str(e)}"],
         }

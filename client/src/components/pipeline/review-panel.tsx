@@ -55,6 +55,7 @@ export function ReviewPanel({ stage, onSubmitFeedback }: ReviewPanelProps) {
   const [submitting,  setSubmitting]  = useState(false);
 
   const isAwaiting = stage?.data?.awaiting_human === true;
+  const isApplying = stage?.data?.applying === true;
   const reviewData = stage?.data?.review as ReviewPayload | undefined;
   const review     = reviewData?.review;
   const isApproved = stage?.data?.approved === true;
@@ -89,6 +90,17 @@ export function ReviewPanel({ stage, onSubmitFeedback }: ReviewPanelProps) {
           <MessageSquare size={16} className="text-zinc-700" />
         </div>
         <p className="text-sm text-zinc-600 font-mono">Design Head will review this stage's output</p>
+      </div>
+    );
+  }
+
+  // Human submitted feedback — applying changes and re-reviewing
+  if (isApplying) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full gap-3 text-center">
+        <Loader2 size={20} className="text-violet-400 animate-spin" />
+        <p className="text-sm text-zinc-400 font-mono">Applying your feedback…</p>
+        <p className="text-xs text-zinc-600 font-mono">Rewriting the PRD and re-reviewing it</p>
       </div>
     );
   }

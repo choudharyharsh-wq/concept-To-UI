@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 export default function Dashboard() {
   const [concept, setConcept]   = useState("");
   const [figmaUrl, setFigmaUrl] = useState("https://www.figma.com/file/123456789/Concept-To-UI-Test");
-  const { isGenerating, stages, startGeneration, submitReviewFeedback } = useGenerationStream();
+  const { isGenerating, stages, error, startGeneration, submitReviewFeedback } = useGenerationStream();
   const [hasStarted, setHasStarted] = useState(false);
 
   // ── Navigation guards ─────────────────────────────────────────────────────
@@ -44,6 +44,7 @@ export default function Dashboard() {
       <PipelineWorkspace
         stages={stages}
         isGenerating={isGenerating}
+        error={error}
         onSubmitReviewFeedback={submitReviewFeedback}
       />
     );

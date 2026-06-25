@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 interface PipelineWorkspaceProps {
   stages: PipelineStage[];
   isGenerating: boolean;
+  error?: string | null;
   onSubmitReviewFeedback: (feedback: {
     answered_questions: Record<string, string>;
     accepted_suggestion_ids: string[];
@@ -83,6 +84,11 @@ function StageOutput({ stage, allStages }: { stage: PipelineStage; allStages: Pi
 
   switch (stage.id) {
     case "prd_node":                return <PRDStage stage={stage} />;
+    case "prd_review_node": {
+      // Show the PRD content in the left panel while review happens on the right
+      const prdStage = allStages.find(s => s.id === "prd_node");
+      return prdStage ? <PRDStage stage={prdStage} /> : null;
+    }
     case "ia_node":                 return <IAStage stage={stage} />;
     case "user_flow_node":          return <UserFlowStage stage={stage} />;
     case "ux_layout_node":          return <UXLayoutStage stage={stage} />;
@@ -94,7 +100,7 @@ function StageOutput({ stage, allStages }: { stage: PipelineStage; allStages: Pi
 
 // ─── Main workspace ───────────────────────────────────────────────────────────
 
-export function PipelineWorkspace({ stages, isGenerating, onSubmitReviewFeedback }: PipelineWorkspaceProps) {
+export function PipelineWorkspace({ stages, isGenerating, error, onSubmitReviewFeedback }: PipelineWorkspaceProps) {
   const [activeIdx, setActiveIdx]       = useState(0);
   const [leftPct, setLeftPct]           = useState(55); // left column width %
   const isDragging                       = useRef(false);
@@ -198,6 +204,13 @@ export function PipelineWorkspace({ stages, isGenerating, onSubmitReviewFeedback
           </button>
         </div>
       </div>
+
+      {/* ── Error banner ─────────────────────────────────────────────────── */}
+      {error && (
+        <div className="shrink-0 px-4 py-2 border-b border-red-900/60 bg-red-950/40">
+          <span className="font-mono text-[11px] text-red-400">⚠ {error}</span>
+        </div>
+      )}
 
       {/* ── Split pane body ──────────────────────────────────────────────── */}
       <div ref={containerRef} className="flex flex-1 overflow-hidden">

@@ -161,28 +161,14 @@ export function RenderStage({ stage, allStages }: RenderStageProps) {
   const figmaUrl:     string  = stage.data?.figma_url ?? "";
   const bridgeOffline: boolean = renderStatus === "bridge_offline";
 
-  // Stream logs while active, show real logs when completed
+  // Show only the real logs emitted by the backend render node.
   useEffect(() => {
-    if (isActive) {
-      const fullLogs = [
-        "[SYS] Render node starting…",
-        `[SYS] ${screens.length} compiled screen(s) queued.`,
-        "[BRIDGE] Connecting to bridge server on port 5001…",
-        "[BRIDGE] Delivering wireframe payload…",
-        "[SYS] Open the Figma plugin and click 'Fetch & Render'.",
-      ];
-      let idx = 0;
-      const interval = setInterval(() => {
-        if (idx < fullLogs.length) setLogs(prev => [...prev, fullLogs[idx++]]);
-        else clearInterval(interval);
-      }, 600);
-      return () => clearInterval(interval);
-    } else if (isCompleted && stage.data?.logs) {
-      setLogs(stage.data.logs);
+    if (isCompleted && stage.data?.logs) {
+      setLogs((stage.data.logs as any[]).filter((l): l is string => typeof l === "string"));
     } else {
       setLogs([]);
     }
-  }, [isActive, isCompleted, stage.data, screens.length]);
+  }, [isCompleted, stage.data]);
 
   // Auto-scroll terminal
   useEffect(() => {

@@ -24,7 +24,10 @@
       "Bash(python3 -c \"from src.graph import app; print\\('Nodes:', list\\(app.get_graph\\(\\).nodes.keys\\(\\)\\)\\)\")",
       "Bash(pip show *)",
       "Bash(pip install *)",
-      "Bash(pip3 show *)"
+      "Bash(pip3 show *)",
+      "Bash(python -c \"from src.graph import app; print\\('graph ok'\\); print\\(hasattr\\(app, 'astream'\\)\\)\")",
+      "Bash(python3 -c \"from src.graph import app; print\\('graph ok'\\); print\\(hasattr\\(app, 'astream'\\)\\)\")",
+      "Bash(echo \"=== exit $? ===\")"
     ]
   }
 }
