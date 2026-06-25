@@ -29,6 +29,9 @@ body {
   .animate-glow {
     animation: glow 2s ease-in-out infinite alternate;
   }
+
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 }
 
 @keyframes glow {

@@ -12,13 +12,12 @@ export interface PipelineStage {
 }
 
 const INITIAL_STAGES: PipelineStage[] = [
-  { id: "prd_node",                name: "Product Requirements Document", status: "pending", data: null },
-  { id: "prd_review_node",         name: "Design Head — PRD Review",      status: "pending", data: null },
-  { id: "ia_node",                 name: "Information Architecture Map",  status: "pending", data: null },
-  { id: "user_flow_node",          name: "User Flow Builder",             status: "pending", data: null },
-  { id: "ux_layout_node",          name: "UX Layout Planner",             status: "pending", data: null },
-  { id: "wireframe_compiler_node", name: "Wireframe Compiler",            status: "pending", data: null },
-  { id: "render_node",             name: "Figma Canvas Renderer",         status: "pending", data: null },
+  { id: "prd_node",                name: "PRD",             status: "pending", data: null },
+  { id: "ia_node",                 name: "IA Map",          status: "pending", data: null },
+  { id: "user_flow_node",          name: "User Journey",    status: "pending", data: null },
+  { id: "ux_layout_node",          name: "UX Layout",       status: "pending", data: null },
+  { id: "wireframe_compiler_node", name: "Compiler",        status: "pending", data: null },
+  { id: "render_node",             name: "Render to Figma", status: "pending", data: null },
 ];
 
 const MOCK_DATA = {
@@ -282,20 +281,41 @@ export function useGenerationStream() {
           return;
         }
 
-        // Human-in-the-loop pause: Design Head is waiting for feedback
-        if (status === "awaiting_human") {
-          const innerKey = NODE_DATA_KEY[phase];
-          const stageData = innerKey
-            ? { ...data[innerKey], ...(data.logs ? { logs: data.logs } : {}), awaiting_human: true }
-            : { ...data, awaiting_human: true };
-          setStageStatus(phase, "active", stageData);
-          return; // don't advance — wait for human
+        // prd_review_node is invisible in the nav — attach its data to prd_node
+        if (phase === "prd_review_node") {
+          const reviewPayload = data["review_data"] || data;
+          if (status === "awaiting_human") {
+            // Augment prd_node's data with review info + pause flag
+            setStages(prev => prev.map(s =>
+              s.id === "prd_node"
+                ? { ...s, data: { ...(s.data || {}), review: reviewPayload, awaiting_human: true } }
+                : s
+            ));
+          }
+          return; // never advance the visible stage counter for review
         }
 
-        // Backend re-ran apply_feedback, just update review stage silently
-        if (phase === "prd_feedback_received") {
+        if (phase === "prd_apply_feedback_node") {
+          // Update prd_node with fresh review data
+          const reviewPayload = data["review_data"] || {};
+          const reviewStatus  = data["review_status"] || "";
+          setStages(prev => prev.map(s =>
+            s.id === "prd_node"
+              ? {
+                  ...s,
+                  data: {
+                    ...(s.data || {}),
+                    review: reviewPayload,
+                    awaiting_human: reviewStatus !== "approved",
+                    approved: reviewStatus === "approved",
+                  }
+                }
+              : s
+          ));
           return;
         }
+
+        if (phase === "prd_feedback_received") return;
 
         // Extract the stage-specific content from the wrapper key (e.g. data.prd_data).
         const innerKey = NODE_DATA_KEY[phase];
