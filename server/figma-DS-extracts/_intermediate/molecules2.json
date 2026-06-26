@@ -1,0 +1,1346 @@
+{
+  "components": [
+    {
+      "name": "Offer variations",
+      "node_id": "20274:72899",
+      "description": "A local offer badge component scoped to the Product Listing Card only, displaying either a POP coin reward or a Pay-in-3 instalment offer.",
+      "properties": [
+        {"name": "type", "type": "Variant", "default": "Pop coin", "options": ["Pop coin", "Payin3"], "notes": "Type of offer to display"},
+        {"name": "Amount", "type": "Text", "default": "₹90", "options": [], "notes": "Offer amount or value"},
+        {"name": "Xmon", "type": "Text", "default": "x3mo", "options": [], "notes": "Instalment label (e.g. \"x3mo\" = 3 month split)"}
+      ],
+      "variants": [
+        {"name": "Pop coin", "semantic_use": "Shows a POP coin reward on the product", "example": ""},
+        {"name": "Payin3", "semantic_use": "Shows a Pay-in-3 instalment offer on the product", "example": ""}
+      ],
+      "use_cases": [
+        {"context": "Displaying an offer badge inside the Product Listing Card only", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Local component of PL Card only — always place it inside the Product Listing Card, never standalone and never inside P3 Intro Card or any other component."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Product Listing Card",
+      "node_id": "20424:106795",
+      "description": "The main product listing component displaying a product in a grid or list on the Shop/listing screen, with embedded Offer variations.",
+      "properties": [
+        {"name": "Image ratio", "type": "Variant", "default": "Default", "options": ["1:1", "Default", "4:1"], "notes": "Product image aspect ratio"},
+        {"name": "Size", "type": "Variant", "default": "Medium", "options": ["Medium", "Small"], "notes": "Card size"},
+        {"name": "Badge", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Shows a badge (e.g. \"New\", \"Sale\") on the image"},
+        {"name": "R-slot", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right slot for an action (e.g. wishlist heart, quick add)"},
+        {"name": "Offer%", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Shows an offer percentage label on the card"},
+        {"name": "Spacer", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Bottom spacer — maintains consistent card height in a grid"},
+        {"name": "Offer text", "type": "Text", "default": "10% off", "options": [], "notes": "Offer label text"},
+        {"name": "Product Name", "type": "Text", "default": "Bombay Shaving Co.", "options": [], "notes": "Product brand or name"},
+        {"name": "Description", "type": "Text", "default": "Power Trimmer Trimmer", "options": [], "notes": "Product description line"},
+        {"name": "type (nested Offer variations)", "type": "Variant", "default": "Payin3", "options": ["Pop coin", "Payin3"], "notes": "Type of offer badge shown on the card"},
+        {"name": "Amount (nested Offer variations)", "type": "Text", "default": "₹90", "options": [], "notes": "Offer amount or reward value"},
+        {"name": "Xmon (nested Offer variations)", "type": "Text", "default": "x3mo", "options": [], "notes": "Instalment label — e.g. \"x3mo\" = 3-month split"}
+      ],
+      "variants": [
+        {"name": "1:1", "semantic_use": "Square product image — apparel, accessories", "example": ""},
+        {"name": "Default", "semantic_use": "Standard product card ratio", "example": ""},
+        {"name": "4:1", "semantic_use": "Wide banner-style product card", "example": ""}
+      ],
+      "use_cases": [
+        {"context": "Displaying a product in a grid or list on the Shop / listing screen", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Always populate Product Name and Description with real content.",
+        "Spacer=True keeps card heights consistent in a grid — only turn it off when you need variable-height cards.",
+        "Always set type, Amount, and Xmon to reflect the actual offer on the product — never leave the defaults as production content."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "P3 intro card",
+      "node_id": "21137:213614",
+      "description": "A card introducing the Pay-in-3 feature to users, shown in listing or onboarding contexts, with unverified and eligible states.",
+      "properties": [
+        {"name": "State", "type": "Variant", "default": "Unverified", "options": ["Unverified", "Eligible"], "notes": "User's P3 eligibility state"},
+        {"name": "Size", "type": "Variant", "default": "4:5", "options": ["4:5", "1:1"], "notes": "Card aspect ratio"},
+        {"name": "Spacer", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Bottom spacer for grid alignment"}
+      ],
+      "variants": [
+        {"name": "Unverified", "semantic_use": "User has not completed P3 verification — shows a prompt to verify", "example": ""},
+        {"name": "Eligible", "semantic_use": "User is verified and eligible for Pay-in-3", "example": ""}
+      ],
+      "use_cases": [
+        {"context": "Introducing the Pay-in-3 feature to users — shown in listing or onboarding contexts", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Use P3 intro card only in Shop/listing screens where Pay-in-3 is contextually relevant."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Accordion",
+      "node_id": "1811:16803",
+      "description": "A collapsible content block with a header and expandable body, used for FAQs, detail sections, settings, and progressive disclosure.",
+      "properties": [
+        {"name": "Enclosed", "type": "Variant", "default": "True", "options": ["True", "False"], "notes": "Border/stroke on the accordion container"},
+        {"name": "BG", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Background fill on the accordion"},
+        {"name": "Open", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Expanded/collapsed state"},
+        {"name": "is disabled", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Disabled state"},
+        {"name": "Title", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the main title text"},
+        {"name": "Body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Shows body/description text in the header"},
+        {"name": "L slot", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Left slot in the header (e.g. icon, avatar)"},
+        {"name": "L-icon - Title", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Icon left of the title"},
+        {"name": "R-icon - Title", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Icon right of the title"},
+        {"name": "L-icon - Body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Icon left of the body text"},
+        {"name": "R-icon - Body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Icon right of the body text"},
+        {"name": "R-slot - Header", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right slot in the header (e.g. badge, tag)"},
+        {"name": "R-overflow - Header", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Gradient overflow on the header right edge"},
+        {"name": "End slot", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Slot at the end of the expanded content area"},
+        {"name": "Title text", "type": "Text", "default": "Title", "options": [], "notes": "Header title copy"},
+        {"name": "Body text", "type": "Text", "default": "Body", "options": [], "notes": "Header subtitle copy"}
+      ],
+      "variants": [
+        {"name": "Open=False, Enclosed=True, BG=False, is disabled=False", "semantic_use": "Collapsed, bordered, no background — default", "example": ""},
+        {"name": "Open=True, Enclosed=True, BG=False, is disabled=False", "semantic_use": "Expanded, bordered, no background", "example": ""},
+        {"name": "Open=False, Enclosed=True, BG=True, is disabled=False", "semantic_use": "Collapsed, bordered, with background fill", "example": ""},
+        {"name": "Open=True, Enclosed=True, BG=True, is disabled=False", "semantic_use": "Expanded, bordered, with background fill", "example": ""},
+        {"name": "Open=False, Enclosed=False, BG=False, is disabled=False", "semantic_use": "Collapsed, frameless — used inside already-contained surfaces", "example": ""},
+        {"name": "Open=True, Enclosed=False, BG=False, is disabled=False", "semantic_use": "Expanded, frameless", "example": ""},
+        {"name": "Open=False, Enclosed=True, BG=False, is disabled=True", "semantic_use": "Disabled, collapsed, bordered — non-interactive", "example": ""},
+        {"name": "Open=False, Enclosed=True, BG=True, is disabled=True", "semantic_use": "Disabled, collapsed, bordered, with background", "example": ""}
+      ],
+      "use_cases": [
+        {"context": "FAQs, detail sections, settings, and any content that benefits from progressive disclosure", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Use Open=False as the default state in design — let the interaction model control the expanded state.",
+        "A disabled accordion always stays closed — never set Open=True and is disabled=True together. When is disabled=True, Open must always be False.",
+        "is disabled=True is only available for Enclosed=True variants — there is no disabled state for Enclosed=False.",
+        "Use Enclosed=True for standalone accordions. Use Enclosed=False only inside a card or section that already provides the container border.",
+        "Body=True in the header is for a subtitle under the title — not for the expanded content body.",
+        "Always set Title text — never leave \"Title\" as production copy.",
+        "The expanded body content (below the header) is placed in the Slot — always fill it with the appropriate content component."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "List item",
+      "node_id": "3132:26124",
+      "description": "A standard list row with a people or brand avatar and labels, supporting icons and trailing slots.",
+      "properties": [
+        {"name": "Size", "type": "Variant", "default": "Med", "options": ["Large", "Med", "Small"], "notes": "Row height and text size"},
+        {"name": "Type", "type": "Variant", "default": "People", "options": ["People", "Brands"], "notes": "Avatar type — People (profile photo/initials) or Brand (logo)"},
+        {"name": "Title above", "type": "Variant", "default": "False", "options": ["True", "False"], "notes": "Shows an above-row section title/label"},
+        {"name": "Is disabled", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Disabled state"},
+        {"name": "Leading Avatar", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the leading avatar on the left"},
+        {"name": "Title", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the title text line"},
+        {"name": "Body", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the body/description text line"},
+        {"name": "L-icon", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Leading icon (replaces avatar when needed)"},
+        {"name": "L-icon - Title", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Icon left of the title"},
+        {"name": "R-icon - Title", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Icon right of the title"},
+        {"name": "L-icon - Body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Icon left of the body text"},
+        {"name": "R-icon - Body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Icon right of the body text"},
+        {"name": "R-icon", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Trailing icon (e.g. chevron, disclosure)"},
+        {"name": "R-slot", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Trailing slot (e.g. badge, toggle, button)"},
+        {"name": "R-badge", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Trailing badge"},
+        {"name": "R-overflow", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right overflow gradient for long text"}
+      ],
+      "variants": [
+        {"name": "People", "semantic_use": "Profile photo or initials avatar — contact lists, friend lists, payer/payee rows", "example": ""},
+        {"name": "Brands", "semantic_use": "Brand logo avatar — merchant lists, payment method rows, app lists", "example": ""}
+      ],
+      "use_cases": [
+        {"context": "Standard list row — people or brand avatar with labels", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Always use List - Stack for groups of 2 or more list items — never manually stack individual List item instances.",
+        "Type=People vs Type=Brands controls which avatar is shown — match the content type."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "List - Stack",
+      "node_id": "5388:11312",
+      "description": "A vertical stack of List items with configurable count, size, and divider colour.",
+      "properties": [
+        {"name": "Count", "type": "Variant", "default": "1", "options": ["1", "2", "3", "4", "5", "Plenty"], "notes": "Plenty = scrollable overflow for dynamic lists"},
+        {"name": "Size", "type": "Variant", "default": "Large", "options": ["Large", "Med"], "notes": ""},
+        {"name": "Divider colour", "type": "Variant", "default": "Tertiary", "options": ["Tertiary", "Secondary"], "notes": ""}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "Vertical stack of List items", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Always use List - Stack for groups of 2 or more list items.",
+        "Plenty = scrollable overflow for dynamic lists."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Status list item",
+      "node_id": "21157:272361",
+      "description": "A list row that communicates a semantic progress/status state (Success/In-progress/Error), e.g. for order tracking or transaction history.",
+      "properties": [
+        {"name": "State", "type": "Variant", "default": "Success", "options": ["Success", "In-progress", "Error"], "notes": "Semantic status of the row"},
+        {"name": "Body", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows body text below the title"},
+        {"name": "Separator", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Bottom divider"},
+        {"name": "R text - Body", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Right-side body text"},
+        {"name": "L - slot", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Left slot (e.g. custom icon, avatar)"},
+        {"name": "R -  Slot", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right slot"},
+        {"name": "R - icon", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Trailing icon"},
+        {"name": "Badge", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Badge attached to the row"},
+        {"name": "L icon - Title", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Icon left of title"},
+        {"name": "R icon - Title", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Icon right of title"},
+        {"name": "L icon - Body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Icon left of body"},
+        {"name": "R icon - Body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Icon right of body"},
+        {"name": "R overflow", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right overflow gradient"},
+        {"name": "Title", "type": "Text", "default": "Title", "options": [], "notes": "Row title text"},
+        {"name": "R text - body", "type": "Text", "default": "Label", "options": [], "notes": "Right body text"},
+        {"name": "L text - Body", "type": "Text", "default": "Label", "options": [], "notes": "Left body text"}
+      ],
+      "variants": [
+        {"name": "Success", "semantic_use": "Green indicator — completed step, successful transaction", "example": ""},
+        {"name": "In-progress", "semantic_use": "Active/loading indicator — current step, pending transaction", "example": ""},
+        {"name": "Error", "semantic_use": "Red indicator — failed step, error state", "example": ""}
+      ],
+      "use_cases": [
+        {"context": "A list row needs to communicate a semantic progress/status state (e.g. order tracking, transaction history)", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Use Status list item when the row must communicate a progress state — not a plain List item with a manual icon.",
+        "Set Separator=False on the last row of any list — never show a trailing divider after the final item."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Status list item-stack",
+      "node_id": "21157:273685",
+      "description": "A vertical stack of Status list item rows — e.g. order tracking steps, transaction history, or multi-step progress lists.",
+      "properties": [
+        {"name": "Count", "type": "Variant", "default": "1", "options": ["1", "2", "3", "4", "5"], "notes": "Number of Status list item rows in the stack"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "Displaying a vertical stack of status list item rows — order tracking steps, transaction history, or multi-step progress lists", "variant": "", "config": ""}
+      ],
+      "rules": [],
+      "category": "molecule"
+    },
+    {
+      "name": "Shop list- stack",
+      "node_id": "20381:162206",
+      "description": "A stack of shop list items for displaying the list of items in a shopping cart or order summary.",
+      "properties": [
+        {"name": "Count", "type": "Variant", "default": "1", "options": ["1", "2", "3", "4", "5", "Plenty"], "notes": ""}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "Displaying the list of items in a shopping cart or order summary", "variant": "", "config": ""}
+      ],
+      "rules": [
+        ".Shop list item is an internal component — always use Shop list- stack for shop cart/order lists."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Footer item",
+      "node_id": "20804:226795",
+      "description": "The footer row of a shop list, showing a total label, a quantity stepper, or a details+amount summary. Local component scoped to .Shop list item only.",
+      "properties": [
+        {"name": "type", "type": "Variant", "default": "Amount stepper", "options": ["Label", "Amount stepper", "Details + Amount"], "notes": "Controls the footer layout"}
+      ],
+      "variants": [
+        {"name": "Label", "semantic_use": "Simple text label row — for section labels or summary text", "example": ""},
+        {"name": "Amount stepper", "semantic_use": "Quantity stepper with amount — for cart quantity control", "example": ""},
+        {"name": "Details + Amount", "semantic_use": "Detail labels alongside the total amount", "example": ""}
+      ],
+      "use_cases": [
+        {"context": "The footer row of a shop list — shows a total, a quantity stepper, or a details+amount summary", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Local component scoped to .Shop list item only."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Content item",
+      "node_id": "20804:227080",
+      "description": "A content detail atom used inside shop list items (date, size, body copy, POP coins). Local component scoped to .Shop list item only.",
+      "properties": [
+        {"name": "type", "type": "Variant", "default": "Date + Size", "options": ["Body+pop-coin", "Date + Size"], "notes": "Content layout"},
+        {"name": "R Text", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Right-side text"},
+        {"name": "Separator", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Bullet separator between L and R text"},
+        {"name": "L text", "type": "Text", "default": "Wed, 24 Jan", "options": [], "notes": "Left label"},
+        {"name": "R text", "type": "Text", "default": "Size M", "options": [], "notes": "Right label"},
+        {"name": "body", "type": "Text", "default": "Body", "options": [], "notes": "Body text (used in Body+pop-coin type)"}
+      ],
+      "variants": [
+        {"name": "Date + Size", "semantic_use": "Standard order rows showing date and size", "example": ""},
+        {"name": "Body+pop-coin", "semantic_use": "Reward content showing body text and pop coin", "example": ""}
+      ],
+      "use_cases": [
+        {"context": "Displaying content details inside a shop list item (date, size, body copy, POP coins)", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Local component scoped to .Shop list item only."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": ".Shop list item",
+      "node_id": "20804:226775",
+      "description": "Internal building block — a single shop list row used inside Shop list- stack, with embedded Content item and Footer item. Do not place directly in screens.",
+      "properties": [
+        {"name": "Image size", "type": "Variant", "default": "4:5", "options": ["1:1", "4:5"], "notes": "Product image aspect ratio — 4:5 for portrait, 1:1 for square"},
+        {"name": "Is disabled", "type": "Variant", "default": "False", "options": ["True", "False"], "notes": "Disabled state — item cannot be interacted with"},
+        {"name": "Title above", "type": "Variant", "default": "True", "options": ["True", "False"], "notes": "Shows a section title label above the list item row"},
+        {"name": "R-slot", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right slot for an action component (e.g. quantity stepper, remove button)"},
+        {"name": "Title", "type": "Text", "default": "Title", "options": [], "notes": "Item title text"},
+        {"name": "type (nested Content item)", "type": "Variant", "default": "Date + Size", "options": ["Date + Size", "Body+pop-coin"], "notes": "Content layout — date+size for standard order rows, body+pop-coin for reward content"},
+        {"name": "R Text (nested Content item)", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Right-side text"},
+        {"name": "Separator (nested Content item)", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Bullet (·) separator between left and right text"},
+        {"name": "L text (nested Content item)", "type": "Text", "default": "Wed, 24 Jan", "options": [], "notes": "Left label — e.g. order date, category"},
+        {"name": "R text (nested Content item)", "type": "Text", "default": "Size M", "options": [], "notes": "Right label — e.g. size, variant"},
+        {"name": "body (nested Content item)", "type": "Text", "default": "Body", "options": [], "notes": "Body text — used when type=Body+pop-coin"},
+        {"name": "type (nested Footer item)", "type": "Variant", "default": "Amount stepper", "options": ["Label", "Amount stepper", "Details + Amount"], "notes": "Footer row layout — stepper for quantity control, label for summary text, details+amount for price breakdown"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "Single shop list row used inside Shop list- stack", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Internal component — do not place directly in screens; use Shop list- stack instead."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "ODP-list",
+      "node_id": "21894:26290",
+      "description": "A single row in an ODP (Offer Detail Panel) list — always used inside ODP list- stack, not standalone.",
+      "properties": [
+        {"name": "Badge", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows a badge on the list row"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "A single row in an ODP (Offer Detail Panel) list", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "ODP-list is the unit row for ODP lists — always use ODP list- stack to compose them, never place ODP-list individually."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "OLP-list",
+      "node_id": "21749:41120",
+      "description": "A single row in an OLP (Offer Listing Panel) list — displays an offer title, left and right labels, and an optional Pop coin indicator.",
+      "properties": [
+        {"name": "Pop-coin", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the Pop coin indicator on the row"},
+        {"name": "R overflow", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Right overflow fade for long content"},
+        {"name": "Title", "type": "Text", "default": "Title", "options": [], "notes": "Primary title of the offer row"},
+        {"name": "L - label", "type": "Text", "default": "Label", "options": [], "notes": "Left label — e.g. offer name, category"},
+        {"name": "R - Label", "type": "Text", "default": "Label", "options": [], "notes": "Right label — e.g. amount, expiry"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "A single row in an OLP (Offer Listing Panel) list", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "OLP-list is a standalone row component — place it directly or inside a custom stack as needed."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "ODP list- stack",
+      "node_id": "22246:190056",
+      "description": "A vertical stack of ODP list rows with optional dividers — used as the slot content inside an ODP Card.",
+      "properties": [
+        {"name": "Count", "type": "Variant", "default": "1", "options": ["1", "2", "3", "4", "Plenty"], "notes": "Number of ODP-list rows in the stack"},
+        {"name": "Divider", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows dividers between rows"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "Displaying a vertical stack of ODP list rows — used as the slot content inside an ODP Card", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Plenty renders a scrollable overflow stack — use when the row count is dynamic or unknown at design time.",
+        "Always use ODP list- stack to compose ODP-list rows."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Table item",
+      "node_id": "3122:14680",
+      "description": "A single table cell — always used inside a Table row, never placed standalone.",
+      "properties": [
+        {"name": "Size", "type": "Variant", "default": "Small", "options": ["Small", "Medium", "Large", "X-large"], "notes": "Cell size / text size"},
+        {"name": "Align", "type": "Variant", "default": "Left", "options": ["Left", "Center", "Right"], "notes": "Text alignment within the cell"},
+        {"name": "Title above", "type": "Variant", "default": "False", "options": ["True", "False"], "notes": "Floating label above the cell value"},
+        {"name": "Amount", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Amount/currency formatting treatment"},
+        {"name": "Title", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows title text"},
+        {"name": "Body", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows body text"},
+        {"name": "L-icon - Title", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Icon left of title"},
+        {"name": "R-icon - Title", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Icon right of title"},
+        {"name": "L-icon - Body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Icon left of body"},
+        {"name": "R-icon - Body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Icon right of body"},
+        {"name": "L-overflow", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Left overflow fade"},
+        {"name": "R-overflow", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right overflow fade"},
+        {"name": "Title text", "type": "Text", "default": "Title", "options": [], "notes": "Cell title/label"},
+        {"name": "Body text", "type": "Text", "default": "Body", "options": [], "notes": "Cell value"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "A single table cell — always used inside a Table row, never placed standalone", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Use Amount=True on Table item for all monetary values — it applies correct alignment and formatting."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Table row",
+      "node_id": "3122:15001",
+      "description": "A single row of table cells with configurable columns and justification, with an embedded Vertical divider between columns. Always used inside Table - Stack.",
+      "properties": [
+        {"name": "Column", "type": "Variant", "default": "1", "options": ["1", "2", "3"], "notes": "Number of columns in the row"},
+        {"name": "Size", "type": "Variant", "default": "Small", "options": ["Small", "Large", "X-large"], "notes": "Row height"},
+        {"name": "Justify", "type": "Variant", "default": "Start", "options": ["Start", "Centre", "End", "Space between", "Space around", "Towards centre"], "notes": "Column distribution"},
+        {"name": "Divider", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Bottom divider"},
+        {"name": "R-slot", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right slot for an action component"},
+        {"name": "L-slot", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Left slot"},
+        {"name": "Type (nested Vertical divider)", "type": "Variant", "default": "Padded", "options": ["Padded", "Full height"], "notes": "Padded leaves breathing room at top and bottom; Full height spans the entire row height"},
+        {"name": "Colour (nested Vertical divider)", "type": "Variant", "default": "Tertiary", "options": ["Tertiary", "Secondary"], "notes": "Divider line colour — match the surrounding table's divider colour"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "A single row of table cells — always used inside Table - Stack", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "The vertical divider only appears when Column=2 or Column=3. It separates cells within the row — distinct from the Divider boolean which controls the bottom row divider."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Table - Stack",
+      "node_id": "5945:14215",
+      "description": "A vertical stack of table rows — the standard table pattern.",
+      "properties": [
+        {"name": "Count", "type": "Variant", "default": "1", "options": ["1", "2", "3", "4", "5", "Plenty"], "notes": ""},
+        {"name": "Divider colour", "type": "Variant", "default": "Tertiary", "options": ["Tertiary", "Secondary"], "notes": ""},
+        {"name": "Size", "type": "Variant", "default": "Large", "options": ["Small", "Large", "X-large"], "notes": ""},
+        {"name": "Divider", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": ""}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "A vertical stack of table rows — the standard table pattern", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Always use Table - Stack — never manually arrange individual Table row instances.",
+        "Set Divider=False on the last row — no trailing divider after the final row."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Table row - Horizontal",
+      "node_id": "9536:54270",
+      "description": "A horizontal row in a transposed table layout — used inside Table - Horizontal - Stack.",
+      "properties": [
+        {"name": "Type", "type": "Variant", "default": "Small", "options": ["Small", "Medium", "large", "X large"], "notes": ""},
+        {"name": "Divider", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": ""}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "A horizontal row in a transposed table layout — used inside Table - Horizontal - Stack", "variant": "", "config": ""}
+      ],
+      "rules": [],
+      "category": "molecule"
+    },
+    {
+      "name": "Table - Horizontal - Stack",
+      "node_id": "7903:4245",
+      "description": "A horizontally-oriented table where columns become rows — useful for comparing items side by side (e.g. plan comparison, feature comparison).",
+      "properties": [
+        {"name": "Count", "type": "Variant", "default": "1", "options": ["1", "2", "3", "4", "5", "6", "7", "Plenty"], "notes": "Number of rows"},
+        {"name": "Size", "type": "Variant", "default": "Med", "options": ["Med", "Large", "X-large"], "notes": "Row size"},
+        {"name": "Divider colour", "type": "Variant", "default": "Tertiary", "options": ["Tertiary", "Secondary"], "notes": "Divider colour"},
+        {"name": "Divider", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Row dividers"},
+        {"name": "Summary - Above", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Summary row pinned above the table"},
+        {"name": "Summary - Below", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Summary row pinned below the table (e.g. totals row)"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "A horizontally-oriented table for comparison layouts (2+ columns of items side by side)", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Use Table - Horizontal - Stack for comparison layouts (2+ columns of items side by side).",
+        "Summary - Above / Summary - Below adds a pinned summary row — use for totals, headers, or column labels."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Pagination unit",
+      "node_id": "2711:2476",
+      "description": "A single dot/indicator for carousels — used inside Pagination - Discrete, not placed standalone.",
+      "properties": [
+        {"name": "State", "type": "Variant", "default": "", "options": ["Not selected", "Selected", "Selected - Playing", "Overflow"], "notes": ""}
+      ],
+      "variants": [
+        {"name": "Not selected", "semantic_use": "Inactive dot", "example": ""},
+        {"name": "Selected", "semantic_use": "Active/current dot", "example": ""},
+        {"name": "Selected - Playing", "semantic_use": "Active dot with playback animation", "example": ""},
+        {"name": "Overflow", "semantic_use": "Condensed overflow dot (when > 6 items)", "example": ""}
+      ],
+      "use_cases": [
+        {"context": "Inside Pagination - Discrete — not placed standalone", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Never place Pagination unit directly — always use their parent stack/organism."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Pagination - Discrete",
+      "node_id": "5044:11763",
+      "description": "Dot-based pagination for carousels or swipeable content with a known number of items (up to 7), shown as dots below the carousel.",
+      "properties": [
+        {"name": "Count", "type": "Variant", "default": "Less than 6", "options": ["Less than 6", "Equal to 6", "More than 6"], "notes": "Determines dot condensation behaviour"},
+        {"name": "Selected", "type": "Variant", "default": "1", "options": ["1", "2", "3", "4", "5", "6", "7"], "notes": "Currently active slide"},
+        {"name": "With playback", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Shows a playback/auto-scroll animation on the active dot"}
+      ],
+      "variants": [
+        {"name": "Less than 6", "semantic_use": "All dots shown at full size", "example": ""},
+        {"name": "Equal to 6", "semantic_use": "All 6 dots shown", "example": ""},
+        {"name": "More than 6", "semantic_use": "Overflow dots condensed — only nearby dots shown at full size", "example": ""}
+      ],
+      "use_cases": [
+        {"context": "Carousel or swipeable content with a known number of items (up to 7)", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Pagination - Discrete with Count=More than 6 automatically handles overflow condensation — do not manually add more than 7 dots."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Pagination - Continuous",
+      "node_id": "5057:14525",
+      "description": "A single linear progress bar — for onboarding flows, loading states, or single-track progress.",
+      "properties": [
+        {"name": "Progress", "type": "Variant", "default": "0%", "options": ["0%", "25%", "50%", "75%", "100%"], "notes": ""}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "A single linear progress bar — for onboarding flows, loading states, or single-track progress", "variant": "", "config": ""}
+      ],
+      "rules": [],
+      "category": "molecule"
+    },
+    {
+      "name": "Pagination - Stack",
+      "node_id": "5609:9916",
+      "description": "A positioning wrapper for a pagination group (top or bottom alignment), with a swappable inner pagination instance (Discrete default, Stories, or Steps).",
+      "properties": [
+        {"name": "Align", "type": "Variant", "default": "Bottom", "options": ["Bottom", "Top"], "notes": ""},
+        {"name": "Count (nested Discrete)", "type": "Variant", "default": "Less than 6", "options": ["Less than 6", "Equal to 6", "More than 6"], "notes": "Controls dot condensation behaviour"},
+        {"name": "Selected (nested Discrete)", "type": "Variant", "default": "1", "options": ["1", "2", "3", "4", "5", "6", "7"], "notes": "Currently active slide"},
+        {"name": "With playback (nested Discrete)", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Playback animation on the active dot"},
+        {"name": "Count (nested Stories)", "type": "Variant", "default": "5", "options": ["1", "2", "3", "4", "5"], "notes": "Total number of story segments"},
+        {"name": "Playing (nested Stories)", "type": "Variant", "default": "1", "options": ["1", "2", "3", "4", "5", "End"], "notes": "Which segment is currently playing"},
+        {"name": "Skip (nested Stories)", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows a skip affordance"},
+        {"name": "Count (nested Steps)", "type": "Variant", "default": "3", "options": ["2", "3"], "notes": "Total number of steps"},
+        {"name": "Playing (nested Steps)", "type": "Variant", "default": "1", "options": ["1", "2", "3"], "notes": "Current active step"},
+        {"name": "State (nested Steps)", "type": "Variant", "default": "0%", "options": ["0%", "30%", "60%", "90%", "100%"], "notes": "Fill progress of the current step"}
+      ],
+      "variants": [
+        {"name": "Pagination - Discrete (default)", "semantic_use": "For carousels and swipeable content with a known number of slides", "example": ""},
+        {"name": "Pagination - Stories", "semantic_use": "For story-style content (Instagram-style top progress bar) with 1–5 segments", "example": ""},
+        {"name": "Pagination - Steps", "semantic_use": "For multi-step flows (e.g. checkout steps, onboarding stages) with 2–3 steps", "example": ""}
+      ],
+      "use_cases": [
+        {"context": "Positioning a pagination group (top or bottom alignment)", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Always set Selected to the actual current slide index — never leave it at 1 in production."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Pagination - Stories - Unit",
+      "node_id": "6306:40779",
+      "description": "A single story progress bar segment — used inside Pagination - Stories, not placed standalone.",
+      "properties": [
+        {"name": "State", "type": "Variant", "default": "Not started", "options": ["Playing", "Not started", "Completed"], "notes": ""}
+      ],
+      "variants": [
+        {"name": "Playing", "semantic_use": "Currently active segment — animates to fill", "example": ""},
+        {"name": "Not started", "semantic_use": "Upcoming segment — empty", "example": ""},
+        {"name": "Completed", "semantic_use": "Finished segment — fully filled", "example": ""}
+      ],
+      "use_cases": [
+        {"context": "Inside Pagination - Stories — not placed standalone", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Never place Pagination - Stories - Unit directly — always use their parent stack/organism."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Pagination - Stories",
+      "node_id": "6306:40798",
+      "description": "A full story progress bar (Instagram-style top progress bar) with 1–5 segments.",
+      "properties": [
+        {"name": "Count", "type": "Variant", "default": "5", "options": ["1", "2", "3", "4", "5"], "notes": "Total number of story segments"},
+        {"name": "Playing", "type": "Variant", "default": "1", "options": ["1", "2", "3", "4", "5", "End"], "notes": "Which segment is currently playing"},
+        {"name": "Skip", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows a skip affordance"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "Story-style content (Instagram-style top progress bar) with 1–5 segments", "variant": "", "config": ""}
+      ],
+      "rules": [],
+      "category": "molecule"
+    },
+    {
+      "name": ".Pagination - Step - Unit",
+      "node_id": "14808:30525",
+      "description": "Internal building block for Pagination - Steps — a single step progress segment. Do not place directly.",
+      "properties": [
+        {"name": "State", "type": "Variant", "default": "", "options": ["0%", "30%", "60%", "90%", "100%"], "notes": "Fill progress of a single step"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "Building block for Pagination - Steps — do not place directly", "variant": "", "config": ""}
+      ],
+      "rules": [
+        ".Pagination - Step - Unit is internal — always use Pagination - Steps."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Pagination - Steps",
+      "node_id": "14808:30535",
+      "description": "A multi-step flow progress indicator (e.g. checkout steps, onboarding steps) with 2–3 steps.",
+      "properties": [
+        {"name": "Count", "type": "Variant", "default": "3", "options": ["2", "3"], "notes": "Total number of steps"},
+        {"name": "Playing", "type": "Variant", "default": "1", "options": ["1", "2", "3"], "notes": "Current active step"},
+        {"name": "State", "type": "Variant", "default": "0%", "options": ["0%", "30%", "60%", "90%", "100%"], "notes": "Fill progress of the current step"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "A multi-step flow progress indicator (e.g. checkout steps, onboarding steps) with 2–3 steps", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Pagination - Steps State controls the fill animation of the current step — always set it in context with Playing."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Badge",
+      "node_id": "5529:3928",
+      "description": "A compact label used to convey status, counts, categories, or highlights, in multiple semantic colour types with optional background fill and glow effects.",
+      "properties": [
+        {"name": "Type", "type": "Variant", "default": "Orange", "options": ["Orange", "Grey", "Green", "Red", "Yellow", "Primary", "White"], "notes": "Semantic colour"},
+        {"name": "BG", "type": "Variant", "default": "True", "options": ["True", "False"], "notes": "Filled background vs text-only"},
+        {"name": "Glow", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Glow effect around the badge"},
+        {"name": "L-Icon", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Leading icon inside the badge"},
+        {"name": "R-Icon", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Trailing icon inside the badge"},
+        {"name": "Title text", "type": "Text", "default": "Label", "options": [], "notes": "Badge label content"}
+      ],
+      "variants": [
+        {"name": "Orange", "semantic_use": "Brand orange — promotional, brand highlights, POP-specific callouts", "example": ""},
+        {"name": "Grey", "semantic_use": "Neutral grey — default state, unrated, neutral labels", "example": ""},
+        {"name": "Green", "semantic_use": "Success green — positive status, verified, available", "example": ""},
+        {"name": "Red", "semantic_use": "Destructive red — error state, urgent, out of stock", "example": ""},
+        {"name": "Yellow", "semantic_use": "Warning yellow — caution, expiring, pending", "example": ""},
+        {"name": "Primary", "semantic_use": "Primary brand — primary CTA badges, featured labels", "example": ""},
+        {"name": "White", "semantic_use": "White — invert, on dark/media surfaces", "example": ""}
+      ],
+      "use_cases": [
+        {"context": "Filled badge — standard", "variant": "BG=True, Glow=False", "config": ""},
+        {"context": "Filled badge with glow — for prominent CTAs", "variant": "BG=True, Glow=True", "config": ""},
+        {"context": "Text-only badge — lightweight label", "variant": "BG=False, Glow=False", "config": ""}
+      ],
+      "rules": [
+        "Always set Title text — never leave \"Label\" as production copy.",
+        "Glow=True is only available for Orange, Green, Red, and Primary types. Use it sparingly — maximum one glowing badge per screen zone.",
+        "Use Glow=True only for high-emphasis moments (e.g. active CTA badge, limited-time offer) — not for informational badges.",
+        "BG=False (text-only) is for low-emphasis labels where a filled pill would feel heavy.",
+        "Do not use Glow=True with BG=False — glow requires a filled background to work correctly."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "ContentCard",
+      "node_id": "14928:32534",
+      "description": "Displays a content item with a current or upcoming state — typically for offers, rewards, or content tiles that have a time-based status.",
+      "properties": [
+        {"name": "Property 1", "type": "Variant", "default": "Current", "options": ["Current", "Upcoming"], "notes": "Whether the content is active now or coming soon"},
+        {"name": "POPcoin", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows a POP coin indicator"},
+        {"name": "L-Icon-Title", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Icon left of title"},
+        {"name": "R-Icon-Title", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Icon right of title"},
+        {"name": "L-Icon-Body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Icon left of body"},
+        {"name": "R-Icon-Body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Icon right of body"}
+      ],
+      "variants": [
+        {"name": "Current", "semantic_use": "Content is active now", "example": ""},
+        {"name": "Upcoming", "semantic_use": "Content is coming soon", "example": ""}
+      ],
+      "use_cases": [
+        {"context": "Displaying a content item with a current or upcoming state — offers, rewards, or content tiles with a time-based status", "variant": "", "config": ""}
+      ],
+      "rules": [],
+      "category": "molecule"
+    },
+    {
+      "name": "Content Card - shop",
+      "node_id": "21766:2850",
+      "description": "A shop-specific content card showing amount and date — used in transaction/order history contexts.",
+      "properties": [
+        {"name": "Amount", "type": "Text", "default": "₹299", "options": [], "notes": "Transaction or item amount"},
+        {"name": "Date", "type": "Text", "default": "12 Jan", "options": [], "notes": "Date of the transaction"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "A shop-specific content card showing amount and date — transaction/order history contexts", "variant": "", "config": ""}
+      ],
+      "rules": [],
+      "category": "molecule"
+    },
+    {
+      "name": "Vertical button",
+      "node_id": "4858:1047",
+      "description": "An icon-above-label control used for quick action grids (e.g. home screen action rows, shortcut grids).",
+      "properties": [
+        {"name": "Size", "type": "Variant", "default": "Large", "options": ["Large", "Med"], "notes": "Button size"},
+        {"name": "Type", "type": "Variant", "default": "Icon", "options": ["Icon", "People", "Brand", "Illustration"], "notes": "What appears above the label"},
+        {"name": "Text lines", "type": "Variant", "default": "1", "options": ["1", "2"], "notes": "Number of label lines"},
+        {"name": "Is disabled", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Disabled state"},
+        {"name": "Title", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the label text"},
+        {"name": "L-overflow - Title", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Left overflow fade on the label"},
+        {"name": "R-overflow - Title", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Right overflow fade on the label"},
+        {"name": "Title text", "type": "Text", "default": "(varies by lines)", "options": [], "notes": "The button label"}
+      ],
+      "variants": [
+        {"name": "Icon", "semantic_use": "System icon above the label", "example": "Send Money, Recharge, Pay bills"},
+        {"name": "People", "semantic_use": "People avatar above the label", "example": "Frequent contacts, recent payees"},
+        {"name": "Brand", "semantic_use": "Brand logo above the label", "example": "Merchant shortcuts, app quick-links"},
+        {"name": "Illustration", "semantic_use": "Illustration above the label", "example": "Feature callouts, onboarding shortcuts"}
+      ],
+      "use_cases": [
+        {"context": "Quick action grids (home screen action rows, shortcut grids)", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Always use Vertical button - Stack for grids — never place individual Vertical button units manually in a row."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Vertical button - Stack",
+      "node_id": "5835:17437",
+      "description": "A grid of vertical buttons — the standard pattern for home screen action rows, with optional header, pagination, and CTA.",
+      "properties": [
+        {"name": "Rows", "type": "Variant", "default": "1", "options": ["1", "2", "3"], "notes": "Number of button rows"},
+        {"name": "Count", "type": "Variant", "default": "4", "options": ["2", "3", "4", "8", "12"], "notes": "Number of buttons per row"},
+        {"name": "Size", "type": "Variant", "default": "Large", "options": ["Large"], "notes": ""},
+        {"name": "Text lines", "type": "Variant", "default": "1", "options": ["1", "2"], "notes": "Label line count"},
+        {"name": "Header", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Section header above the grid"},
+        {"name": "Pagination", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Pagination dots below the grid (for swipeable rows)"},
+        {"name": "CTA - Header", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "CTA in the header (e.g. \"See all\")"},
+        {"name": "R-overflow - Header", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Header right overflow fade"},
+        {"name": "L-icon - Title", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Icon left of header title"},
+        {"name": "R-icon - Title", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Icon right of header title"},
+        {"name": "R-overflow - Buttons", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right overflow on the button row"},
+        {"name": "L-overflow - Buttons", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Left overflow on the button row"},
+        {"name": "Offer - Header", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Offer label in the header"},
+        {"name": "Title text", "type": "Text", "default": "Title", "options": [], "notes": "Header title"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "Standard home screen action row", "variant": "", "config": "Count=4, Rows=1 — 4 icons across"},
+        {"context": "Expanded grids (e.g. \"All services\" screens)", "variant": "", "config": "Count=8 or Count=12"},
+        {"context": "Swipeable multi-row grid", "variant": "", "config": "Pagination=True + Rows > 1"}
+      ],
+      "rules": [
+        "Always use Vertical button - Stack for grids — never place individual Vertical button units manually in a row.",
+        "Count=4 with Rows=1 is the standard home screen action row — 4 icons across.",
+        "Count=8 or Count=12 is used for expanded grids (e.g. \"All services\" screens).",
+        "Pagination=True + Rows > 1 signals a swipeable multi-row grid — wire the pagination dots to the swipe gesture in code."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": ".Benefit callout - Units",
+      "node_id": "10750:48313",
+      "description": "Internal building block used inside Benefit callout - Stack — an icon/illustration-above-label benefit unit. Hidden from publishing; do not place directly in screens.",
+      "properties": [
+        {"name": "Type", "type": "Variant", "default": "Icon", "options": ["Icon", "Illustration"], "notes": "Visual above the label — icon for functional benefits, illustration for feature callouts"},
+        {"name": "Size", "type": "Variant", "default": "Large", "options": ["Large"], "notes": "Fixed — only Large is available"},
+        {"name": "Text lines", "type": "Variant", "default": "2", "options": ["2"], "notes": "Fixed — always 2 lines"},
+        {"name": "Is disabled", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Disabled state"},
+        {"name": "Title", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the label text below the icon/illustration"},
+        {"name": "Title text", "type": "Text", "default": "2 or more line label goes here", "options": [], "notes": "Benefit label copy"}
+      ],
+      "variants": [
+        {"name": "Icon", "semantic_use": "System icon above the label — for functional or action-based benefits", "example": ""},
+        {"name": "Illustration", "semantic_use": "Illustration above the label — for feature callouts, onboarding, and promotional benefits", "example": ""}
+      ],
+      "use_cases": [
+        {"context": "Building block used inside Benefit callout - Stack — do not place directly in screens", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Internal component — hidden from publishing; do not place directly in screens."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Benefit callout - Stack",
+      "node_id": "10760:28505",
+      "description": "Displays 2–3 benefit highlights side by side, with embedded .Benefit callout - Units and a Text Divider — used in feature intro screens, onboarding, and promotional sections.",
+      "properties": [
+        {"name": "Count", "type": "Variant", "default": "2", "options": ["2", "3"], "notes": "Number of benefit items"},
+        {"name": "Divider", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Vertical dividers between items"},
+        {"name": "Type (nested .Benefit callout - Units)", "type": "Variant", "default": "Icon", "options": ["Icon", "Illustration"], "notes": "Visual style for this benefit unit"},
+        {"name": "Size (nested .Benefit callout - Units)", "type": "Variant", "default": "Large", "options": ["Large"], "notes": "Fixed — do not change"},
+        {"name": "Text lines (nested .Benefit callout - Units)", "type": "Variant", "default": "2", "options": ["2"], "notes": "Fixed — do not change"},
+        {"name": "Is disabled (nested .Benefit callout - Units)", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Disabled state for this unit"},
+        {"name": "Title (nested .Benefit callout - Units)", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the label below the icon/illustration"},
+        {"name": "Title text (nested .Benefit callout - Units)", "type": "Text", "default": "2 line label goes here", "options": [], "notes": "Benefit label — always replace with real copy"},
+        {"name": "Size (nested Text Divider)", "type": "Variant", "default": "Large", "options": ["Large", "Medium", "Small", "Size4"], "notes": "Divider text size and weight"},
+        {"name": "Fancy divider (nested Text Divider)", "type": "Variant", "default": "True", "options": ["False", "True"], "notes": "Decorative gradient divider — True by default in this context"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "Displaying 2–3 benefit highlights side by side — feature intro screens, onboarding, and promotional sections", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "With Count=2 the stack contains 2 units; Count=3 adds a third. Configure each unit independently — Type and Title text will typically differ across units.",
+        "Always replace Title text with real copy.",
+        "Deprecated: Benefit callout - Stack with Align=Center - Don't use must not appear in any new designs."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Text Divider",
+      "node_id": "14558:149229",
+      "description": "A horizontal divider with a centre text label (e.g. \"or\", \"also pay with\") — used between sections or between payment options.",
+      "properties": [
+        {"name": "Size", "type": "Variant", "default": "Large", "options": ["Large", "Medium", "Small", "Size4"], "notes": "Controls text size and divider weight"},
+        {"name": "Fancy divider", "type": "Variant", "default": "True", "options": ["False", "True"], "notes": "Decorative gradient divider instead of a plain line"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "A horizontal divider with a centre text label — between sections or between payment options", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Text Divider is only for separating distinct content zones — not as a decorative element inside a form or list."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Button",
+      "node_id": "1248:823",
+      "description": "The primary interactive control with extensive type, size, and state variants, including an icon-only mode.",
+      "properties": [
+        {"name": "Size", "type": "Variant", "default": "Large", "options": ["Large", "Med", "Small", "X-small"], "notes": "Button height and padding"},
+        {"name": "Type", "type": "Variant", "default": "Primary", "options": ["Primary", "Secondary", "Tertiary", "Brand - Primary", "Flat - White", "Ghost + R Icon", "Ghost + L Icon", "Brand Ghost + R Icon", "Brand Ghost + L Icon"], "notes": "Visual style"},
+        {"name": "State", "type": "Variant", "default": "Active", "options": ["Active", "Disabled", "Loading", "Loading - Success", "Loading - Failed", "Destructive"], "notes": "Interaction state"},
+        {"name": "Icon only", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Renders the button as an icon-only circular button"},
+        {"name": "R-icon", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Trailing icon"},
+        {"name": "L-Icon", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Leading icon"},
+        {"name": "Title", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Title/subtitle above the button label"},
+        {"name": "Text", "type": "Text", "default": "Label", "options": [], "notes": "Button label text"}
+      ],
+      "variants": [
+        {"name": "Primary", "semantic_use": "Main CTA — one per screen, highest emphasis", "example": ""},
+        {"name": "Secondary", "semantic_use": "Supporting action — alongside a Primary", "example": ""},
+        {"name": "Tertiary", "semantic_use": "Low-emphasis action — destructive confirmations, subtle options", "example": ""},
+        {"name": "Brand - Primary", "semantic_use": "Brand-coloured CTA — for brand-specific flows", "example": ""},
+        {"name": "Flat - White", "semantic_use": "White button on dark/image surfaces", "example": ""},
+        {"name": "Ghost + R/L Icon", "semantic_use": "Outlined ghost button with icon — medium emphasis", "example": ""},
+        {"name": "Brand Ghost + R/L Icon", "semantic_use": "Brand-outlined ghost button with icon", "example": ""},
+        {"name": "Active", "semantic_use": "Default interactive state", "example": ""},
+        {"name": "Disabled", "semantic_use": "Non-interactive — greyed out", "example": ""},
+        {"name": "Loading", "semantic_use": "Spinner animation — async action in progress", "example": ""},
+        {"name": "Loading - Success", "semantic_use": "Spinner resolved to success", "example": ""},
+        {"name": "Loading - Failed", "semantic_use": "Spinner resolved to failure", "example": ""},
+        {"name": "Destructive", "semantic_use": "Red-coloured — for irreversible or dangerous actions", "example": ""}
+      ],
+      "use_cases": [
+        {"context": "Primary CTA at bottom of screen", "variant": "Primary, Large", "config": ""},
+        {"context": "Icon-only circular action", "variant": "", "config": "Icon only=True"}
+      ],
+      "rules": [
+        "One Primary button per screen — never show two Primary buttons simultaneously.",
+        "Always set Text — never leave \"Label\" as production copy.",
+        "Use State=Disabled when the action cannot proceed — never visually hide a button to block an action; disable it instead.",
+        "Icon only=True on Button is the icon button — do not create a custom icon button from scratch."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Slide Button",
+      "node_id": "22439:6418",
+      "description": "A high-commitment action requiring a deliberate slide gesture to confirm (e.g. \"Slide to pay\"). Prevents accidental taps on critical payment actions.",
+      "properties": [
+        {"name": "State", "type": "Variant", "default": "Active", "options": ["Active", "Loading", "Disabled"], "notes": ""},
+        {"name": "L icon", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Leading icon"},
+        {"name": "R icon", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Trailing icon"},
+        {"name": "Text", "type": "Text", "default": "Slide to pay ₹1", "options": [], "notes": "Default label (shown before slide)"},
+        {"name": "Loading text", "type": "Text", "default": "Paying ₹1", "options": [], "notes": "Label shown during loading after slide"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "High-commitment action that requires a deliberate gesture to confirm — e.g. \"Slide to pay\"", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Use Slide Button only for irreversible, high-value actions (e.g. payment, deletion) — not for regular navigation."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Button - Stack",
+      "node_id": "5241:1913",
+      "description": "1–3 buttons stacked vertically or horizontally — the standard CTA area at the bottom of a screen or sheet, with embedded Button instances and optional consent/offer/footer elements.",
+      "properties": [
+        {"name": "Count", "type": "Variant", "default": "1", "options": ["1", "2", "3"], "notes": "Number of buttons"},
+        {"name": "Axis", "type": "Variant", "default": "Vertical", "options": ["Vertical", "Horizontal"], "notes": "Stack direction"},
+        {"name": "Padding", "type": "Variant", "default": "True", "options": ["True", "False"], "notes": "Outer padding on the stack container"},
+        {"name": "Checkbox", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Consent checkbox above the CTA"},
+        {"name": "Badge - Below", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Badge below the CTA (e.g. \"No hidden charges\")"},
+        {"name": "Badge - Above", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Badge above the CTA"},
+        {"name": "Footer images", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Certification/trust images below the CTA"},
+        {"name": "Offer highlight - Above", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Offer label above the CTA"},
+        {"name": "Offer highlight - Below", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Offer label below the CTA"},
+        {"name": "Table row", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Amount/detail table row above the CTA"},
+        {"name": "Type (nested Button)", "type": "Variant", "default": "Primary", "options": ["Primary", "Brand - Primary"], "notes": "Visual style — constrained to Primary and Brand - Primary only within this stack"},
+        {"name": "State (nested Button)", "type": "Variant", "default": "Active", "options": ["Active", "Disabled", "Loading", "Loading - Success", "Loading - Failed", "Destructive"], "notes": "Interaction state"},
+        {"name": "L-Icon (nested Button)", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Leading icon"},
+        {"name": "R-icon (nested Button)", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Trailing icon"},
+        {"name": "Title (nested Button)", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Title/subtitle above the button label"},
+        {"name": "Text (nested Button)", "type": "Text", "default": "Label", "options": [], "notes": "Button label — always replace with real copy"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "Standard CTA area at the bottom of a screen or sheet", "variant": "", "config": "Axis=Vertical — Primary on top, Secondary below"}
+      ],
+      "rules": [
+        "Do not change Size from the stack context — button size is controlled by the stack and must remain consistent. Icon only is not configurable from Button - Stack.",
+        "With Count=2 or Count=3, configure each button independently — use Type=Primary for the primary action and Type=Brand - Primary for brand-specific flows.",
+        "Button - Stack with Axis=Vertical is the standard bottom CTA pattern — Primary on top, Secondary below."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Button + Payment mode",
+      "node_id": "6973:23507",
+      "description": "A CTA area that includes a primary payment button and optionally a secondary payment method selector, with embedded Primary and Secondary Button instances.",
+      "properties": [
+        {"name": "Primary CTA", "type": "Variant", "default": "1", "options": ["1", "2"], "notes": "Number of primary CTA buttons"},
+        {"name": "Secondary CTA", "type": "Variant", "default": "1", "options": ["1", "2"], "notes": "Number of secondary CTA buttons"},
+        {"name": "Axis", "type": "Variant", "default": "Vertical", "options": ["Horizontal", "Vertical"], "notes": "Stack direction"},
+        {"name": "Tertiary CTA", "type": "Variant", "default": "Button", "options": ["Button", "Badge", "None", "Secondary CTA"], "notes": "Tertiary action treatment"},
+        {"name": "Offer highlight", "type": "Boolean", "default": "False", "options": ["False", "True"], "notes": "Offer label on the CTA"},
+        {"name": "Footer images", "type": "Boolean", "default": "False", "options": ["False", "True"], "notes": "Trust/certification images"},
+        {"name": "Type (nested Primary Button)", "type": "Variant", "default": "Primary", "options": ["Primary", "Brand - Primary"], "notes": "Constrained to Primary and Brand - Primary only"},
+        {"name": "State (nested Primary Button)", "type": "Variant", "default": "Active", "options": ["Active", "Disabled", "Loading", "Loading - Success", "Loading - Failed", "Destructive"], "notes": "Interaction state"},
+        {"name": "L-Icon (nested Primary Button)", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Leading icon"},
+        {"name": "R-icon (nested Primary Button)", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Trailing icon"},
+        {"name": "Title (nested Primary Button)", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Title/subtitle above the button label"},
+        {"name": "Text (nested Primary Button)", "type": "Text", "default": "Label", "options": [], "notes": "Button label — always replace with real copy"},
+        {"name": "Type (nested Secondary Button)", "type": "Variant", "default": "Ghost + R Icon", "options": ["Ghost + R Icon", "Ghost + L Icon"], "notes": "Constrained to Ghost types for secondary hierarchy"},
+        {"name": "State (nested Secondary Button)", "type": "Variant", "default": "Active", "options": ["Active", "Disabled"], "notes": "Interaction state"},
+        {"name": "L-Icon (nested Secondary Button)", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Leading icon"},
+        {"name": "R-icon (nested Secondary Button)", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Trailing icon"},
+        {"name": "Title (nested Secondary Button)", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Title/subtitle above the button label"},
+        {"name": "Text (nested Secondary Button)", "type": "Text", "default": "Check limit", "options": [], "notes": "Secondary action label — always replace with real copy"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "A CTA area that includes a primary payment button and optionally a secondary payment method selector", "variant": "", "config": ""},
+        {"context": "Multiple payment modes", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Do not change Size on either button — sizes are set by the component and must remain consistent. Icon only is not configurable from this context."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Button + Amount",
+      "node_id": "6973:16474",
+      "description": "A CTA that shows the payment amount alongside the button — used in cart, checkout, and payment confirmation screens, with a fully configurable embedded Button.",
+      "properties": [
+        {"name": "Size", "type": "Variant", "default": "X-large", "options": ["X-large", "Large", "Small", "X-small", "Medium"], "notes": ""},
+        {"name": "Button fill", "type": "Variant", "default": "False", "options": ["True", "False"], "notes": "Fills the button to full width"},
+        {"name": "With POPcoins", "type": "Variant", "default": "True", "options": ["True", "False"], "notes": "Shows POP coin reward on the amount"},
+        {"name": "Primary action", "type": "Variant", "default": "Button", "options": ["Button", "Chevron"], "notes": "CTA style — full button or a chevron tap"},
+        {"name": "Original price", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows struck-through original price"},
+        {"name": "Type (nested Button)", "type": "Variant", "default": "Primary", "options": ["Primary", "Secondary", "Tertiary", "Brand - Primary", "Flat - White", "Ghost + R Icon", "Ghost + L Icon", "Brand Ghost + R Icon", "Brand Ghost + L Icon"], "notes": "Free to select — choose based on context"},
+        {"name": "State (nested Button)", "type": "Variant", "default": "Active", "options": ["Active", "Disabled", "Loading", "Loading - Success", "Loading - Failed", "Destructive"], "notes": "Interaction state"},
+        {"name": "L-Icon (nested Button)", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Leading icon"},
+        {"name": "R-icon (nested Button)", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Trailing icon"},
+        {"name": "Title (nested Button)", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Title/subtitle above the button label"},
+        {"name": "Text (nested Button)", "type": "Text", "default": "Label", "options": [], "notes": "Button label — always replace with real copy"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "A CTA that shows the payment amount alongside the button — cart, checkout, and payment confirmation screens", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Do not change Size — it is controlled by the component's Size property. Icon only is not configurable from this context.",
+        "Unlike other button contexts, Type has no constraints here — choose based on the screen's visual hierarchy."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Button + Slot",
+      "node_id": "7907:13145",
+      "description": "A button with a free slot for placing custom content (payment logo, trust badge, or icon) alongside the CTA, with a fully configurable embedded Button.",
+      "properties": [
+        {"name": "Type", "type": "Variant", "default": "Large", "options": ["X-large", "Large", "Med", "Small", "X-small"], "notes": ""},
+        {"name": "Button fill", "type": "Variant", "default": "False", "options": ["True", "False"], "notes": ""},
+        {"name": "POPcoin value", "type": "Variant", "default": "True", "options": ["True", "False"], "notes": ""},
+        {"name": "Type (nested Button)", "type": "Variant", "default": "Primary", "options": ["Primary", "Secondary", "Tertiary", "Brand - Primary", "Flat - White", "Ghost + R Icon", "Ghost + L Icon", "Brand Ghost + R Icon", "Brand Ghost + L Icon"], "notes": "Free to select — choose based on context"},
+        {"name": "State (nested Button)", "type": "Variant", "default": "Active", "options": ["Active", "Disabled", "Loading", "Loading - Success", "Loading - Failed", "Destructive"], "notes": "Interaction state"},
+        {"name": "L-Icon (nested Button)", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Leading icon"},
+        {"name": "R-icon (nested Button)", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Trailing icon"},
+        {"name": "Title (nested Button)", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Title/subtitle above the button label"},
+        {"name": "Text (nested Button)", "type": "Text", "default": "Label", "options": [], "notes": "Button label — always replace with real copy"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "A button with a free slot — for placing custom content (payment logo, trust badge, or icon) alongside the CTA", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Do not change Size — it is driven by the Type property of Button + Slot and will adjust automatically. Icon only is not configurable from this context."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Button Stack Horizontal",
+      "node_id": "10490:121953",
+      "description": "A horizontal row of 2–4+ compact buttons (e.g. filter pills that act as buttons, quick-action rows), with independently configurable embedded Button instances.",
+      "properties": [
+        {"name": "Count", "type": "Variant", "default": "Plenty", "options": ["2", "3", "4", "Plenty"], "notes": ""},
+        {"name": "Fill", "type": "Variant", "default": "False", "options": ["True", "False"], "notes": ""},
+        {"name": "Type (nested Button)", "type": "Variant", "default": "Secondary", "options": ["Primary", "Secondary", "Tertiary", "Brand - Primary", "Flat - White", "Ghost + R Icon", "Ghost + L Icon", "Brand Ghost + R Icon", "Brand Ghost + L Icon"], "notes": "Free to select — choose based on context"},
+        {"name": "State (nested Button)", "type": "Variant", "default": "Active", "options": ["Active", "Disabled", "Loading", "Loading - Success", "Loading - Failed", "Destructive"], "notes": "Interaction state"},
+        {"name": "L-Icon (nested Button)", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Leading icon"},
+        {"name": "R-icon (nested Button)", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Trailing icon"},
+        {"name": "Title (nested Button)", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Title/subtitle above the button label"},
+        {"name": "Text (nested Button)", "type": "Text", "default": "Label", "options": [], "notes": "Button label — always replace with real copy"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "A horizontal row of 2–4+ compact buttons (filter pills that act as buttons, quick-action rows)", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Do not change Size — it is locked to Med across all buttons in the horizontal stack. Icon only is not configurable from this context."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Cart FAB",
+      "node_id": "14286:52946",
+      "description": "A floating cart button overlaying a listing or shop screen — shows items in cart with a quick-add affordance.",
+      "properties": [
+        {"name": "Count", "type": "Variant", "default": "1", "options": ["1", "2", "3"], "notes": ""},
+        {"name": "Chevron", "type": "Variant", "default": "False", "options": ["True", "False"], "notes": ""}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "Floating cart button overlaying a listing or shop screen — shows items in cart with a quick-add affordance", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Cart FAB always floats above content — ensure it has correct z-index in code and does not block critical UI below."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Link button",
+      "node_id": "22639:192061",
+      "description": "An inline text link action — lower emphasis than a Button, used for secondary or contextual actions within copy.",
+      "properties": [
+        {"name": "Size", "type": "Variant", "default": "Large", "options": ["Large", "Medium", "Small", "X Small"], "notes": ""},
+        {"name": "L - Icon", "type": "Boolean", "default": "False", "options": ["False", "True"], "notes": ""},
+        {"name": "R - Icon", "type": "Boolean", "default": "False", "options": ["False", "True"], "notes": ""}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "An inline text link action — used for secondary or contextual actions within copy", "variant": "", "config": ""}
+      ],
+      "rules": [],
+      "category": "molecule"
+    },
+    {
+      "name": "Icon button",
+      "node_id": "16886:5171",
+      "description": "A compact icon-only tap target for each action slot in the Floating Action Rail. Local component scoped to Floating Action Rail only.",
+      "properties": [
+        {"name": "State", "type": "Variant", "default": "Default", "options": ["Default", "Active", "Disabled"], "notes": "Interaction state"},
+        {"name": "Size", "type": "Variant", "default": "Small", "options": ["Small", "Medium"], "notes": "Button size"}
+      ],
+      "variants": [
+        {"name": "Default", "semantic_use": "Resting state — no interaction", "example": ""},
+        {"name": "Active", "semantic_use": "Currently selected or highlighted", "example": ""},
+        {"name": "Disabled", "semantic_use": "Non-interactive", "example": ""}
+      ],
+      "use_cases": [
+        {"context": "Inside Floating Action Rail only — provides a compact icon-only tap target for each action slot in the rail", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Local component — scoped to Floating Action Rail only. Do not place it standalone or use it outside of the rail context."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Floating Action Rail",
+      "node_id": "16918:14131",
+      "description": "A floating row of 2–5 small action icons at the edge of the screen — used for contextual quick actions overlaying content (e.g. share, edit, bookmark), with embedded Icon button instances.",
+      "properties": [
+        {"name": "count", "type": "Variant", "default": "2", "options": ["2", "3", "4", "5"], "notes": ""},
+        {"name": "size", "type": "Variant", "default": "Small", "options": ["Small", "Medium"], "notes": ""},
+        {"name": "State (nested Icon button)", "type": "Variant", "default": "Default", "options": ["Default", "Active", "Disabled"], "notes": "Interaction state for this icon button"},
+        {"name": "Size (nested Icon button)", "type": "Variant", "default": "Medium", "options": ["Small", "Medium"], "notes": "Size of the icon button — driven by the rail's size property; do not change independently"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "A floating row of 2–5 small action icons at the edge of the screen — contextual quick actions overlaying content (e.g. share, edit, bookmark)", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Do not change Size independently — it is controlled by the size property of Floating Action Rail and must stay consistent across all slots."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": ".Timeline unit",
+      "node_id": "14595:150712",
+      "description": "Internal building block for Horizontal timeline — a single step with state and colour. Never place directly.",
+      "properties": [
+        {"name": "Type", "type": "Variant", "default": "Complete", "options": ["Complete", "Current", "upcoming"], "notes": "Step state — controls the visual indicator"},
+        {"name": "Color", "type": "Variant", "default": "Orange", "options": ["Orange", "Green"], "notes": "Progress colour theme — Green for general timelines, Orange for brand-related or promoted timelines. Must match the parent Horizontal timeline colour"},
+        {"name": "Body", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows body text below the step indicator"}
+      ],
+      "variants": [
+        {"name": "Complete", "semantic_use": "Step is finished", "example": ""},
+        {"name": "Current", "semantic_use": "Step is actively in progress", "example": ""},
+        {"name": "upcoming", "semantic_use": "Step has not been reached yet", "example": ""}
+      ],
+      "use_cases": [
+        {"context": "Building block for Horizontal timeline — never place directly", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Internal component — never place directly."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": ".Vertical Timeline Unit",
+      "node_id": "13420:13900",
+      "description": "Internal building block inside .Vertical Timeline Block, with Stage and State variant axes. Never place directly.",
+      "properties": [
+        {"name": "Stage", "type": "Variant", "default": "", "options": ["First", "Second", "Middle", "Before pending", "Last"], "notes": ""},
+        {"name": "State", "type": "Variant", "default": "", "options": ["Done", "Pending", "Upcoming"], "notes": ""}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "Building block inside .Vertical Timeline Block — never place directly", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Internal component — never place directly."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": ".Vertical Timeline Block",
+      "node_id": "13426:11959",
+      "description": "Internal building block inside Vertical Timeline Block - Stack, with Position and Stage variant axes. Never place directly.",
+      "properties": [
+        {"name": "Position", "type": "Variant", "default": "", "options": ["Start", "Middle", "End", "Before pending", "Second"], "notes": ""},
+        {"name": "Stage", "type": "Variant", "default": "", "options": ["Pending", "Done", "Upcoming"], "notes": ""}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "Building block inside Vertical Timeline Block - Stack — never place directly", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Internal component — never place directly."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Vertical Timeline Block - Stack",
+      "node_id": "13426:12654",
+      "description": "The full vertical step timeline — order tracking, payment status steps, delivery progress.",
+      "properties": [
+        {"name": "Count", "type": "Variant", "default": "2", "options": ["2", "3", "4", "5", "6", "Plenty"], "notes": "Number of timeline steps"},
+        {"name": "Stage", "type": "Variant", "default": "Done", "options": ["Done", "Pending"], "notes": "Overall completion stage of the timeline"}
+      ],
+      "variants": [
+        {"name": "Done", "semantic_use": "All steps are completed", "example": ""},
+        {"name": "Pending", "semantic_use": "Timeline has steps still in progress or upcoming", "example": ""}
+      ],
+      "use_cases": [
+        {"context": "Displaying the full vertical step timeline — order tracking, payment status steps, delivery progress", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Always use Vertical Timeline Block - Stack for vertical step timelines — never manually stack .Vertical Timeline Block instances.",
+        "Count must match the actual number of steps in the flow."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Horizontal timeline",
+      "node_id": "14595:151872",
+      "description": "A compact horizontal step indicator — for checkout steps, onboarding stages, or short multi-step flows.",
+      "properties": [
+        {"name": "Count", "type": "Variant", "default": "", "options": ["2", "3", "4", "5"], "notes": "Number of steps"},
+        {"name": "Completed", "type": "Variant", "default": "", "options": ["0", "1", "2", "3", "4", "5"], "notes": "How many steps are completed"},
+        {"name": "Color", "type": "Variant", "default": "", "options": ["Green", "Orange"], "notes": "Progress colour theme"}
+      ],
+      "variants": [
+        {"name": "Green", "semantic_use": "General timelines", "example": ""},
+        {"name": "Orange", "semantic_use": "Brand-related or promoted timelines", "example": ""}
+      ],
+      "use_cases": [
+        {"context": "A compact horizontal step indicator — for checkout steps, onboarding stages, or short multi-step flows", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Always use Horizontal timeline for horizontal step progress — never construct manually from atoms.",
+        "Completed must equal the number of steps the user has actually completed — never set it higher than Count.",
+        "Use Color=Green for general timelines and Color=Orange for brand-related or promoted timelines."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "_Progress indicator item",
+      "node_id": "21862:25750",
+      "description": "Internal building block for Progress indicator unit — the single step atom for a compact progress indicator used in tight spaces such as inside cards. Do not place directly in screens.",
+      "properties": [
+        {"name": "Position", "type": "Variant", "default": "Start", "options": ["Start", "Center", "End"], "notes": "Position of this step within the indicator row"},
+        {"name": "State", "type": "Variant", "default": "Current", "options": ["Incomplete", "Current", "Error", "Next state is error"], "notes": "Step state"},
+        {"name": "Optional label", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows an optional label below the step — must be the same value across all steps (Start, Center, End) in the indicator"},
+        {"name": "Label", "type": "Text", "default": "Label", "options": [], "notes": "Step label text"},
+        {"name": "Body", "type": "Text", "default": "24 Jan", "options": [], "notes": "Secondary body text below the label (e.g. date, subtitle)"}
+      ],
+      "variants": [
+        {"name": "Incomplete", "semantic_use": "Step not yet reached", "example": ""},
+        {"name": "Current", "semantic_use": "Actively in progress step", "example": ""},
+        {"name": "Error", "semantic_use": "Step has an error", "example": ""},
+        {"name": "Next state is error", "semantic_use": "Current step is fine but the next step will be in error — used to visually signal an upcoming failure", "example": ""},
+        {"name": "Start", "semantic_use": "First step in the row", "example": ""},
+        {"name": "Center", "semantic_use": "Middle step(s)", "example": ""},
+        {"name": "End", "semantic_use": "Last step in the row", "example": ""}
+      ],
+      "use_cases": [
+        {"context": "Inside Progress indicator unit only — the single step atom for a compact progress indicator", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Internal component — do not place directly in screens.",
+        "Optional label must be the same value across all steps in the indicator."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Progress indicator unit",
+      "node_id": "21864:6199",
+      "description": "A compact multi-step progress indicator for tight spaces — e.g. inside a card, a list row, or an inline status section where a full Horizontal timeline would be too large.",
+      "properties": [
+        {"name": "Count", "type": "Variant", "default": "4", "options": ["2", "3", "4"], "notes": "Number of steps in the progress indicator"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "A compact multi-step progress indicator for tight spaces — inside a card, a list row, or an inline status section", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Optional label must be consistent across all steps in a Progress indicator unit — either all steps have it on or all steps have it off. Never mix Optional label=True on some steps and Optional label=False on others within the same indicator."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Quantity Stepper item",
+      "node_id": "20285:150919",
+      "description": "A standalone quantity control for a single item — placed inside a shop list item or product detail screen.",
+      "properties": [
+        {"name": "State", "type": "Variant", "default": "Default", "options": ["1 selected", "Default"], "notes": "Interaction state"},
+        {"name": "Is disabled", "type": "Variant", "default": "False", "options": ["True", "False"], "notes": "Disabled state"},
+        {"name": "Quantity", "type": "Text", "default": "12", "options": [], "notes": "Current quantity value"}
+      ],
+      "variants": [
+        {"name": "Default", "semantic_use": "No item selected — shows \"Add\" state", "example": ""},
+        {"name": "1 selected", "semantic_use": "One item in cart — shows quantity with +/- controls", "example": ""}
+      ],
+      "use_cases": [
+        {"context": "A standalone quantity control for a single item — placed inside a shop list item or product detail screen", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Always set Quantity to the real current quantity — never leave \"12\" as production content.",
+        "When a quantity update is being processed, loading feedback is delivered via a scrim loader overlaid on the page — do not use State=Loading on the stepper itself.",
+        "Is disabled=True should be used when the item cannot be added (e.g. out of stock, max limit reached)."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Amount + Quantity Stepper",
+      "node_id": "20312:151341",
+      "description": "Displays the item amount alongside the quantity stepper — used in cart rows and product detail pages where price and quantity are shown together.",
+      "properties": [
+        {"name": "Size", "type": "Variant", "default": "Medium", "options": ["X Small", "Small", "Medium"], "notes": "Component size"},
+        {"name": "Pop-coin", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows POP coin reward alongside the amount"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "Displaying the item amount alongside the quantity stepper — cart rows and product detail pages where price and quantity are shown together", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Use Amount + Quantity Stepper (not Quantity Stepper item alone) whenever price and quantity need to appear together — e.g. in cart rows.",
+        "This component is marked 🚧 (in progress) — check for updates before using in production."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Keypad - Unit",
+      "node_id": "6424:9200",
+      "description": "The internal building block of the Keypad component — a single key. Never place directly on a screen; use the assembled Keypad instead.",
+      "properties": [
+        {"name": "Bg", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "True = standard key background (SurfaceColor.Secondary-60%); False = muted background (SurfaceColor.Primary-50%) used for the decimal and backspace keys"},
+        {"name": "Number", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the digit label. False for decimal and backspace keys"},
+        {"name": "Decimal", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Shows the . dot icon in place of a number. Only one key in the keypad uses this"},
+        {"name": "Backspace", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Shows the backspace / delete icon. Only one key in the keypad uses this"},
+        {"name": "Is active", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Pressed / touched state"}
+      ],
+      "variants": [
+        {"name": "Bg=True, Is active=False", "semantic_use": "Number keys, idle — SurfaceColor.Secondary at 60% opacity rgba(31,31,31,0.6)", "example": ""},
+        {"name": "Bg=True, Is active=True", "semantic_use": "Number keys, pressed — SurfaceColor.Secondary #1f1f1f", "example": ""},
+        {"name": "Bg=False, Is active=False", "semantic_use": "Decimal and backspace keys, idle — SurfaceColor.Primary at 50% opacity rgba(13,13,13,0.5)", "example": ""},
+        {"name": "Bg=False, Is active=True", "semantic_use": "Decimal and backspace keys, pressed — SurfaceColor.Secondary #1f1f1f", "example": ""}
+      ],
+      "use_cases": [
+        {"context": "Internal building block of the Keypad component — never place directly on a screen", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Never place this component directly on a screen — use the assembled Keypad component instead.",
+        "The . key and ⌫ key always use Bg=False (muted background); all number keys use Bg=True (standard background)."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Keypad",
+      "node_id": "6424:9514",
+      "description": "A custom numeric input surface used when the system keyboard is suppressed — a fixed 4-row × 3-column grid of Keypad - Unit keys, for amount entry (UPI, payments) and PIN/OTP flows.",
+      "properties": [
+        {"name": "Allow decimal", "type": "Boolean", "default": "", "options": ["True", "False"], "notes": "True for amount/UPI entry (paise input); False for PIN and OTP flows where decimal is hidden"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "Amount / UPI payment entry", "variant": "", "config": "Allow decimal=True — decimal needed for paise input (e.g. 1500.50)"},
+        {"context": "PIN entry", "variant": "", "config": "Allow decimal=False — integers only, decimal key hidden"},
+        {"context": "OTP entry via custom keypad", "variant": "", "config": "Allow decimal=False — digits only"}
+      ],
+      "rules": [
+        "Never use Keypad - Unit directly — always use the assembled Keypad component.",
+        "Always pair Keypad with UnderlineNakedLargeConfig(useCustomKeypad = true) on the input field — this suppresses the system keyboard and routes input through the keypad.",
+        "Set Allow decimal = False for PIN and OTP flows — decimal input is meaningless in those contexts.",
+        "Never reconstruct the key grid manually — do not place individual Keypad - Unit components in a Row/Column; use the Keypad component as-is.",
+        "The 40dp bottom padding is intentional — it provides safe-area clearance above the home indicator on modern devices. Do not remove it."
+      ],
+      "category": "molecule"
+    }
+  ]
+}

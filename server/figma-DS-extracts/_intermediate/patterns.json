@@ -1,0 +1,600 @@
+{
+  "components": [
+    {
+      "name": "Payment list - Chevron - Pattern",
+      "node_id": "8931:174283",
+      "description": "Tappable payment method row with a right-facing chevron that navigates to a detail or selection screen. The chevron signals a drill-down interaction.",
+      "properties": [
+        {"name": "Size", "type": "Variant", "default": "Large", "options": ["Large", "Med"], "notes": "Large for primary payment screens; Med for compact lists"},
+        {"name": "State", "type": "Variant", "default": "Default", "options": ["Default", "Success", "Error", "Warning", "Info"], "notes": "Visual feedback state of the row"},
+        {"name": "Secondary CTA", "type": "Variant", "default": "Body text", "options": ["Body text", "Link text", "Balance", "None"], "notes": "Secondary information shown below the primary title"},
+        {"name": "Is disabled", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Disabled state — row is non-interactive"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "Displaying a tappable payment method row that navigates to a detail or selection screen", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Use Payment list - Chevron - Pattern for drill-down rows.",
+        "Always use patterns; never assemble individual list items from raw molecules."
+      ],
+      "category": "pattern"
+    },
+    {
+      "name": "Payment list - Label - Pattern",
+      "node_id": "11161:773752",
+      "description": "Payment method row where the right-side CTA is a label (status badge or text tag) rather than a chevron or button.",
+      "properties": [
+        {"name": "Size", "type": "Variant", "default": "Large", "options": ["Large", "Med"], "notes": "Large for primary screens; Med for compact lists"},
+        {"name": "State", "type": "Variant", "default": "Default", "options": ["Default", "Success", "Error", "Warning", "Info"], "notes": "Visual feedback state of the row"},
+        {"name": "Secondary CTA", "type": "Variant", "default": "Body text", "options": ["Body text", "None", "Balance", "Link text"], "notes": "Secondary information below the title"},
+        {"name": "Is disabled", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Disabled state"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "Displaying a payment method row where the right-side CTA is a label rather than a chevron or button", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Always use patterns; never assemble individual list items from raw molecules."
+      ],
+      "category": "pattern"
+    },
+    {
+      "name": "Balance list - Pattern",
+      "node_id": "9303:64649",
+      "description": "Payment method row that displays an account balance (e.g. UPI Lite balance, bank balance). Use Number=Hidden for masked balance and Number=Visible for revealed balance.",
+      "properties": [
+        {"name": "Size", "type": "Variant", "default": "Large", "options": ["Large", "Med"], "notes": "Large for primary screens; Med for compact lists"},
+        {"name": "State", "type": "Variant", "default": "Default", "options": ["Default", "Success", "Error", "Warning", "Info"], "notes": "Visual feedback state of the row"},
+        {"name": "Number", "type": "Variant", "default": "Hidden", "options": ["Visible", "Hidden"], "notes": "Whether the balance amount is revealed or masked"},
+        {"name": "Body", "type": "Variant", "default": "True", "options": ["True", "False"], "notes": "Shows a secondary body line below the title"},
+        {"name": "Is disabled", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Disabled state"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "Showing a payment method row that displays an account balance", "variant": "Number=Hidden", "config": "masked balance"},
+        {"context": "Showing a payment method row that displays an account balance", "variant": "Number=Visible", "config": "revealed balance"}
+      ],
+      "rules": [
+        "Balance list - Pattern must be used whenever a balance figure is displayed inside a list row — do not use a generic list item and manually add an amount."
+      ],
+      "category": "pattern"
+    },
+    {
+      "name": "Payment list - Button - Pattern",
+      "node_id": "8931:133726",
+      "description": "Payment method row that requires a button as the primary CTA — e.g. \"Verify\", \"Set up\", or a quick action directly in the list row.",
+      "properties": [
+        {"name": "Size", "type": "Variant", "default": "Large", "options": ["Large", "Med"], "notes": "Large for primary screens; Med for compact lists"},
+        {"name": "State", "type": "Variant", "default": "Default", "options": ["Default", "Success", "Error", "Warning", "Info"], "notes": "Visual feedback state of the row"},
+        {"name": "Primary CTA", "type": "Variant", "default": "Secondary button", "options": ["Secondary button", "Primary button", "Brand primary button"], "notes": "Type of button shown as the right-side CTA"},
+        {"name": "Secondary CTA", "type": "Variant", "default": "Body text", "options": ["Body text", "Link text", "Balance", "None"], "notes": "Secondary information below the title"},
+        {"name": "Is disabled", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Disabled state"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "A payment method row requires a button as the primary CTA — e.g. Verify, Set up, or a quick action directly in the list row", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Use Payment list - Button - Pattern for rows with inline actions."
+      ],
+      "category": "pattern"
+    },
+    {
+      "name": "Payment list - Radio - Pattern",
+      "node_id": "7628:7999",
+      "description": "Payment method selection row where each row has a radio button — only one can be selected at a time.",
+      "properties": [
+        {"name": "Size", "type": "Variant", "default": "Large", "options": ["Large", "Med"], "notes": "Large for primary screens; Med for compact lists"},
+        {"name": "State", "type": "Variant", "default": "Default", "options": ["Default", "Success", "Error", "Warning", "Info"], "notes": "Visual feedback state of the row"},
+        {"name": "Secondary CTA", "type": "Variant", "default": "Body text", "options": ["Body text", "Link text", "Balance", "None"], "notes": "Secondary information below the title"},
+        {"name": "Is selected", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Whether this row's radio is selected"},
+        {"name": "Is disabled", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Disabled state"},
+        {"name": "Badge", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Shows a badge indicator on the row"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "A user must select one payment method from a list", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Use Payment list - Radio - Pattern for selection rows."
+      ],
+      "category": "pattern"
+    },
+    {
+      "name": "Transaction list - Pattern",
+      "node_id": "9828:173756",
+      "description": "Single row in a transaction history list. Use Type=Brand for merchant/brand transactions and Type=People for P2P transactions.",
+      "properties": [
+        {"name": "Size", "type": "Variant", "default": "Large", "options": ["Large", "Med"], "notes": "Large for full transaction screens; Med for compact feeds"},
+        {"name": "State", "type": "Variant", "default": "Default", "options": ["Default", "Success", "Error", "Warning", "Info"], "notes": "Transaction status"},
+        {"name": "Type", "type": "Variant", "default": "Brand", "options": ["Brand", "People"], "notes": "Brand = merchant/UPI Lite; People = P2P person-to-person"},
+        {"name": "Body", "type": "Variant", "default": "True", "options": ["True", "False"], "notes": "Shows a secondary description line"},
+        {"name": "Is disabled", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Disabled state"},
+        {"name": "Chevron", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Shows a right chevron for drill-down navigation"}
+      ],
+      "variants": [
+        {"name": "Brand", "semantic_use": "merchant/UPI Lite transactions", "example": ""},
+        {"name": "People", "semantic_use": "P2P person-to-person transactions", "example": ""}
+      ],
+      "use_cases": [
+        {"context": "Displaying a single row in a transaction history list for merchant transactions", "variant": "Type=Brand", "config": ""},
+        {"context": "Displaying a single row in a transaction history list for P2P transactions", "variant": "Type=People", "config": ""}
+      ],
+      "rules": [],
+      "category": "pattern"
+    },
+    {
+      "name": "Button + Payment - Pattern",
+      "node_id": "7850:42587",
+      "description": "Payment method selector button showing the currently selected payment method as a tappable button, allowing the user to switch their payment method. Used in send money, collect request, and similar payment initiation screens.",
+      "properties": [
+        {"name": "Type", "type": "Variant", "default": "RuPay", "options": ["RuPay", "Bank", "UPI Lite", "Self transfer", "Autopay"], "notes": "The active payment method type"},
+        {"name": "State", "type": "Variant", "default": "Default", "options": ["Default", "Not initialised", "Filled"], "notes": "Default = method selected but no amount; Not initialised = method not set up; Filled = amount entered"},
+        {"name": "Warning", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Shows a warning indicator — e.g. low balance"},
+        {"name": "Balance CTA", "type": "Variant", "default": "Check balance", "options": ["Check balance", "Avl balance", "None"], "notes": "Balance action shown alongside the payment method"},
+        {"name": "Is loading", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Loading state while fetching payment method details"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "Showing the currently selected payment method as a tappable button to allow the user to switch payment method", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Button + Payment - Pattern is the only correct way to surface the active payment method selector — do not build a custom payment button from raw button components."
+      ],
+      "category": "pattern"
+    },
+    {
+      "name": "Input field - Naked Large - Pattern",
+      "node_id": "7936:17101",
+      "description": "Large, borderless amount or text input for payment screens — typically the primary amount entry field. The naked (no border) variant for full-bleed input contexts.",
+      "properties": [
+        {"name": "State", "type": "Variant", "default": "Default", "options": ["Default", "Success", "Error", "Warning", "Disabled"], "notes": "Input validation state"},
+        {"name": "Is active", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Whether the input is currently focused"},
+        {"name": "Is filled", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Whether the input has a value entered"},
+        {"name": "Title", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Shows a floating label/title above the input"},
+        {"name": "Info message", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Shows a helper or error message below the input"},
+        {"name": "R-icon - Messages", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Shows an icon alongside the info message"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "A large, borderless amount or text input is needed on a payment screen — typically the primary amount entry field", "variant": "", "config": ""}
+      ],
+      "rules": [],
+      "category": "pattern"
+    },
+    {
+      "name": "Input field - Note - Pattern",
+      "node_id": "7936:17245",
+      "description": "Input field allowing the user to add a note or remark to a payment. Typically a secondary input field below the amount input.",
+      "properties": [
+        {"name": "State", "type": "Variant", "default": "Default", "options": ["Default", "Error"], "notes": "Input validation state — only Default and Error apply for note fields"},
+        {"name": "Is active", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Whether the field is currently focused"},
+        {"name": "Is filled", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Whether the field has content"},
+        {"name": "Is disabled", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Disabled state"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "Allowing the user to add a note or remark to a payment", "variant": "", "config": ""}
+      ],
+      "rules": [],
+      "category": "pattern"
+    },
+    {
+      "name": "Payee - Pattern",
+      "node_id": "8069:28766",
+      "description": "Payee display by identity type — shows the resolved payee identity when the payee type is known (People, Brand, or Category). The State controls the VPA resolution stage.",
+      "properties": [
+        {"name": "Type", "type": "Variant", "default": "People", "options": ["People", "Brand", "Category"], "notes": "The type of payee"},
+        {"name": "State", "type": "Variant", "default": "No VPA", "options": ["No VPA", "Only VPA", "QR name + VPA", "Verified name", "Category type"], "notes": "VPA resolution state"},
+        {"name": "Loader", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Shows a loading indicator while resolving the payee"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "Showing the resolved payee identity in the payment flow when the payee type (People/Brand/Category) is known", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Use the Payee type variant (8069:28766) when the payee identity category (People/Brand/Category) drives the display."
+      ],
+      "category": "pattern"
+    },
+    {
+      "name": "Payee - Pattern",
+      "node_id": "8069:72871",
+      "description": "Payee display by payment flow — shows the resolved payee in the context of a specific payment flow type (P2P, P2M, Bank transfer, Self transfer, Autopay, UPI Lite). Use when the payment flow drives the payee display logic.",
+      "properties": [
+        {"name": "Type", "type": "Variant", "default": "P2P", "options": ["P2P", "P2M", "Bank transfer", "Self transfer", "Autopay", "UPI Lite"], "notes": "The payment flow type driving the payee display"},
+        {"name": "State", "type": "Variant", "default": "No VPA", "options": ["No VPA", "Only VPA", "QR name + VPA", "Verified name", "Not initialised", "Balance"], "notes": "VPA resolution and payment method state"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "Showing the resolved payee in the context of a specific payment flow type when the flow type drives the payee display", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Use the Payment flow variant (8069:72871) when the flow type (P2P/P2M/Bank transfer/etc.) drives the display."
+      ],
+      "category": "pattern"
+    },
+    {
+      "name": "Payee details - Pattern - Unit",
+      "node_id": "8069:29165",
+      "description": "Displays the resolved payee name and VPA as a compact unit — typically shown below the amount input or in the confirmation area. The State reflects the current stage of VPA resolution.",
+      "properties": [
+        {"name": "State", "type": "Variant", "default": "No VPA", "options": ["No VPA", "Only VPA", "QR name + VPA", "Verified name", "Category name"], "notes": "VPA resolution stage"},
+        {"name": "QR name text", "type": "Text", "default": "QR name", "options": ["Any string"], "notes": "Name resolved from QR scan"},
+        {"name": "Verified name text", "type": "Text", "default": "Verified name", "options": ["Any string"], "notes": "Verified payee name"},
+        {"name": "VPA text", "type": "Text", "default": "9999999999@yespop", "options": ["Any string"], "notes": "Payee VPA address"},
+        {"name": "Getting name text", "type": "Text", "default": "Getting name", "options": ["Any string"], "notes": "Placeholder shown while name is being fetched"},
+        {"name": "Getting VPA text", "type": "Text", "default": "Getting VPA...", "options": ["Any string"], "notes": "Placeholder shown while VPA is being resolved"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "Displaying the resolved payee name and VPA as a compact unit below the amount input or in the confirmation area", "variant": "", "config": ""}
+      ],
+      "rules": [],
+      "category": "pattern"
+    },
+    {
+      "name": "RCBP - Pattern - Unit",
+      "node_id": "12576:126460",
+      "description": "RCBP biller display unit where the biller belongs to a known Category or Brand type. The State controls the resolution stage of biller and user details.",
+      "properties": [
+        {"name": "Type", "type": "Variant", "default": "Category", "options": ["Category", "Brand"], "notes": "Whether the biller is a generic category or a named brand"},
+        {"name": "State", "type": "Variant", "default": "No User Detail", "options": ["No User Detail", "Biller - Loader", "Biller + User Details"], "notes": "Resolution stage — no detail, loading, or fully resolved"},
+        {"name": "Loader", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Shows a loading indicator while resolving biller details"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "Showing the RCBP biller display unit where the biller belongs to a known Category or Brand type", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Use the Biller type variant (12576:126460) when Category/Brand distinction is needed."
+      ],
+      "category": "pattern"
+    },
+    {
+      "name": "RCBP - Pattern - Unit",
+      "node_id": "12576:127042",
+      "description": "RCBP biller display with editable name and VPA text — use when biller details (verified name, VPA) need to be surfaced and configured. No biller type distinction in this variant.",
+      "properties": [
+        {"name": "State", "type": "Variant", "default": "No User Detail", "options": ["No User Detail", "Biller - Loader", "Biller + User Details"], "notes": "Resolution stage"},
+        {"name": "Verified name text", "type": "Text", "default": "Verified name", "options": ["Any string"], "notes": "Verified biller name"},
+        {"name": "VPA text", "type": "Text", "default": "Sunil • +918376921962", "options": ["Any string"], "notes": "Biller VPA or contact detail"},
+        {"name": "Getting name text", "type": "Text", "default": "Getting name", "options": ["Any string"], "notes": "Placeholder while name is loading"},
+        {"name": "Getting VPA text", "type": "Text", "default": "Getting VPA...", "options": ["Any string"], "notes": "Placeholder while VPA is loading"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "Showing the RCBP biller with editable name and VPA text when biller details need to be surfaced and configured", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Use the Biller details variant (12576:127042) when configuring verified name and VPA text."
+      ],
+      "category": "pattern"
+    },
+    {
+      "name": "Payment list - Left - Small - Pattern",
+      "node_id": "6973:9361",
+      "description": "Compact payment list row where the avatar or brand logo sits on the left side. Used in smaller card or inline contexts within payment screens.",
+      "properties": [
+        {"name": "Type", "type": "Variant", "default": "Brand", "options": ["Brand", "People"], "notes": "Brand = merchant logo; People = user avatar"},
+        {"name": "Title above", "type": "Variant", "default": "False", "options": ["True", "False"], "notes": "Shows a section title label above the row"},
+        {"name": "Is disabled", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Disabled state"},
+        {"name": "Body", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows a secondary body line"},
+        {"name": "R-icon - Title", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows an icon to the right of the title"},
+        {"name": "R-slot", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right slot for a custom element"},
+        {"name": "R-icon", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right icon"},
+        {"name": "R-overflow", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right overflow gradient"},
+        {"name": "L-icon - Title", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Left icon alongside the title"},
+        {"name": "L-icon - Body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Left icon alongside the body"},
+        {"name": "R-icon - Body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right icon alongside the body"},
+        {"name": "Dot", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Shows a dot indicator on the row"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "Displaying a compact payment list row where the avatar or brand logo sits on the left side", "variant": "", "config": ""}
+      ],
+      "rules": [],
+      "category": "pattern"
+    },
+    {
+      "name": "Payment list - Right - Small - Pattern",
+      "node_id": "6973:11031",
+      "description": "Compact payment list row where the avatar or brand logo sits on the right side. Used in smaller card or inline contexts within payment screens.",
+      "properties": [
+        {"name": "Type", "type": "Variant", "default": "Brand", "options": ["Brand", "People"], "notes": "Brand = merchant logo; People = user avatar"},
+        {"name": "Title above", "type": "Variant", "default": "False", "options": ["True", "False"], "notes": "Shows a section title label above the row"},
+        {"name": "Is disabled", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Disabled state"},
+        {"name": "Body", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows a secondary body line"},
+        {"name": "L-icon - Title", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Left icon alongside the title"},
+        {"name": "L-slot", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Left slot for a custom element"},
+        {"name": "L-icon", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Left icon"},
+        {"name": "L-overflow", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Left overflow gradient"},
+        {"name": "R-icon - Title", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right icon alongside the title"},
+        {"name": "L-icon - Body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Left icon alongside the body"},
+        {"name": "R-icon - Body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right icon alongside the body"},
+        {"name": "Dot", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Shows a dot indicator on the row"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "Displaying a compact payment list row where the avatar or brand logo sits on the right side", "variant": "", "config": ""}
+      ],
+      "rules": [],
+      "category": "pattern"
+    },
+    {
+      "name": "Collect request - Popup - Pattern",
+      "node_id": "9781:159101",
+      "description": "In-app popup for a collect request or autopay mandate approval. The popup surfaces payee details, amount, and approve/decline actions.",
+      "properties": [
+        {"name": "Type", "type": "Variant", "default": "Autopay request", "options": ["Autopay request", "Collect request"], "notes": "Autopay request = recurring mandate approval; Collect request = one-time payment request"},
+        {"name": "Expiring", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Indicates the request is expiring soon"},
+        {"name": "Verified", "type": "Variant", "default": "False", "options": ["True", "False"], "notes": "Whether the requesting payee is verified"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "Presenting an in-app popup for a collect request or autopay mandate approval", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Collect request - Popup - Pattern must be used inside a Popup organism — do not place it directly on a screen frame."
+      ],
+      "category": "pattern"
+    },
+    {
+      "name": ".Amount + Status",
+      "node_id": "13318:89797",
+      "description": "Internal amount + status display — a local building block of Tranaction result - Pattern. Do not use independently; always use Tranaction result - Pattern.",
+      "properties": [
+        {"name": "Title", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the transaction amount title"},
+        {"name": "Subtitle", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows a subtitle line below the amount"},
+        {"name": "Body", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows a body description line"},
+        {"name": "Info", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Shows an info/helper line"},
+        {"name": "L-Overflow", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Left overflow gradient on the amount text"},
+        {"name": "R-Overflow", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right overflow gradient on the amount text"}
+      ],
+      "variants": [],
+      "use_cases": [],
+      "rules": [
+        "Internal component — do not use it independently; always use Tranaction result - Pattern."
+      ],
+      "category": "pattern"
+    },
+    {
+      "name": ".Tranaction result - Unit",
+      "node_id": "13324:90828",
+      "description": "Internal transaction result unit — a local building block of Tranaction result - Pattern. Do not use independently; always use Tranaction result - Pattern.",
+      "properties": [
+        {"name": "Offer Split Card", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the offer/split card area within the result unit"}
+      ],
+      "variants": [],
+      "use_cases": [],
+      "rules": [
+        "Internal component — do not use it independently; always use Tranaction result - Pattern."
+      ],
+      "category": "pattern"
+    },
+    {
+      "name": "Tranaction result - Pattern",
+      "node_id": "13324:91093",
+      "description": "Full transaction result screen — success, processing, pending, or failed. Composes .Amount + Status and .Tranaction result - Unit into the complete result layout.",
+      "properties": [
+        {"name": "Type", "type": "Variant", "default": "Success", "options": ["Success", "Processing", "Pending", "Failed"], "notes": "The transaction outcome state"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "Displaying the full transaction result screen — success, processing, pending, or failed", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Never place .Amount + Status or .Tranaction result - Unit directly on screens. Always use Tranaction result - Pattern.",
+        "Use Tranaction result - Pattern for all transaction result screens."
+      ],
+      "category": "pattern"
+    },
+    {
+      "name": "P3 offer application",
+      "node_id": "21157:274038",
+      "description": "Offer application row shown on the checkout or payment screen, communicating whether an offer has been applied, is in progress, failed, or is unavailable.",
+      "properties": [
+        {"name": "State", "type": "Variant", "default": "Applied", "options": ["Default", "Success", "In-progress", "Not applied", "Applied", "Disabled"], "notes": "Current state of the offer application"},
+        {"name": "Heading", "type": "Text", "default": "POPchop", "options": ["Any string"], "notes": "Offer name or label shown in the row"},
+        {"name": "Separator", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows a divider separator in the row"},
+        {"name": "text - L", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the left text element"},
+        {"name": "text - R", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the right text element"}
+      ],
+      "variants": [
+        {"name": "Default", "semantic_use": "No offer is active or selected yet", "example": ""},
+        {"name": "Not applied", "semantic_use": "An offer exists but has not been applied", "example": ""},
+        {"name": "Applied", "semantic_use": "Offer has been successfully applied to the order", "example": ""},
+        {"name": "Success", "semantic_use": "User has been validated and is eligible for POPchop", "example": ""},
+        {"name": "In-progress", "semantic_use": "User validation for POPchop is in progress", "example": ""},
+        {"name": "Disabled", "semantic_use": "Offer is unavailable for the current order", "example": ""}
+      ],
+      "use_cases": [
+        {"context": "Showing the offer application row on the checkout or payment screen", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "P3 offer application must reflect the real-time offer state — always set State to match the actual backend offer status, never leave it at Default on a production screen."
+      ],
+      "category": "pattern"
+    },
+    {
+      "name": "OLP card- Pattern",
+      "node_id": "21919:74193",
+      "description": "Single order card on the Order List Page (OLP). Each card represents one order and communicates its fulfilment status and whether it involves a POPsplit payment.",
+      "properties": [
+        {"name": "State", "type": "Variant", "default": "Success", "options": ["Success", "In progress", "Default", "Cancelled"], "notes": "Order fulfilment status"},
+        {"name": "is Popsplit?", "type": "Variant", "default": "False", "options": ["True", "False"], "notes": "Whether the order was paid using POPsplit"}
+      ],
+      "variants": [
+        {"name": "Default", "semantic_use": "Order placed, no specific status yet", "example": ""},
+        {"name": "In progress", "semantic_use": "Order is being processed or shipped", "example": ""},
+        {"name": "Success", "semantic_use": "Order delivered or completed", "example": ""},
+        {"name": "Cancelled", "semantic_use": "Order was cancelled", "example": ""}
+      ],
+      "use_cases": [
+        {"context": "Displaying a single order card on the Order List Page (OLP)", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "OLP card- Pattern is the only correct component for individual order rows on the Order List Page — do not reuse generic list items."
+      ],
+      "category": "pattern"
+    },
+    {
+      "name": "Order history carousel",
+      "node_id": "21904:20680",
+      "description": "Horizontal carousel of recent or past orders — typically shown on a home screen widget, profile page, or top of the order history screen. Count controls how many order cards are visible.",
+      "properties": [
+        {"name": "Count", "type": "Variant", "default": "1", "options": ["1", "2", "3", "Plenty"], "notes": "Number of order cards in the carousel. Plenty = 4 or more items (scrollable)"},
+        {"name": "Header", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the section header above the carousel"},
+        {"name": "Body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Shows a body/description line in the header"},
+        {"name": "CTA header", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Shows a CTA link in the header (e.g. View all)"},
+        {"name": "L icon - title", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Left icon alongside the header title"},
+        {"name": "R icon - title", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right icon alongside the header title"},
+        {"name": "L icon - body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Left icon alongside the header body"},
+        {"name": "R icon - body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right icon alongside the header body"},
+        {"name": "R slot", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right slot in the header for a custom element"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "Displaying a horizontal carousel of recent or past orders on a home screen widget, profile page, or top of the order history screen", "variant": "Count=Plenty", "config": "4 or more orders (scrollable)"},
+        {"context": "Displaying a fixed known number of orders", "variant": "Count=1/2/3", "config": "exact counts when number of orders is known and fixed"}
+      ],
+      "rules": [
+        "Use Order history carousel with Count=Plenty when there are 4 or more orders — this activates the scrollable carousel layout.",
+        "Use exact counts (1, 2, 3) only when the number of orders is known and fixed."
+      ],
+      "category": "pattern"
+    },
+    {
+      "name": "Redirection loader",
+      "node_id": "21916:13786",
+      "description": "Full-screen loader shown while a user is being redirected to an external page or third-party flow (biller website, bank page, or payment gateway). Communicates that navigation is in progress and prevents interaction.",
+      "properties": [
+        {"name": "Label", "type": "Text", "default": "Label text", "options": ["Any string"], "notes": "Descriptive text shown below the loader — always replace with context-appropriate copy (e.g. Redirecting to biller…)"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "A user is being redirected to an external page or third-party flow", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Redirection loader must always have a meaningful Label — never ship it with the default placeholder \"Label text\"."
+      ],
+      "category": "pattern"
+    },
+    {
+      "name": "List + body text",
+      "node_id": "22319:191001",
+      "description": "List of items each accompanied by a body text description — placed inside a Bottom Sheet slot. Typical uses include plan details, feature breakdowns, or step-by-step instructions.",
+      "properties": [
+        {"name": "Count", "type": "Variant", "default": "1", "options": ["1", "2", "3", "4"], "notes": "Number of list rows with body text to display"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "Showing a list of items each accompanied by a body text description inside a Bottom Sheet slot", "variant": "", "config": "When placed inside a Bottom Sheet, use a slot (not a slot container) so the sheet height adjusts to the content"}
+      ],
+      "rules": [
+        "List + body text can be placed wherever a list with body text is needed — in a Bottom Sheet slot, a screen section, or any other layout context.",
+        "Use the smallest Count value that accurately represents the number of items — do not pad with empty rows."
+      ],
+      "category": "pattern"
+    },
+    {
+      "name": "Account Management - Pattern",
+      "node_id": "10221:134233",
+      "description": "Linked bank account or RuPay card card in the account management screen. Handles collapsed/expanded state, primary account designation, balance visibility, and biometric auth status.",
+      "properties": [
+        {"name": "Type", "type": "Variant", "default": "Bank", "options": ["Bank", "RuPay"], "notes": "The type of linked account"},
+        {"name": "Open", "type": "Variant", "default": "False", "options": ["True", "False"], "notes": "Whether the account card is expanded to show full details"},
+        {"name": "Primary", "type": "Variant", "default": "True", "options": ["True", "False"], "notes": "Whether this is the user's primary payment account. Only applicable to Type=Bank — RuPay accounts are always non-primary"},
+        {"name": "Balance", "type": "Variant", "default": "False", "options": ["True", "False"], "notes": "Whether the account balance is visible"},
+        {"name": "isBioauth Enabled", "type": "Variant", "default": "False", "options": ["True", "False"], "notes": "Whether biometric authentication is enabled for this account"}
+      ],
+      "variants": [
+        {"name": "Bank", "semantic_use": "Bank accounts can be set as primary (Primary=True available)", "example": ""},
+        {"name": "RuPay", "semantic_use": "RuPay cards are never the primary account — always use Primary=False", "example": ""}
+      ],
+      "use_cases": [
+        {"context": "Displaying a linked bank account or RuPay card in the account management screen", "variant": "Type=Bank", "config": "Primary=True available"},
+        {"context": "Displaying a linked RuPay card in the account management screen", "variant": "Type=RuPay", "config": "Primary=False always"}
+      ],
+      "rules": [
+        "Primary=True is only valid for Type=Bank — never set Primary=True on a RuPay account.",
+        "Use Open=True only for the currently selected or active account card. All other cards in the list should default to Open=False.",
+        "Balance=True should reflect whether the user has chosen to reveal their balance — mirror the actual visibility state, do not default to visible."
+      ],
+      "category": "pattern"
+    },
+    {
+      "name": "QR - Card",
+      "node_id": "10490:122903",
+      "description": "QR code display card on the Profile QR screen. Use Card=QR Code for a standard scannable QR and Card=Amount - QR Code when a preset amount is embedded in the QR.",
+      "properties": [
+        {"name": "Card", "type": "Variant", "default": "QR Code", "options": ["QR Code", "Amount - QR Code"], "notes": "Type of QR card — standard or amount-prefixed"},
+        {"name": "Buttons", "type": "Variant", "default": "2", "options": ["2", "Plenty"], "notes": "Number of action buttons below the QR. Plenty = 3 or more"}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "Displaying the user's UPI QR code on the Profile QR screen for general receive-money flows", "variant": "Card=QR Code", "config": ""},
+        {"context": "Displaying a QR with a specific payment amount being requested", "variant": "Card=Amount - QR Code", "config": ""}
+      ],
+      "rules": [
+        "Use QR - Card with Card=Amount - QR Code only when a specific payment amount is being requested — for general receive-money flows, use Card=QR Code.",
+        "Buttons=Plenty accommodates 3 or more action buttons below the QR card. Use Buttons=2 for the standard two-button layout."
+      ],
+      "category": "pattern"
+    },
+    {
+      "name": ".Component",
+      "node_id": "10579:136935",
+      "description": "Internal icon-slot building block — a local component of Profile Card Pattern. Do not use independently.",
+      "properties": [
+        {"name": "R-Icon - Title", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right icon alongside the title"},
+        {"name": "L-Icon - Title", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Left icon alongside the title"},
+        {"name": "R-Icon - Body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right icon alongside the body"},
+        {"name": "L-Icon - Body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Left icon alongside the body"}
+      ],
+      "variants": [],
+      "use_cases": [],
+      "rules": [
+        "Internal component — do not use it independently. Always use Profile Card Pattern on screens."
+      ],
+      "category": "pattern"
+    },
+    {
+      "name": ".Profile Card Unit",
+      "node_id": "10490:108425",
+      "description": "Internal profile display unit — a local component of Profile Card Pattern. Do not use independently; always use Profile Card Pattern.",
+      "properties": [
+        {"name": "UPI ID", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the user's UPI ID below their name or number"}
+      ],
+      "variants": [],
+      "use_cases": [],
+      "rules": [
+        "Internal component — do not use it independently. Always use Profile Card Pattern on screens."
+      ],
+      "category": "pattern"
+    },
+    {
+      "name": "Profile Card Pattern",
+      "node_id": "13139:14480",
+      "description": "Full profile card on the Profile QR screen — combining the user's avatar, display name (if available), phone number, and UPI ID.",
+      "properties": [
+        {"name": "Type", "type": "Variant", "default": "Name + Number", "options": ["Name + Number", "Number Only"], "notes": "Whether to show the user's name alongside their number, or number only"},
+        {"name": "Linked", "type": "Variant", "default": "True", "options": ["True", "False"], "notes": "Whether a payment account is linked to this profile"},
+        {"name": "Avatar", "type": "Variant", "default": "Picture", "options": ["Picture", "Initials", "POP"], "notes": "Avatar display style. Initials only available when Type=Name + Number; POP only available when Type=Number Only"}
+      ],
+      "variants": [
+        {"name": "Name + Number", "semantic_use": "Show user's name alongside their number; Avatar options: Picture, Initials", "example": ""},
+        {"name": "Number Only", "semantic_use": "Show number only; Avatar options: Picture, POP", "example": ""}
+      ],
+      "use_cases": [
+        {"context": "Displaying the user's profile card on the Profile QR screen combining avatar, display name, phone number, and UPI ID", "variant": "", "config": ""}
+      ],
+      "rules": [
+        "Set Avatar only to values valid for the selected Type — do not use Initials with Number Only or POP with Name + Number.",
+        "Initials is only available when Type=Name + Number; POP avatar is only available when Type=Number Only."
+      ],
+      "category": "pattern"
+    }
+  ]
+}

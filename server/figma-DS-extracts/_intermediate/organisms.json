@@ -1,0 +1,1010 @@
+{
+  "components": [
+    {
+      "name": "Top bar",
+      "node_id": "1591:15413",
+      "description": "The primary navigation and branding header at the top of a screen. Supports merchant branding in large, medium, and small configurations, plus minimal states for deep-flow screens.",
+      "properties": [
+        { "name": "Size", "type": "Variant", "default": "Large - Merch", "options": ["Large - Merch", "Med - Merch", "Small - Merch", "Small - No merch", "Minimum"], "notes": "Controls height and merchant branding area" },
+        { "name": "Title bar", "type": "Variant", "default": "True", "options": ["True", "False"], "notes": "Shows a secondary title bar row beneath the main bar" },
+        { "name": "show Stroke", "type": "Variant", "default": "True", "options": ["True", "False"], "notes": "Bottom border/divider line below the bar" }
+      ],
+      "variants": [
+        { "name": "Large - Merch", "semantic_use": "Full-height bar with merchant branding — use on home / main landing screens", "example": "" },
+        { "name": "Med - Merch", "semantic_use": "Medium height with merchant branding — use on mid-level category screens", "example": "" },
+        { "name": "Small - Merch", "semantic_use": "Compact bar with merchant branding — use on sub-category or list screens", "example": "" },
+        { "name": "Small - No merch", "semantic_use": "Compact bar without merchant branding — use on transactional or utility screens", "example": "" },
+        { "name": "Minimum", "semantic_use": "Bare minimum bar (no title bar) — use on payment flows, full-screen modals, and deep utility screens", "example": "" }
+      ],
+      "use_cases": [
+        { "context": "Persistent top navigation on any screen", "variant": "", "config": "Choose the size and title bar combination matching screen hierarchy and available vertical space" }
+      ],
+      "rules": [
+        "Always match the Size to the screen's depth in the navigation hierarchy — use Large - Merch on the home screen and step down for deeper screens.",
+        "Use show Stroke=True when screen content begins immediately below the bar; set show Stroke=False when content scrolls underneath and the bar is floating or transparent.",
+        "Never place a Title bar=True on the Minimum size — that combination does not exist.",
+        "Use Minimum only for focused flows (e.g. checkout, payments, deep settings) where merchant branding would distract.",
+        "Minimum only exists with Title bar=False.",
+        "Small - Merch and Small - No merch only exist with Title bar=True.",
+        "Small - No merch has no show Stroke=False variant — the stroke is always visible on that size."
+      ],
+      "category": "organism"
+    },
+    {
+      "name": "Toast",
+      "node_id": "6022:29891",
+      "description": "A compact, transient inline feedback message (success, error, warning, neutral) shown after a user action. Disappears automatically or on dismissal.",
+      "properties": [
+        { "name": "State", "type": "Variant", "default": "Orange", "options": ["Orange", "White", "Green", "Red"], "notes": "Semantic colour of the toast" },
+        { "name": "Cross", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Shows a dismiss (X) button" },
+        { "name": "Button", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Shows a CTA button inside the toast" },
+        { "name": "Body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Shows body/description text below the title" },
+        { "name": "Title", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the main title text" },
+        { "name": "Image", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows an image/icon on the left" },
+        { "name": "R-overflow - Body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right overflow gradient for long body text" },
+        { "name": "Title text", "type": "Text", "default": "This is a title and it can span 2 lines", "options": ["Any string"], "notes": "Toast title copy" },
+        { "name": "Body text", "type": "Text", "default": "This is body and it spans 1 line", "options": ["Any string"], "notes": "Toast body copy" }
+      ],
+      "variants": [
+        { "name": "Orange", "semantic_use": "Brand — use for notifications related to POP brand moments, rewards, or brand-specific communications", "example": "" },
+        { "name": "White", "semantic_use": "Neutral / system message", "example": "" },
+        { "name": "Green", "semantic_use": "Success / confirmation", "example": "" },
+        { "name": "Red", "semantic_use": "Error / failure", "example": "" }
+      ],
+      "use_cases": [
+        { "context": "Showing a brief non-blocking feedback message after a user action", "variant": "", "config": "" }
+      ],
+      "rules": [
+        "Never place Toast directly in screens. Always use Toastbar - Organism wherever a toast notification is needed — it handles positioning, dismissal behaviour, and animation correctly.",
+        "Match the State to the semantic context — Orange only for brand, Green for success, Red for errors, White for neutral system messages. Never use Green for errors or Red for success."
+      ],
+      "category": "organism"
+    },
+    {
+      "name": "Toastbar - Organism",
+      "node_id": "6022:30248",
+      "description": "A sticky, full-width notification bar that persists until dismissed or auto-expires. Used for promotions, system alerts, and time-sensitive nudges anchored to the top or bottom of a screen.",
+      "properties": [
+        { "name": "Colour", "type": "Variant", "default": "Orange", "options": ["Orange", "Red", "Green", "White"], "notes": "Semantic colour of the bar" },
+        { "name": "Icon", "type": "Variant", "default": "True", "options": ["True", "False"], "notes": "Shows a leading icon" },
+        { "name": "CTA", "type": "Variant", "default": "None", "options": ["None", "Cross", "Button"], "notes": "Right-side call-to-action type" },
+        { "name": "Auto dismiss 3s", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Bar auto-dismisses after 3 seconds" },
+        { "name": "Swipe up dismiss", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Bar can be swiped up to dismiss" }
+      ],
+      "variants": [
+        { "name": "None", "semantic_use": "Informational-only bar — no user action required", "example": "" },
+        { "name": "Cross", "semantic_use": "User can manually dismiss the bar", "example": "" },
+        { "name": "Button", "semantic_use": "Bar contains an actionable CTA button", "example": "" }
+      ],
+      "use_cases": [
+        { "context": "Sticky full-width notification — brief post-action feedback as well as persistent screen-level notifications", "variant": "", "config": "" }
+      ],
+      "rules": [
+        "Use Toastbar - Organism for all toast notifications — brief post-action feedback (payment confirmed, error, copy) as well as persistent screen-level notifications.",
+        "Always set Title text — never leave the placeholder copy in production.",
+        "Auto dismiss 3s=True is the default — only disable it when the notification is critical and must remain visible until user action.",
+        "Swipe up dismiss=True always stays enabled unless the toast action is mandatory.",
+        "Match the Colour to the semantic context — Orange only for brand, Green for success, Red for errors, White for neutral."
+      ],
+      "category": "organism"
+    },
+    {
+      "name": "Banner",
+      "node_id": "7675:20520",
+      "description": "A contextual promotional or offer banner on a screen — supports primary, secondary, brand, offer, and image-based layouts.",
+      "properties": [
+        { "name": "Type", "type": "Variant", "default": "Primary", "options": ["Primary", "Secondary", "Brand primary", "Offer", "Image - Transparent", "Image"], "notes": "Visual style of the banner" },
+        { "name": "Icon align", "type": "Variant", "default": "Right", "options": ["Right", "Left"], "notes": "Side where the image/icon is aligned" },
+        { "name": "CTA group", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the CTA button group" },
+        { "name": "R-overflow - Body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right overflow gradient on body text" },
+        { "name": "Body", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the body/description text" },
+        { "name": "Image", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the image/illustration" },
+        { "name": "Overline", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Shows an overline label above the title" },
+        { "name": "Title text", "type": "Text", "default": "This is a title and it can span 2 lines", "options": ["Any string"], "notes": "Banner title copy" },
+        { "name": "Body text", "type": "Text", "default": "This is body and it spans 1 line", "options": ["Any string"], "notes": "Banner body copy" },
+        { "name": "Title", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the title text" },
+        { "name": "CTA 2", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows a second CTA button" },
+        { "name": "CTA 1", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the primary CTA button" },
+        { "name": "CTA - Overline", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Shows an overline above the CTA group" }
+      ],
+      "variants": [
+        { "name": "Primary", "semantic_use": "Default brand-coloured banner", "example": "" },
+        { "name": "Secondary", "semantic_use": "Subdued secondary banner", "example": "" },
+        { "name": "Brand primary", "semantic_use": "Strong brand-identity banner", "example": "" },
+        { "name": "Offer", "semantic_use": "Offer-specific colour treatment", "example": "" },
+        { "name": "Image - Transparent", "semantic_use": "Image banner with transparent background", "example": "" },
+        { "name": "Image", "semantic_use": "Full image banner", "example": "" }
+      ],
+      "use_cases": [
+        { "context": "Displaying a contextual promotional or offer banner on a screen", "variant": "", "config": "" }
+      ],
+      "rules": [
+        "Always set Title text and Body text on Banner — never leave the placeholder copy in production."
+      ],
+      "category": "organism"
+    },
+    {
+      "name": "Offer highlight",
+      "node_id": "6877:3501",
+      "description": "A highlighted offer callout — e.g. \"5% cashback\", \"₹50 POPcoins\" — in a card, banner, or listing surface. Embeds the Amount with POPcoin New component.",
+      "properties": [
+        { "name": "Size", "type": "Variant", "default": "Large", "options": ["Large", "Med", "Small"], "notes": "Size of the callout" },
+        { "name": "Colour", "type": "Variant", "default": "Blue", "options": ["Blue", "Translucent - Dark", "Translucent - Light"], "notes": "Background colour treatment" },
+        { "name": "Align", "type": "Variant", "default": "Left", "options": ["Left", "Center", "Right"], "notes": "Text alignment" },
+        { "name": "Icon align", "type": "Variant", "default": "Right", "options": ["Left", "Right"], "notes": "Side where the icon appears" },
+        { "name": "Type", "type": "Variant", "default": "Offer", "options": ["Offer", "POPcoin"], "notes": "Offer type — standard offer or POPcoin reward" },
+        { "name": "Amount with POPcoin New / Size", "type": "Variant", "default": "X-small", "options": ["Large", "Med", "Small", "X-small", "X Large"], "notes": "Nested: size of the amount+POPcoin display" },
+        { "name": "Amount with POPcoin New / Type", "type": "Variant", "default": "Primary", "options": ["Primary", "Secondary", "Obsoloete"], "notes": "Nested: visual style — use Primary or Secondary only; do not use Obsoloete" },
+        { "name": "Amount with POPcoin New / Pop coin", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Nested: shows the POPcoin icon and value" },
+        { "name": "Amount with POPcoin New / Amount", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Nested: shows the amount value" },
+        { "name": "Amount with POPcoin New / Separator", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Nested: shows the separator between amount and POPcoin" },
+        { "name": "Amount with POPcoin New / R-icon", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Nested: right-side icon" },
+        { "name": "Amount with POPcoin New / Month", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Nested: shows the month/period label" }
+      ],
+      "variants": [
+        { "name": "Offer", "semantic_use": "Standard offer callout", "example": "" },
+        { "name": "POPcoin", "semantic_use": "POPcoin reward callout", "example": "" }
+      ],
+      "use_cases": [
+        { "context": "Highlighted offer callout in a card, banner, or listing surface", "variant": "", "config": "" }
+      ],
+      "rules": [
+        "Do not use Type=Obsoloete on the nested Amount with POPcoin New — it is a deprecated style retained for backward compatibility only."
+      ],
+      "category": "organism"
+    },
+    {
+      "name": "POPcoin - Unit New",
+      "node_id": "18038:10196",
+      "description": "Displays a POPcoin value alongside the POPcoin icon in new-design contexts. Replaces the legacy POPcoin - Unit.",
+      "properties": [
+        { "name": "Size", "type": "Variant", "default": "Large", "options": ["Large", "Small", "X-small", "Medium"], "notes": "Display size" },
+        { "name": "color", "type": "Variant", "default": "White", "options": ["White", "Black"], "notes": "Colour of the coin unit text/icon" },
+        { "name": "Pop-coin", "type": "Variant", "default": "Small", "options": ["Small", "Large"], "notes": "Size of the POPcoin icon" }
+      ],
+      "variants": [],
+      "use_cases": [
+        { "context": "Displaying a POPcoin value alongside the POPcoin icon in new-design contexts", "variant": "", "config": "" }
+      ],
+      "rules": [],
+      "category": "organism"
+    },
+    {
+      "name": "POPcoin badge- new",
+      "node_id": "18038:11383",
+      "description": "An inline POPcoin badge (pill/tag) for new-design contexts.",
+      "properties": [
+        { "name": "Fill type", "type": "Variant", "default": "Secondary", "options": ["Secondary", "Primary", "Transluscent", "Transparent", "Gradient"], "notes": "Visual fill style of the badge" }
+      ],
+      "variants": [],
+      "use_cases": [
+        { "context": "Showing an inline POPcoin badge (pill/tag) in new-design contexts", "variant": "", "config": "" }
+      ],
+      "rules": [],
+      "category": "organism"
+    },
+    {
+      "name": "Amount with POPcoin New",
+      "node_id": "20781:193584",
+      "description": "Displays a price amount paired with a POPcoin reward value. The new version of the combined amount + POPcoin display.",
+      "properties": [
+        { "name": "Size", "type": "Variant", "default": "X Large", "options": ["Large", "Med", "Small", "X-small", "X Large"], "notes": "Display size" },
+        { "name": "Type", "type": "Variant", "default": "Primary", "options": ["Primary", "Secondary", "Obsoloete"], "notes": "Visual style" },
+        { "name": "Pop coin", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the POPcoin element" },
+        { "name": "Amount", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the amount value" },
+        { "name": "Separator", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the separator between amount and POPcoin" },
+        { "name": "R-icon", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right-side icon" },
+        { "name": "Month", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the month/period label" }
+      ],
+      "variants": [],
+      "use_cases": [
+        { "context": "Displaying a price amount paired with a POPcoin reward value", "variant": "", "config": "" }
+      ],
+      "rules": [],
+      "category": "organism"
+    },
+    {
+      "name": "Amount unit - 1",
+      "node_id": "6973:18831",
+      "description": "Displays a price with optional MRP, slash price, and savings label. Used in product and offer contexts.",
+      "properties": [
+        { "name": "Size", "type": "Variant", "default": "X Large", "options": ["X Large", "Medium", "Small", "Large"], "notes": "Display size" },
+        { "name": "Color", "type": "Variant", "default": "Secondary", "options": ["Tertiary", "Secondary", "Primary"], "notes": "Text colour treatment" },
+        { "name": "Slash Price Before", "type": "Variant", "default": "True", "options": ["True", "False"], "notes": "Position of the slash/MRP price (before or after)" },
+        { "name": "Savings", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the savings label (e.g. \"Save ₹50\")" },
+        { "name": "Slash price", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the crossed-out original price" },
+        { "name": "Separator", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Separator between elements" },
+        { "name": "MRP", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the MRP label" }
+      ],
+      "variants": [],
+      "use_cases": [
+        { "context": "Displaying a price with optional MRP, slash price, and savings label", "variant": "", "config": "" }
+      ],
+      "rules": [
+        "Match Color on Amount unit - 1 to the surface — use Primary on light backgrounds, Secondary or Tertiary on offer/coloured surfaces."
+      ],
+      "category": "organism"
+    },
+    {
+      "name": "Issuance callout",
+      "node_id": "23368:112877",
+      "description": "A pill-style callout that communicates POPcoin or cashback issuance at checkout or offer screens.",
+      "properties": [
+        { "name": "Variant", "type": "Variant", "default": "Pill", "options": ["Pill"], "notes": "Currently only the Pill shape is available" },
+        { "name": "Cashback", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the cashback value" },
+        { "name": "POPcoin", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the POPcoin value" }
+      ],
+      "variants": [
+        { "name": "Pill", "semantic_use": "Only available shape for the callout", "example": "" }
+      ],
+      "use_cases": [
+        { "context": "Showing a pill-style callout communicating POPcoin or cashback issuance at checkout or offer screens", "variant": "", "config": "" }
+      ],
+      "rules": [
+        "Issuance callout currently only supports the Pill variant — do not attempt to apply other shapes."
+      ],
+      "category": "organism"
+    },
+    {
+      "name": "Product listing - Tag",
+      "node_id": "13561:13179",
+      "description": "A tag chip attached to a product listing card — e.g. \"New\", \"Sale\", \"Top Pick\".",
+      "properties": [],
+      "variants": [],
+      "use_cases": [
+        { "context": "Attaching a tag chip to a product listing card", "variant": "", "config": "Fixed-layout tag chip; content set directly on text layers inside the component" }
+      ],
+      "rules": [
+        "Product listing - Tag has no configurable props — edit text layers directly inside the component."
+      ],
+      "category": "organism"
+    },
+    {
+      "name": "Offer toggle",
+      "node_id": "8095:32712",
+      "description": "Legacy toggle allowing the user to turn an offer on or off. Use Offer toggle new for new screens.",
+      "properties": [
+        { "name": "Type", "type": "Variant", "default": "Offer", "options": ["Pop coin", "Offer", "Cash", "Pay in 3"], "notes": "Type of offer the toggle controls" },
+        { "name": "Is disabled", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Disabled state" },
+        { "name": "Size", "type": "Variant", "default": "Large", "options": ["Large", "Small"], "notes": "Toggle size" },
+        { "name": "Info icon", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows an info icon for offer detail" }
+      ],
+      "variants": [],
+      "use_cases": [
+        { "context": "Toggling an offer on or off on legacy screens", "variant": "", "config": "" }
+      ],
+      "rules": [
+        "Always use Offer toggle new for new screens — Offer toggle (old) is retained for legacy screens only."
+      ],
+      "category": "organism"
+    },
+    {
+      "name": "Offer toggle new",
+      "node_id": "21154:215041",
+      "description": "New-style toggle allowing the user to turn an offer on or off. Use for all current screen designs.",
+      "properties": [
+        { "name": "Is disabled", "type": "Variant", "default": "false", "options": ["true", "false"], "notes": "Disabled state" },
+        { "name": "Info icon", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Shows an info icon" },
+        { "name": "Heading", "type": "Text", "default": "Label", "options": ["Any string"], "notes": "Main heading label" },
+        { "name": "R text - Body", "type": "Text", "default": "Label", "options": ["Any string"], "notes": "Right-side body text" },
+        { "name": "Popcoin", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the POPcoin element" },
+        { "name": "L text - Body", "type": "Text", "default": "Label", "options": ["Any string"], "notes": "Left-side body text" }
+      ],
+      "variants": [],
+      "use_cases": [
+        { "context": "Toggling an offer on or off on current screens", "variant": "", "config": "" }
+      ],
+      "rules": [
+        "Use Offer toggle new for all current screen designs."
+      ],
+      "category": "organism"
+    },
+    {
+      "name": "Offer strip",
+      "node_id": "14052:94937",
+      "description": "A full-width strip banner for an active offer — typically at the top of a product or checkout screen.",
+      "properties": [
+        { "name": "Type", "type": "Variant", "default": "Offer", "options": ["Pop coin", "Offer", "Cash", "Pay in 3"], "notes": "Type of offer displayed in the strip" },
+        { "name": "Is disabled", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Disabled state" },
+        { "name": "Size", "type": "Variant", "default": "Large", "options": ["Large", "Small"], "notes": "Strip height/size" },
+        { "name": "Info icon", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows an info icon" }
+      ],
+      "variants": [],
+      "use_cases": [
+        { "context": "Full-width strip banner for an active offer at the top of a product or checkout screen", "variant": "", "config": "" }
+      ],
+      "rules": [],
+      "category": "organism"
+    },
+    {
+      "name": ".footer action P3 offer item",
+      "node_id": "23486:73529",
+      "description": "Internal footer CTA component scoped to P3 offer item new — provides the footer CTA row with a primary button or a link button. Local component, not placed standalone.",
+      "properties": [
+        { "name": "Footer type", "type": "Variant", "default": "Button", "options": ["Button", "Link button"], "notes": "Type of footer CTA" }
+      ],
+      "variants": [
+        { "name": "Button", "semantic_use": "Primary action footer CTA", "example": "" },
+        { "name": "Link button", "semantic_use": "Lower-emphasis text action footer CTA", "example": "" }
+      ],
+      "use_cases": [
+        { "context": "Footer CTA row at the bottom of a P3 offer item", "variant": "", "config": "" }
+      ],
+      "rules": [
+        ".footer action P3 offer item is a local component — always use it inside its parent P3 offer item context. Do not place it standalone or outside its parent offer surface."
+      ],
+      "category": "organism"
+    },
+    {
+      "name": "P3 offer item new",
+      "node_id": "23486:72689",
+      "description": "Displays a Pay-in-3 offer line item in a checkout or offer summary surface. Embeds the .footer action P3 offer item local component.",
+      "properties": [
+        { "name": "Variant", "type": "Variant", "default": "Pain 3", "options": ["Popcoin", "Pain 3"], "notes": "Type of P3 offer displayed" },
+        { "name": "Offer label", "type": "Text", "default": "Label", "options": ["Any string"], "notes": "Offer label text" },
+        { "name": "Label", "type": "Text", "default": "Label", "options": ["Any string"], "notes": "Secondary label text" },
+        { "name": ".footer action P3 offer item / Footer type", "type": "Variant", "default": "Button", "options": ["Button", "Link button"], "notes": "Nested: type of footer CTA — Button for primary action, Link button for lower-emphasis text action" }
+      ],
+      "variants": [
+        { "name": "Popcoin", "semantic_use": "POPcoin P3 offer", "example": "" },
+        { "name": "Pain 3", "semantic_use": "Pay-in-3 offer (default)", "example": "" }
+      ],
+      "use_cases": [
+        { "context": "Displaying a Pay-in-3 offer line item in a checkout or offer summary surface", "variant": "", "config": "" }
+      ],
+      "rules": [],
+      "category": "organism"
+    },
+    {
+      "name": "Bottom sheet",
+      "node_id": "7409:4391",
+      "description": "A modal panel that slides up from the bottom of the screen to present a focused set of actions, details, or confirmations. Slot 1 and Slot 2 are dynamic-height slots.",
+      "properties": [
+        { "name": "Type", "type": "Variant", "default": "Default", "options": ["Default", "Transparent"], "notes": "Background fill type" },
+        { "name": "Image - Outside", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Image outside/above the sheet" },
+        { "name": "image - Inside", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Image inside the sheet" },
+        { "name": "Slot 1", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "First content slot" },
+        { "name": "Slot 2", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Second content slot" },
+        { "name": "Image - Center", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Centre-aligned image" },
+        { "name": "↪️ Buttons", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the button group" },
+        { "name": "Tap outside dismiss", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Dismisses sheet when tapping outside" },
+        { "name": "Title + Body", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the title and body text block" },
+        { "name": "Divider - Slots", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Divider line between content slots" },
+        { "name": "Spacer - Slots", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Spacer between content slots" },
+        { "name": "Body", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows body text within the sheet" }
+      ],
+      "variants": [
+        { "name": "Default", "semantic_use": "Solid-background sheet — standard confirmations, forms, detail panels", "example": "" },
+        { "name": "Transparent", "semantic_use": "Transparent background — overlays on media or image-heavy screens", "example": "" }
+      ],
+      "use_cases": [
+        { "context": "Presenting a focused set of actions, details, or confirmations in a modal overlay anchored to the bottom", "variant": "", "config": "" }
+      ],
+      "rules": [
+        "Always set Tap outside dismiss=True unless the action inside the sheet is mandatory and cannot be abandoned.",
+        "Type=Transparent is for special visual contexts only — default to Type=Default for all standard flows.",
+        "No inside scroll — slot container height is fixed; content that exceeds it will clip. Avoid long lists or dynamic-length stacks that could overflow.",
+        "Always place content inside the slot, not directly on the slot container frame — placing on the container breaks the height-hugging behaviour."
+      ],
+      "category": "organism"
+    },
+    {
+      "name": "Bottom sheet - Segmented",
+      "node_id": "8069:130396",
+      "description": "A bottom sheet displaying multi-category tabbed content — e.g. payment method categories, filter tabs, account sections. Sheet content and Slot are dynamic-height slots.",
+      "properties": [
+        { "name": "Button", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Shows a CTA button in the sheet" },
+        { "name": "Cat 1", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows Category 1 tab" },
+        { "name": "Cat 2", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows Category 2 tab" },
+        { "name": "DON'T USE - Buttons", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Legacy button slot — do not use" },
+        { "name": "Tap outside dismiss", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Dismisses sheet when tapping outside" },
+        { "name": "Cat 3", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows Category 3 tab" },
+        { "name": "Cat 4", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows Category 4 tab" },
+        { "name": "CTA - Cat 1", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "CTA for Category 1" },
+        { "name": "CTA - Cat 2", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "CTA for Category 2" },
+        { "name": "CTA - Cat 3", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "CTA for Category 3" },
+        { "name": "CTA - Cat 4", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "CTA for Category 4" },
+        { "name": "Footer images", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Footer image row" },
+        { "name": "Header - Cat 1", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Header for Category 1" },
+        { "name": "Header - Cat 2", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Header for Category 2" },
+        { "name": "Header - Cat 3", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Header for Category 3" },
+        { "name": "Header - Cat 4", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Header for Category 4" },
+        { "name": "Sheet content", "type": "Slot", "default": "", "options": ["Component set"], "notes": "Content slot for the active tab" },
+        { "name": "Slot", "type": "Slot", "default": "", "options": ["Component set"], "notes": "Additional content slot" }
+      ],
+      "variants": [],
+      "use_cases": [
+        { "context": "Displaying multi-category tabbed content in a bottom sheet (2–4 categories)", "variant": "", "config": "" }
+      ],
+      "rules": [
+        "Use Bottom sheet - Segmented only when content has 2–4 distinct categories that benefit from tab navigation. For single-category content, use the standard Bottom sheet.",
+        "Do not use DON'T USE - Buttons — it is a legacy slot retained for backward compatibility only. Use the Button variant and CTA - Cat props instead.",
+        "No inside scroll — slot container height is fixed; content that exceeds it will clip.",
+        "Always place content inside the slot, not directly on the slot container frame."
+      ],
+      "category": "organism"
+    },
+    {
+      "name": "Popup",
+      "node_id": "9732:108759",
+      "description": "A modal dialog overlaying the entire screen with a scrim, for high-priority confirmations, permission prompts, and offer highlights requiring explicit user response. Blocks interaction behind it.",
+      "properties": [
+        { "name": "State", "type": "Variant", "default": "Default", "options": ["Default", "Success"], "notes": "Visual state of the popup" },
+        { "name": "Expiry highlight", "type": "Variant", "default": "True", "options": ["True", "False"], "notes": "Shows an expiry/urgency highlight" },
+        { "name": "Secondary CTA", "type": "Variant", "default": "True", "options": ["True", "False"], "notes": "Shows a secondary CTA button" },
+        { "name": "Title", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the popup title" },
+        { "name": "Offer highlight", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Shows an offer highlight callout" },
+        { "name": "Tertiary CTA", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows a tertiary CTA (e.g. \"Not now\")" },
+        { "name": "Tap outside to dismiss", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Dismisses popup on tap outside" },
+        { "name": "Title text", "type": "Text", "default": "Autopay request", "options": ["Any string"], "notes": "Popup title copy" },
+        { "name": "Chevron", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows a chevron/arrow indicator" }
+      ],
+      "variants": [
+        { "name": "Default", "semantic_use": "Standard popup — confirmations, permissions, offers", "example": "" },
+        { "name": "Success", "semantic_use": "Post-action success state — e.g. autopay set up, payment confirmed", "example": "" }
+      ],
+      "use_cases": [
+        { "context": "Presenting a critical prompt requiring user decision — autopay approval, permission request, offer acceptance", "variant": "", "config": "" }
+      ],
+      "rules": [
+        "Tap outside to dismiss=False is the default — only enable it for non-critical informational popups where abandonment is acceptable.",
+        "Always provide at least one CTA — never show a Popup without an actionable button.",
+        "Use State=Success only after a successful transaction or setup — never as the initial state.",
+        "Expiry highlight=True is for time-sensitive offers only — turn it off for non-expiring content.",
+        "Keep Title text concise — popup titles should be one line wherever possible."
+      ],
+      "category": "organism"
+    },
+    {
+      "name": "Carousel",
+      "node_id": "6130:2609",
+      "description": "A standard in-page horizontal scroll of cards (banners, product cards, offers) with an optional header and pagination indicators.",
+      "properties": [
+        { "name": "Count", "type": "Variant", "default": "1", "options": ["1", "2", "3", "Plenty"], "notes": "Number of visible cards" },
+        { "name": "Title Size", "type": "Variant", "default": "Small", "options": ["Small", "Medium"], "notes": "Size of the carousel header title" },
+        { "name": "Title", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the header title" },
+        { "name": "Pagination", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows pagination dots" },
+        { "name": "CTA - Header", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "CTA link in the header" },
+        { "name": "R-overflow - Header", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right overflow gradient on header" },
+        { "name": "L-icon - Title", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Left icon on the title" },
+        { "name": "R-icon - Title", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right icon on the title" },
+        { "name": "R-overflow - Banners", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right overflow gradient on banner cards" },
+        { "name": "R-slot - Header", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right slot in the header" },
+        { "name": "L-overflow - Banners", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Left overflow gradient on banner cards" },
+        { "name": "Header", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the header row" },
+        { "name": "Body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Shows body text in the header" },
+        { "name": "Title text", "type": "Text", "default": "Title", "options": ["Any string"], "notes": "Header title copy" },
+        { "name": "Body text", "type": "Text", "default": "Body", "options": ["Any string"], "notes": "Header body copy" },
+        { "name": "L-icon - Body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Left icon on body text" },
+        { "name": "R-icon - Body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right icon on body text" }
+      ],
+      "variants": [
+        { "name": "1", "semantic_use": "Single card visible — full-width card", "example": "" },
+        { "name": "2", "semantic_use": "Two cards visible — side-by-side", "example": "" },
+        { "name": "3", "semantic_use": "Three cards visible — compact grid", "example": "" },
+        { "name": "Plenty", "semantic_use": "Many cards — scrollable overflow list", "example": "" }
+      ],
+      "use_cases": [
+        { "context": "Displaying a horizontal scroll of cards with optional header and pagination", "variant": "", "config": "" }
+      ],
+      "rules": [
+        "Always set Title text when Header=True — never leave \"Title\" as production copy.",
+        "Count=Plenty creates a scrollable overflow — ensure the content list is dynamic and not hardcoded.",
+        "Always enable Pagination=True when the carousel has more than 1 item and auto-advances."
+      ],
+      "category": "organism"
+    },
+    {
+      "name": "Carousel - Edge to edge",
+      "node_id": "14311:67507",
+      "description": "A full-bleed, edge-to-edge carousel where cards extend to the screen edges without padding. Used for hero banners and immersive offer surfaces. R-overflow/L-overflow Banners default to True for the edge bleed.",
+      "properties": [
+        { "name": "Count", "type": "Variant", "default": "1", "options": ["1", "2", "3", "Plenty"], "notes": "Number of visible cards" },
+        { "name": "Title Size", "type": "Variant", "default": "Small", "options": ["Small", "Medium"], "notes": "Header title size" },
+        { "name": "Title", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the header title" },
+        { "name": "Pagination", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows pagination dots" },
+        { "name": "CTA - Header", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "CTA link in header" },
+        { "name": "R-overflow - Header", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right overflow on header" },
+        { "name": "L-icon - Title", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Left icon on title" },
+        { "name": "R-icon - Title", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right icon on title" },
+        { "name": "R-overflow - Banners", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Right overflow gradient on banners (on by default for edge bleed)" },
+        { "name": "R-slot - Header", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right slot in header" },
+        { "name": "L-overflow - Banners", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Left overflow gradient on banners (on by default for edge bleed)" },
+        { "name": "Header", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the header row" },
+        { "name": "Body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Shows body text in header" },
+        { "name": "Title text", "type": "Text", "default": "Title", "options": ["Any string"], "notes": "Header title copy" },
+        { "name": "Body text", "type": "Text", "default": "Body", "options": ["Any string"], "notes": "Header body copy" },
+        { "name": "L-icon - Body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Left icon on body" },
+        { "name": "R-icon - Body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right icon on body" }
+      ],
+      "variants": [
+        { "name": "1", "semantic_use": "Single card visible", "example": "" },
+        { "name": "2", "semantic_use": "Two cards visible", "example": "" },
+        { "name": "3", "semantic_use": "Three cards visible", "example": "" },
+        { "name": "Plenty", "semantic_use": "Many cards — scrollable overflow", "example": "" }
+      ],
+      "use_cases": [
+        { "context": "Full-bleed edge-to-edge carousel for hero banners and immersive offer surfaces", "variant": "", "config": "" }
+      ],
+      "rules": [
+        "Use Carousel - Edge to edge only when the screen layout has no horizontal padding — it requires the component to stretch to the device edges.",
+        "Key difference from standard Carousel: R-overflow - Banners and L-overflow - Banners default to True to create the edge-to-edge bleed effect."
+      ],
+      "category": "organism"
+    },
+    {
+      "name": "Fancy carousel - Unit",
+      "node_id": "14306:52609",
+      "description": "Local component scoped to Fancy carousel. Composes individual layer units (Top, Foreground, Background, Bottom) that build up a parallax stack.",
+      "properties": [
+        { "name": "Type", "type": "Variant", "default": "Top", "options": ["Top", "FG", "Bottom", "BG"], "notes": "Layer type — Top, Foreground, Bottom, Background" },
+        { "name": "Size", "type": "Variant", "default": "Med", "options": ["Small", "Med"], "notes": "Unit size" },
+        { "name": "Product", "type": "Variant", "default": "Shop", "options": ["Shop", "UPI", "Card", "RCBP", "Shop • Red"], "notes": "Product context for the carousel" }
+      ],
+      "variants": [
+        { "name": "Top", "semantic_use": "Topmost content layer — titles, CTAs", "example": "" },
+        { "name": "FG", "semantic_use": "Foreground layer — product imagery, card art", "example": "" },
+        { "name": "Bottom", "semantic_use": "Bottom content layer — supporting text", "example": "" },
+        { "name": "BG", "semantic_use": "Background layer — fills, gradients, images", "example": "" },
+        { "name": "Shop", "semantic_use": "Shop/e-commerce carousel (default)", "example": "" },
+        { "name": "UPI", "semantic_use": "UPI payments carousel", "example": "" },
+        { "name": "Card", "semantic_use": "Credit/debit card carousel", "example": "" },
+        { "name": "RCBP", "semantic_use": "RCBP (rewards card) carousel", "example": "" },
+        { "name": "Shop • Red", "semantic_use": "Shop carousel with red colour treatment", "example": "" }
+      ],
+      "use_cases": [
+        { "context": "Composing individual layer units that build up a Fancy Carousel parallax stack", "variant": "", "config": "" }
+      ],
+      "rules": [
+        "Fancy carousel - Unit is a local component scoped to Fancy carousel only. Do not place it standalone or outside the fancy carousel context.",
+        "Fancy carousel and Fancy carousel - Unit are for premium product hero surfaces only — do not use for standard offer carousels."
+      ],
+      "category": "organism"
+    },
+    {
+      "name": "Fancy carousel",
+      "node_id": "14306:52598",
+      "description": "An animated, layered carousel with parallax or foreground/background layer separation. Used for premium product showcases (e.g. credit card hero carousels).",
+      "properties": [
+        { "name": "Size", "type": "Variant", "default": "Med", "options": ["Med"], "notes": "Currently only medium size available" },
+        { "name": "Top slot", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the top content slot" },
+        { "name": "Bottom slot", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the bottom content slot" }
+      ],
+      "variants": [],
+      "use_cases": [
+        { "context": "Building an animated, layered carousel with parallax or foreground/background layer separation for premium product showcases", "variant": "", "config": "" }
+      ],
+      "rules": [
+        "Fancy carousel and Fancy carousel - Unit are for premium product hero surfaces only — do not use for standard offer carousels."
+      ],
+      "category": "organism"
+    },
+    {
+      "name": "Content card stack",
+      "node_id": "21773:33261",
+      "description": "A stacked set of content cards for layered card presentations, e.g. reward card stacks, account card stacks. Page is marked work-in-progress.",
+      "properties": [],
+      "variants": [],
+      "use_cases": [
+        { "context": "Displaying a stacked set of content cards (layered card presentations)", "variant": "", "config": "Internal layout and card count controlled by design layer structure inside the component" }
+      ],
+      "rules": [
+        "Content card stack has no props — edit internal layers directly if customisation is needed.",
+        "This page is work-in-progress — check with the design system team before introducing this component in production designs."
+      ],
+      "category": "organism"
+    },
+    {
+      "name": "Empty State full paged",
+      "node_id": "15539:17837",
+      "description": "Internal component of .empty state - base for full-screen empty states — used when there is no content to show on an entire page (no search results, no orders, no transactions).",
+      "properties": [
+        { "name": "Type", "type": "Variant", "default": "Default", "options": ["Default", "Compact"], "notes": "Layout type — Default is full vertical layout, Compact is condensed" },
+        { "name": "Size", "type": "Variant", "default": "Large", "options": ["Large", "Medium"], "notes": "Size of the empty state" },
+        { "name": "show title", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the title text" },
+        { "name": "show body", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the body/description text" },
+        { "name": "show Illustration", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the illustration" },
+        { "name": "R icon", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Right icon on the title" },
+        { "name": "CTAs", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the CTA button group" },
+        { "name": "CTA 1", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Primary CTA button" },
+        { "name": "CTA 2", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Secondary CTA button" },
+        { "name": "Illustrations", "type": "Instance Swap", "default": "", "options": ["See preferred values in Figma"], "notes": "Swappable illustration — choose from the preferred illustration set" },
+        { "name": "Title", "type": "Text", "default": "No result to show", "options": ["Any string"], "notes": "Title copy — always replace with real content" },
+        { "name": "Body", "type": "Text", "default": "Empty state body goes here", "options": ["Any string"], "notes": "Body copy — always replace with real content" }
+      ],
+      "variants": [
+        { "name": "Default", "semantic_use": "Full vertical layout with illustration, title, body and CTAs", "example": "" },
+        { "name": "Compact", "semantic_use": "Condensed layout for smaller spaces where a full empty state is too large", "example": "" }
+      ],
+      "use_cases": [
+        { "context": "Full-screen empty states — no content to show on an entire page", "variant": "", "config": "Active when empty state new Variant = Full screen" }
+      ],
+      "rules": [
+        "Internal component of .empty state - base — use via empty state new (Variant = Full screen).",
+        "Always replace placeholder Title and Body with real content."
+      ],
+      "category": "organism"
+    },
+    {
+      "name": "Empty state new/ bottom sheet",
+      "node_id": "16275:64415",
+      "description": "Internal component of .empty state - base for empty states inside a bottom sheet — used when a sheet's content area has no data to show.",
+      "properties": [
+        { "name": "Size", "type": "Variant", "default": "Large", "options": ["Large", "Medium"], "notes": "Size of the empty state" },
+        { "name": "show title", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the title text" },
+        { "name": "show body", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the body/description text" },
+        { "name": "show Illustration", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the illustration" },
+        { "name": "CTAs", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the CTA button group" },
+        { "name": "Spacer - slot", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Spacer slot below/above the content" },
+        { "name": "CTA 1", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Primary CTA button" },
+        { "name": "CTA2", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Secondary CTA button" },
+        { "name": "Illustrations (bs)", "type": "Instance Swap", "default": "", "options": ["See preferred values in Figma"], "notes": "Swappable illustration for bottom sheet context" },
+        { "name": "Title", "type": "Text", "default": "No result to show", "options": ["Any string"], "notes": "Title copy — always replace with real content" },
+        { "name": "Body", "type": "Text", "default": "Empty state body goes here", "options": ["Any string"], "notes": "Body copy — always replace with real content" }
+      ],
+      "variants": [],
+      "use_cases": [
+        { "context": "Empty states inside a bottom sheet — sheet content area has no data", "variant": "", "config": "Active when empty state new Variant = Bottom sheet" }
+      ],
+      "rules": [
+        "Internal component of .empty state - base — use via empty state new (Variant = Bottom sheet).",
+        "Always replace placeholder Title and Body with real content."
+      ],
+      "category": "organism"
+    },
+    {
+      "name": ".empty state - base",
+      "node_id": "15539:17626",
+      "description": "Local component scoped to empty state new — the structural foundation it is built upon. Contains the Empty State full paged and Empty state new/ bottom sheet internal components. Never used directly.",
+      "properties": [],
+      "variants": [],
+      "use_cases": [
+        { "context": "Internal base layer of empty state new — never used directly", "variant": "", "config": "" }
+      ],
+      "rules": [
+        "Never use .empty state - base directly — it is a local component of empty state new. Always use empty state new wherever an empty state is needed."
+      ],
+      "category": "organism"
+    },
+    {
+      "name": "empty state new",
+      "node_id": "16287:76532",
+      "description": "The new-style empty state layout for zero-data screens, error screens, and permission-required states. Wraps .empty state - base and surfaces one of two nested instances based on Variant.",
+      "properties": [
+        { "name": "Variant", "type": "Variant", "default": "Full screen", "options": ["Full screen", "Bottom sheet"], "notes": "Switches which internal empty state component is active. Full screen = Empty State full paged; Bottom sheet = Empty state new/ bottom sheet" },
+        { "name": "Empty State full paged / Type", "type": "Variant", "default": "Default", "options": ["Default", "Compact"], "notes": "Nested (Variant=Full screen): Default = full layout with illustration; Compact = reduced vertical footprint" },
+        { "name": "Empty State full paged / Size", "type": "Variant", "default": "Large", "options": ["Large", "Medium"], "notes": "Nested (Variant=Full screen): overall scale" },
+        { "name": "Empty State full paged / show title", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Nested (Variant=Full screen): toggle title text" },
+        { "name": "Empty State full paged / show body", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Nested (Variant=Full screen): toggle body text" },
+        { "name": "Empty State full paged / show Illustration", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Nested (Variant=Full screen): toggle illustration" },
+        { "name": "Empty State full paged / R icon", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Nested (Variant=Full screen): right icon in title row" },
+        { "name": "Empty State full paged / CTAs", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Nested (Variant=Full screen): toggle CTA group" },
+        { "name": "Empty State full paged / CTA 1", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Nested (Variant=Full screen): show/hide primary CTA" },
+        { "name": "Empty State full paged / CTA 2", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Nested (Variant=Full screen): show/hide secondary CTA" },
+        { "name": "Empty State full paged / Illustrations", "type": "Instance Swap", "default": "", "options": ["See preferred values in Figma"], "notes": "Nested (Variant=Full screen): swap illustration asset" },
+        { "name": "Empty State full paged / Title", "type": "Text", "default": "No result to show", "options": ["Any string"], "notes": "Nested (Variant=Full screen): title copy" },
+        { "name": "Empty State full paged / Body", "type": "Text", "default": "Empty state body goes here", "options": ["Any string"], "notes": "Nested (Variant=Full screen): body copy" },
+        { "name": "Empty state new/ bottom sheet / Size", "type": "Variant", "default": "Large", "options": ["Large", "Medium"], "notes": "Nested (Variant=Bottom sheet): overall scale" },
+        { "name": "Empty state new/ bottom sheet / show title", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Nested (Variant=Bottom sheet): toggle title text" },
+        { "name": "Empty state new/ bottom sheet / show body", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Nested (Variant=Bottom sheet): toggle body text" },
+        { "name": "Empty state new/ bottom sheet / show Illustration", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Nested (Variant=Bottom sheet): toggle illustration" },
+        { "name": "Empty state new/ bottom sheet / CTAs", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Nested (Variant=Bottom sheet): toggle CTA group" },
+        { "name": "Empty state new/ bottom sheet / Spacer - slot", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Nested (Variant=Bottom sheet): adds spacing above content" },
+        { "name": "Empty state new/ bottom sheet / CTA 1", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Nested (Variant=Bottom sheet): show/hide primary CTA" },
+        { "name": "Empty state new/ bottom sheet / CTA2", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Nested (Variant=Bottom sheet): show/hide secondary CTA" },
+        { "name": "Empty state new/ bottom sheet / Illustrations (bs)", "type": "Instance Swap", "default": "", "options": ["See preferred values in Figma"], "notes": "Nested (Variant=Bottom sheet): swap illustration asset" },
+        { "name": "Empty state new/ bottom sheet / Title", "type": "Text", "default": "No result to show", "options": ["Any string"], "notes": "Nested (Variant=Bottom sheet): title copy" },
+        { "name": "Empty state new/ bottom sheet / Body", "type": "Text", "default": "Empty state body goes here", "options": ["Any string"], "notes": "Nested (Variant=Bottom sheet): body copy" }
+      ],
+      "variants": [
+        { "name": "Full screen", "semantic_use": "Empty state occupies a full page or primary content region (surfaces Empty State full paged)", "example": "" },
+        { "name": "Bottom sheet", "semantic_use": "Empty state appears inside a Bottom Sheet (surfaces Empty state new/ bottom sheet)", "example": "" }
+      ],
+      "use_cases": [
+        { "context": "Zero-data screens, error screens, and permission-required states", "variant": "Full screen", "config": "Set Variant first — relevant nested component properties then become available" }
+      ],
+      "rules": [
+        "Use empty state new for all new screen designs. Do not use (Deprecated) Empty state in any new work.",
+        "Always write meaningful empty state copy — never leave placeholder text in production.",
+        "Every empty state must have at least one recovery action (CTA) unless the state is truly unrecoverable.",
+        "Set Variant first — the relevant nested component properties then become available to configure."
+      ],
+      "category": "organism"
+    },
+    {
+      "name": "(Deprecated) Empty state",
+      "node_id": "7466:22640",
+      "description": "Deprecated legacy empty state component set, retained for backward compatibility with existing screens only. Do not use in new designs; migrate to empty state new.",
+      "properties": [
+        { "name": "Type", "type": "Variant", "default": "Screen • Large", "options": ["Screen • Large", "Screen • Small", "No results", "No results + Body", "No RuPay"], "notes": "Empty state type" },
+        { "name": "Size", "type": "Variant", "default": "Large", "options": ["Large", "Med"], "notes": "Display size" },
+        { "name": "image - Inside", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows an illustration/image" },
+        { "name": "CTAs", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows CTA buttons" },
+        { "name": "Title + Body", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows title and body text" },
+        { "name": "CTA 1", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Primary CTA button" },
+        { "name": "CTA 2", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Secondary CTA button" },
+        { "name": "Title text", "type": "Text", "default": "Empty state title here", "options": ["Any string"], "notes": "Title copy" },
+        { "name": "Body text", "type": "Text", "default": "Empty state body desc goes here", "options": ["Any string"], "notes": "Body copy" }
+      ],
+      "variants": [
+        { "name": "Screen • Large", "semantic_use": "Large full-screen empty state", "example": "" },
+        { "name": "Screen • Small", "semantic_use": "Small full-screen empty state", "example": "" },
+        { "name": "No results", "semantic_use": "No results state", "example": "" },
+        { "name": "No results + Body", "semantic_use": "No results state with body text", "example": "" },
+        { "name": "No RuPay", "semantic_use": "No RuPay state", "example": "" }
+      ],
+      "use_cases": [
+        { "context": "Legacy empty state on existing screens (reference only)", "variant": "", "config": "" }
+      ],
+      "rules": [
+        "Deprecated. Do not use in new designs. Retained for backward compatibility only — migrate to empty state new when updating legacy screens."
+      ],
+      "category": "organism"
+    },
+    {
+      "name": ". new Bento grid",
+      "node_id": "19069:74602",
+      "description": "Standalone single bento cell building block (COMPONENT). Composed into higher-level grid layouts (Bento grid- 2, Bento Grid - 3). Internal component — not placed standalone in product screens.",
+      "properties": [
+        { "name": "R-icon", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Right-side icon" },
+        { "name": "Body", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows body text" },
+        { "name": "Offer", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows offer element" }
+      ],
+      "variants": [],
+      "use_cases": [
+        { "context": "Single bento cell building block composed into higher-level grid layouts", "variant": "", "config": "" }
+      ],
+      "rules": [
+        "Internal component — do not place it standalone in product screens.",
+        "Use Bento grid- 2 for two-tile layouts and Bento Grid - 3 for three-tile layouts — do not manually stack individual cells."
+      ],
+      "category": "organism"
+    },
+    {
+      "name": ". new Bento grid",
+      "node_id": "19069:74390",
+      "description": "A single bento grid cell (COMPONENT_SET) with configurable size and image position. Used to compose custom bento grid layouts.",
+      "properties": [
+        { "name": "ImageRight", "type": "Variant", "default": "True", "options": ["False", "True"], "notes": "Whether the image is on the right side" },
+        { "name": "Size", "type": "Variant", "default": "Medium", "options": ["Small", "X-Small", "Medium"], "notes": "Cell size" },
+        { "name": "R-icon", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Right-side icon" },
+        { "name": "Offer", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the offer element" },
+        { "name": "body", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows body text" }
+      ],
+      "variants": [],
+      "use_cases": [
+        { "context": "Placing a single bento grid cell with configurable size and image position to compose custom bento grid layouts", "variant": "", "config": "" }
+      ],
+      "rules": [],
+      "category": "organism"
+    },
+    {
+      "name": ".RCBP TSS bento",
+      "node_id": "23425:84615",
+      "description": "Internal pre-composed bento grid layout specifically for the RCBP TSS (Rewards Card Benefits Page / Total Savings Summary) surface. Layout fixed; content configured via nested Amount/ Popcoin instance.",
+      "properties": [
+        { "name": "Amount/ Popcoin / Type", "type": "Variant", "default": "Amount", "options": ["Amount", "POPcoin - Unit"], "notes": "Nested: Amount = price/rupee amount; POPcoin - Unit = POPcoin value with icon. Only Type is configurable from within .RCBP TSS bento" }
+      ],
+      "variants": [],
+      "use_cases": [
+        { "context": "Pre-composed bento grid layout for the RCBP TSS surface", "variant": "", "config": "No configurable component properties on the parent; configure content via nested Amount/ Popcoin" }
+      ],
+      "rules": [
+        ".RCBP TSS bento is scoped to the RCBP TSS surface — do not repurpose for other screens.",
+        "The internal POPcoin - Unit properties (Size, Colour, POPcoin) are not configurable from within .RCBP TSS bento — only Type can be changed."
+      ],
+      "category": "organism"
+    },
+    {
+      "name": "Bento grid- 2",
+      "node_id": "19079:74706",
+      "description": "A two-cell bento grid for home screen or feature highlight surfaces. Internal cells controlled by swapping/editing the nested . new Bento grid cells.",
+      "properties": [],
+      "variants": [],
+      "use_cases": [
+        { "context": "Displaying a two-cell bento grid on home screen or feature highlight surfaces", "variant": "", "config": "No configurable component properties; control internal cells via nested . new Bento grid" }
+      ],
+      "rules": [
+        "Use Bento grid- 2 for two-tile layouts — do not manually stack individual cells."
+      ],
+      "category": "organism"
+    },
+    {
+      "name": "Bento Grid - 3",
+      "node_id": "19079:75250",
+      "description": "A three-cell bento grid for home screen or feature highlight surfaces. Internal cells controlled by swapping/editing the nested . new Bento grid cells.",
+      "properties": [],
+      "variants": [],
+      "use_cases": [
+        { "context": "Displaying a three-cell bento grid on home screen or feature highlight surfaces", "variant": "", "config": "No configurable component properties; control internal cells via nested . new Bento grid" }
+      ],
+      "rules": [
+        "Use Bento Grid - 3 for three-tile layouts — do not manually stack individual cells."
+      ],
+      "category": "organism"
+    },
+    {
+      "name": "Bento grid -2 TSS",
+      "node_id": "23425:86773",
+      "description": "A two-cell bento grid in the TSS (Total Savings Summary) context.",
+      "properties": [],
+      "variants": [],
+      "use_cases": [
+        { "context": "Displaying a two-cell bento grid in the TSS (Total Savings Summary) context", "variant": "", "config": "No configurable component properties" }
+      ],
+      "rules": [],
+      "category": "organism"
+    },
+    {
+      "name": "Amount/ Popcoin",
+      "node_id": "23425:84609",
+      "description": "Local display unit scoped to the Bento Grid system, used inside bento cells to show either a price amount or a POPcoin value. Not placed outside bento grid contexts.",
+      "properties": [
+        { "name": "Type", "type": "Variant", "default": "Amount", "options": ["POPcoin - Unit", "Amount"], "notes": "Whether to show a price amount or a POPcoin unit" }
+      ],
+      "variants": [
+        { "name": "Amount", "semantic_use": "Displays a price/rupee amount", "example": "" },
+        { "name": "POPcoin - Unit", "semantic_use": "Displays a POPcoin value with icon", "example": "" }
+      ],
+      "use_cases": [
+        { "context": "Display unit inside bento cells showing a price amount or POPcoin value", "variant": "", "config": "" }
+      ],
+      "rules": [
+        "Amount/ Popcoin is a local subcomponent — always use it within a bento cell, never standalone."
+      ],
+      "category": "organism"
+    },
+    {
+      "name": "Leading item",
+      "node_id": "17403:2480",
+      "description": "The left-side leading element in an RCBP card row — either a card illustration or a custom slot (COMPONENT_SET).",
+      "properties": [
+        { "name": "Leading item", "type": "Variant", "default": "Card illustration", "options": ["Card illustration", "Slot"], "notes": "Type of leading element" },
+        { "name": "Illustration", "type": "Instance Swap", "default": "17375:77920", "options": ["be002ae5c394d7b6ff6301aa841fc22eb7c16059", "73c25f3014eefc3919947e3164de26f88ab0bdea", "7876ddd4c635805e257bac3daffdcf402b4c15d8", "e3ee0200828745c0226ca27cd7d0311855628db1", "5aa4113114fd0f62668a98468093c120e46a8979"], "notes": "Swappable card illustration; preferred component keys listed" }
+      ],
+      "variants": [
+        { "name": "Card illustration", "semantic_use": "Leading element is a card illustration (default)", "example": "" },
+        { "name": "Slot", "semantic_use": "Leading element is a custom slot", "example": "" }
+      ],
+      "use_cases": [
+        { "context": "Providing the left-side leading element in an RCBP card row", "variant": "", "config": "" }
+      ],
+      "rules": [
+        "Leading item=Card illustration is the default — use Slot only when a custom leading element is required."
+      ],
+      "category": "organism"
+    },
+    {
+      "name": "Local Card",
+      "node_id": "17478:61551",
+      "description": "The local (non-POPCard) card state inside the RCBP card system — used for users who do not have a POPCard. Embeds the Leading item component.",
+      "properties": [
+        { "name": "Heading", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the heading text" },
+        { "name": "Subtext", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the subtext" },
+        { "name": "Heading-T", "type": "Text", "default": "Non POPCard user", "options": ["Any string"], "notes": "Heading copy" },
+        { "name": "Subtext-T", "type": "Text", "default": "Placeholder text vfsdhvfhvhsvhdshdshvdhsv", "options": ["Any string"], "notes": "Subtext copy" },
+        { "name": "R-overflow heading", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right overflow gradient on heading" },
+        { "name": "R-overflow Subtext", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right overflow gradient on subtext" },
+        { "name": "Leading item / Leading item", "type": "Variant", "default": "Card illustration", "options": ["Card illustration", "Slot"], "notes": "Nested: switches the left leading element between a card illustration and an empty slot" },
+        { "name": "Leading item / Illustration", "type": "Instance Swap", "default": "", "options": ["See preferred values in Figma"], "notes": "Nested: swappable card illustration asset — only applicable when Leading item = Card illustration" }
+      ],
+      "variants": [],
+      "use_cases": [
+        { "context": "Displaying the local (non-POPCard) card state for users who do not have a POPCard", "variant": "", "config": "" }
+      ],
+      "rules": [
+        "Always replace Heading-T and Subtext-T with real copy — the defaults are placeholder text.",
+        "Nested Illustration is only relevant when Leading item = Card illustration. When Leading item = Slot, the illustration is hidden and the slot is available for custom content."
+      ],
+      "category": "organism"
+    },
+    {
+      "name": "Card item",
+      "node_id": "17471:127305",
+      "description": "An individual card benefit item row within the RCBP card set (COMPONENT_SET). Supports up to 3 item variants.",
+      "properties": [
+        { "name": "Value", "type": "Variant", "default": "1", "options": ["1", "2", "3"], "notes": "Which item variant to display" }
+      ],
+      "variants": [
+        { "name": "1", "semantic_use": "Item variant 1", "example": "" },
+        { "name": "2", "semantic_use": "Item variant 2", "example": "" },
+        { "name": "3", "semantic_use": "Item variant 3", "example": "" }
+      ],
+      "use_cases": [
+        { "context": "Displaying an individual card benefit item row within the RCBP card set", "variant": "", "config": "" }
+      ],
+      "rules": [],
+      "category": "organism"
+    },
+    {
+      "name": "Card set",
+      "node_id": "17471:63838",
+      "description": "A full RCBP card with a swappable background image. Assembles Card item rows over a background asset.",
+      "properties": [
+        { "name": "Background", "type": "Instance Swap", "default": "17375:75696", "options": ["dfbe90b30a12a217acbc498be1df5809abb705aa", "f9dc5c39371dc57d84218cbcb0a723585d27f2fa"], "notes": "Swappable background image component; preferred keys listed" }
+      ],
+      "variants": [],
+      "use_cases": [
+        { "context": "Composing a full RCBP card with a swappable background image", "variant": "", "config": "" }
+      ],
+      "rules": [
+        "Use Card set for composed card layouts — do not manually layer individual Card item rows over a background outside of Card set."
+      ],
+      "category": "organism"
+    },
+    {
+      "name": "RCBP/POP Coin issuance",
+      "node_id": "17478:130082",
+      "description": "The full RCBP card for POP Coin issuance contexts — includes the Background/POP Coin issuance asset.",
+      "properties": [
+        { "name": "Background", "type": "Instance Swap", "default": "17556:37867", "options": [], "notes": "Background image — defaults to POP Coin issuance background" }
+      ],
+      "variants": [],
+      "use_cases": [
+        { "context": "Displaying the full RCBP card for POP Coin issuance contexts", "variant": "", "config": "" }
+      ],
+      "rules": [
+        "Swap the Background instance to Background/POP Coin issuance for issuance flows."
+      ],
+      "category": "organism"
+    },
+    {
+      "name": "RCBP/POPCard",
+      "node_id": "17478:129144",
+      "description": "The full RCBP card for POPCard users.",
+      "properties": [
+        { "name": "Background", "type": "Instance Swap", "default": "17574:26042", "options": ["79e41004c55fc0562287dd7e24cae5a165436c43", "e54e3c820edc2a38ae9ff99dba19f1f7a0d497e6"], "notes": "Background image — defaults to POPCard background; preferred keys listed" }
+      ],
+      "variants": [],
+      "use_cases": [
+        { "context": "Displaying the full RCBP card for POPCard users", "variant": "", "config": "" }
+      ],
+      "rules": [
+        "Swap the Background instance to Background/POPCard for POPCard users."
+      ],
+      "category": "organism"
+    },
+    {
+      "name": "Background/POP Coin issuance",
+      "node_id": "17556:37867",
+      "description": "Local image-fill asset component used as a swappable background inside RCBP card compositions — for the POP Coin issuance card. No configurable properties.",
+      "properties": [],
+      "variants": [],
+      "use_cases": [
+        { "context": "Background for POP Coin issuance card", "variant": "", "config": "" }
+      ],
+      "rules": [
+        "Local asset component scoped to the RCBP Card system — do not use outside RCBP card contexts."
+      ],
+      "category": "organism"
+    },
+    {
+      "name": "Background/NONpopcard",
+      "node_id": "17556:37866",
+      "description": "Local image-fill asset component used as a swappable background inside RCBP card compositions — for non-POPCard users. No configurable properties.",
+      "properties": [],
+      "variants": [],
+      "use_cases": [
+        { "context": "Background for non-POPCard users", "variant": "", "config": "" }
+      ],
+      "rules": [
+        "Local asset component scoped to the RCBP Card system — do not use outside RCBP card contexts."
+      ],
+      "category": "organism"
+    },
+    {
+      "name": "Background/POPCard",
+      "node_id": "17574:26042",
+      "description": "Local image-fill asset component used as a swappable background inside RCBP card compositions — for POPCard users. No configurable properties.",
+      "properties": [],
+      "variants": [],
+      "use_cases": [
+        { "context": "Background for POPCard users", "variant": "", "config": "" }
+      ],
+      "rules": [
+        "Local asset component scoped to the RCBP Card system — do not use outside RCBP card contexts."
+      ],
+      "category": "organism"
+    }
+  ]
+}

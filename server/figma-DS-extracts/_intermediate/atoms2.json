@@ -1,0 +1,591 @@
+{
+  "components": [
+    {
+      "name": "Horizontal Divider",
+      "node_id": "",
+      "description": "A structural separator drawn as a horizontal line used to create visual breaks between content areas, list items, and sections. Stretches to fill its container width with no height footprint.",
+      "properties": [
+        {
+          "name": "Type",
+          "type": "Variant",
+          "default": "Continuous",
+          "options": ["Continuous", "Dashed", "Stylised"],
+          "notes": "Continuous = solid unbroken line; Dashed = 6px dash / 6px gap; Stylised = linear gradient fade."
+        },
+        {
+          "name": "Colour",
+          "type": "Variant",
+          "default": "Primary",
+          "options": ["Primary", "Secondary", "Tertiary", "Blured", "Mixed"],
+          "notes": "Primary=Border/Primary (#262626); Secondary=Border/Secondary (#333333); Tertiary=Border/Tertiary (#4D4D4D); Blured=Border/Primary-30% (#1F1F1F at 30%, adds background blur); Mixed=not tokenised, uses Surface-Secondary-Gradient/Small paint style."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Type=Continuous, Colour=Primary",
+          "semantic_use": "Strongest — high-contrast separators on dark surfaces",
+          "example": "Border/Primary -> Greys/Grey-800 -> #262626, 100% opacity, 0.5px"
+        },
+        {
+          "name": "Type=Continuous, Colour=Secondary",
+          "semantic_use": "Standard — default for most list rows and section breaks",
+          "example": "Border/Secondary -> Greys/Grey-700 -> #333333, 100% opacity, 0.5px"
+        },
+        {
+          "name": "Type=Continuous, Colour=Tertiary",
+          "semantic_use": "Subtle — light-touch separation, nested content",
+          "example": "Border/Tertiary -> Greys/Grey-600 -> #4D4D4D, 100% opacity, 0.5px"
+        },
+        {
+          "name": "Type=Dashed, Colour=Secondary",
+          "semantic_use": "Optional/inactive zones, form field separators, boundary states",
+          "example": "Border/Secondary -> #333333, 100% opacity, 0.5px, 6px dash / 6px gap"
+        },
+        {
+          "name": "Type=Dashed, Colour=Tertiary",
+          "semantic_use": "Optional/inactive zones, form field separators, boundary states",
+          "example": "Border/Tertiary -> #4D4D4D, 100% opacity, 0.5px, 6px dash / 6px gap"
+        },
+        {
+          "name": "Type=Continuous, Colour=Blured",
+          "semantic_use": "Translucent / glass / frosted surfaces only",
+          "example": "Border/Primary-30% -> Greys/Grey-900 -> #1F1F1F at 30% opacity, 1px, background blur (frosted surface)"
+        },
+        {
+          "name": "Type=Stylised, Colour=Mixed",
+          "semantic_use": "Editorial sections, marketing surfaces — never functional UI",
+          "example": "Surface-Secondary-Gradient/Small paint style, linear gradient #1F1F1F -> #262626, 0.5px; reference the paint style by name, not constructed from tokens"
+        }
+      ],
+      "use_cases": [],
+      "rules": [
+        "Prefer spacing tokens over dividers wherever whitespace alone creates sufficient separation.",
+        "Always default to Continuous / Secondary for list rows and section breaks unless context requires otherwise.",
+        "Use Dashed only to signal optional, inactive, or boundary states — not as decoration.",
+        "Use Blured only on translucent or glass-effect surfaces. Do not use on solid backgrounds.",
+        "Use Stylised only on editorial or marketing surfaces — never in functional UI such as lists, forms, or navigation.",
+        "Stroke weight is 0.5px (Blured variant is 1px); width 393px stretches to fill container; height 0px (line only)."
+      ],
+      "category": "atom"
+    },
+    {
+      "name": "Vertical Divider",
+      "node_id": "",
+      "description": "A structural separator drawn as a vertical line for inline separation between sibling elements in a horizontal row. No width footprint; container height 24px.",
+      "properties": [
+        {
+          "name": "Type",
+          "type": "Variant",
+          "default": "Padded",
+          "options": ["Padded", "Full height"],
+          "notes": "Padded = 16px line in 24px container with 4px breathing room top and bottom; Full height = 24px line fills the full container height flush."
+        },
+        {
+          "name": "Colour",
+          "type": "Variant",
+          "default": "Tertiary",
+          "options": ["Tertiary", "Secondary"],
+          "notes": "Tertiary=Border/Tertiary (#4D4D4D), default subtle inline separation; Secondary=Border/Secondary (#333333), stronger higher-contrast separator."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Type=Padded, Colour=Tertiary",
+          "semantic_use": "Default — subtle inline separation in list rows and action groups",
+          "example": "Border/Tertiary -> #4D4D4D, line 16px, container 24px, 4px top & bottom padding"
+        },
+        {
+          "name": "Type=Padded, Colour=Secondary",
+          "semantic_use": "Stronger inline separator — higher contrast",
+          "example": "Border/Secondary -> #333333, line 16px, container 24px, 4px top & bottom padding"
+        },
+        {
+          "name": "Type=Full height, Colour=Tertiary",
+          "semantic_use": "Between equal-height blocks, action rows, tab bar items",
+          "example": "Border/Tertiary -> #4D4D4D, line 24px, container 24px, no padding"
+        },
+        {
+          "name": "Type=Full height, Colour=Secondary",
+          "semantic_use": "Between equal-height blocks, action rows, tab bar items",
+          "example": "Border/Secondary -> #333333, line 24px, container 24px, no padding"
+        }
+      ],
+      "use_cases": [
+        {
+          "context": "Between chips, tags, icon-label pairs, inline items needing visual space",
+          "variant": "Padded",
+          "config": "Type=Padded"
+        },
+        {
+          "context": "Between equal-height blocks, action rows, tab bar items",
+          "variant": "Full height",
+          "config": "Type=Full height"
+        }
+      ],
+      "rules": [
+        "Vertical dividers are for inline separation only — between sibling elements in a horizontal row.",
+        "Do not use vertical dividers to separate vertically stacked content.",
+        "Use Padded between items that need visual breathing room.",
+        "Use Full height only when adjacent items share the same height and a flush line is intentional.",
+        "Stroke weight is 0.5px; width 0px (line only); container height 24px."
+      ],
+      "category": "atom"
+    },
+    {
+      "name": "Base Radio",
+      "node_id": "",
+      "description": "The base radio control atom. Used inside a Slot where the parent component controls layout and label.",
+      "properties": [
+        {
+          "name": "State",
+          "type": "Variant",
+          "default": "Off",
+          "options": ["Off", "On"],
+          "notes": ""
+        },
+        {
+          "name": "Promoted",
+          "type": "Variant",
+          "default": "False",
+          "options": ["False", "True"],
+          "notes": ""
+        },
+        {
+          "name": "Is disabled",
+          "type": "Variant",
+          "default": "False",
+          "options": ["False", "True"],
+          "notes": ""
+        }
+      ],
+      "variants": [
+        {"name": "Off / Promoted=False / Is disabled=False", "semantic_use": "Default unselected", "example": ""},
+        {"name": "On / Promoted=False / Is disabled=False", "semantic_use": "Selected", "example": ""},
+        {"name": "Off / Promoted=False / Is disabled=True", "semantic_use": "Unselected + disabled", "example": ""},
+        {"name": "On / Promoted=False / Is disabled=True", "semantic_use": "Selected + disabled", "example": ""},
+        {"name": "Off / Promoted=True / Is disabled=False", "semantic_use": "Promoted unselected", "example": ""},
+        {"name": "On / Promoted=True / Is disabled=False", "semantic_use": "Promoted selected", "example": ""}
+      ],
+      "use_cases": [],
+      "rules": [
+        "Use Base only when the control sits inside a Slot — the slot's parent component provides the label and layout.",
+        "Indeterminate state is never valid on Radio.",
+        "Never mix Radio and Checkbox in the same group."
+      ],
+      "category": "atom"
+    },
+    {
+      "name": "Base Checkbox",
+      "node_id": "",
+      "description": "The base checkbox control atom. Used inside a Slot where the parent component controls layout and label.",
+      "properties": [
+        {
+          "name": "State",
+          "type": "Variant",
+          "default": "Off",
+          "options": ["Off", "On"],
+          "notes": ""
+        },
+        {
+          "name": "Promoted",
+          "type": "Variant",
+          "default": "False",
+          "options": ["False", "True"],
+          "notes": "Applies a highlighted ring or emphasis treatment to draw attention to a specific option (e.g. recommended plan, pre-selected preference, featured option). Disabled always overrides promoted styling."
+        },
+        {
+          "name": "Is disabled",
+          "type": "Variant",
+          "default": "False",
+          "options": ["False", "True"],
+          "notes": ""
+        },
+        {
+          "name": "Indeterminate",
+          "type": "Variant",
+          "default": "False",
+          "options": ["False", "True"],
+          "notes": "Partial selection state."
+        }
+      ],
+      "variants": [
+        {"name": "Off / Indeterminate=False / Promoted=False / Is disabled=False", "semantic_use": "Default unselected", "example": ""},
+        {"name": "On / Indeterminate=False / Promoted=False / Is disabled=False", "semantic_use": "Checked", "example": ""},
+        {"name": "Off / Indeterminate=False / Promoted=False / Is disabled=True", "semantic_use": "Unselected + disabled", "example": ""},
+        {"name": "On / Indeterminate=False / Promoted=False / Is disabled=True", "semantic_use": "Checked + disabled", "example": ""},
+        {"name": "On / Indeterminate=True / Promoted=False / Is disabled=False", "semantic_use": "Partial / Indeterminate", "example": ""},
+        {"name": "On / Indeterminate=True / Promoted=False / Is disabled=True", "semantic_use": "Indeterminate + disabled", "example": ""},
+        {"name": "On / Indeterminate=True / Promoted=True / Is disabled=False", "semantic_use": "Indeterminate + promoted", "example": ""},
+        {"name": "On / Indeterminate=False / Promoted=True / Is disabled=False", "semantic_use": "Promoted Checked", "example": ""},
+        {"name": "Off / Indeterminate=False / Promoted=True / Is disabled=False", "semantic_use": "Promoted unselected", "example": ""},
+        {"name": "Promoted=True / Is disabled=True", "semantic_use": "Promoted + disabled — uses the same disabled visual as the default (non-promoted) disabled state", "example": ""}
+      ],
+      "use_cases": [],
+      "rules": [
+        "Use Base only when the control sits inside a Slot — the slot's parent component provides the label and layout.",
+        "There is no separate disabled style for the Promoted variant; disabled always overrides promoted styling.",
+        "Indeterminate state is valid on Checkbox.",
+        "Never mix Radio and Checkbox in the same group."
+      ],
+      "category": "atom"
+    },
+    {
+      "name": "Radio with Text",
+      "node_id": "",
+      "description": "A single standalone labelled radio control (not inside a list). Combines a base radio with title and body text and optional leading/trailing slots.",
+      "properties": [
+        {"name": "Size", "type": "Variant", "default": "Small", "options": ["Small", "Med"], "notes": "Small = dense lists, compact forms; Med = standard forms, settings."},
+        {"name": "State", "type": "Variant", "default": "Off", "options": ["Off", "On"], "notes": ""},
+        {"name": "Promoted", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": ""},
+        {"name": "Is disabled", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": ""},
+        {"name": "Align", "type": "Variant", "default": "Left", "options": ["Left", "Right"], "notes": "Left = radio on left, label on right (default); Right = label on left, radio on right (right-aligned selection rows)."},
+        {"name": "Title", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Toggles the title text line on/off."},
+        {"name": "Body", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Toggles the body/description text line on/off."},
+        {"name": "L-Slot", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Toggles the leading (left) slot on/off. Enable to reveal a slot placeholder; place a component inside (Avatar Brand for bank/app logos, Avatar People for contacts, Icon for category indicators)."},
+        {"name": "R-Slot", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Toggles the trailing (right) slot on/off. Enable for trailing metadata: Badge for counts/status, Icon for disclosure, inline text for pricing/metadata."},
+        {"name": "Title text", "type": "Text", "default": "", "options": [], "notes": "Content only — set per design context, not a fixed value."},
+        {"name": "Body text", "type": "Text", "default": "", "options": [], "notes": "Content only — set per design context, not a fixed value."}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "Select a bank account", "variant": "L-Slot Avatar", "config": "L-Slot=True, Avatar Type=Brand, Size=36"},
+        {"context": "Select a UPI app", "variant": "L-Slot Avatar", "config": "L-Slot=True, Avatar Type=Brand, Size=28"},
+        {"context": "Select a contact", "variant": "L-Slot Avatar", "config": "L-Slot=True, Avatar Type=People - Image, Size=36"},
+        {"context": "Select a payment method type", "variant": "L-Slot Icon", "config": "L-Slot=True, Icon 20px wrapper, outline icon"}
+      ],
+      "rules": [
+        "Use 'with Text' only for a single isolated option (not inside a list).",
+        "Both L-Slot and R-Slot are off by default; enable and place the correct component inside based on design intent.",
+        "Title text / Body text are content properties — populate from design context, no single correct default."
+      ],
+      "category": "atom"
+    },
+    {
+      "name": "Checkbox with Text",
+      "node_id": "",
+      "description": "A single standalone labelled checkbox control (not inside a list). Component name in Figma is 'Checkox with text' (typo intentional, matches Figma).",
+      "properties": [
+        {"name": "Size", "type": "Variant", "default": "Small", "options": ["Small", "Med", "Large"], "notes": "Small = dense lists, compact forms; Med = standard forms, settings, filters; Large = prominent opt-ins, permissions, terms."},
+        {"name": "State", "type": "Variant", "default": "Off", "options": ["Off", "On"], "notes": ""},
+        {"name": "Promoted", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": ""},
+        {"name": "Is disabled", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": ""},
+        {"name": "Align", "type": "Variant", "default": "Left", "options": ["Left", "Right"], "notes": ""},
+        {"name": "Title", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Toggles the title text line on/off."},
+        {"name": "Body", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Toggles the body/description text line on/off."},
+        {"name": "L-Slot", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Toggles the leading (left) slot on/off. Place Avatar (Brand/People), Icon, or thumbnail image inside."},
+        {"name": "R-Slot", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Toggles the trailing (right) slot on/off. Place Badge, pricing text, or Icon for info/disclosure inside."},
+        {"name": "Title text", "type": "Text", "default": "", "options": [], "notes": "Content only — set per design context."},
+        {"name": "Body text", "type": "Text", "default": "", "options": [], "notes": "Content only — set per design context."}
+      ],
+      "variants": [],
+      "use_cases": [
+        {"context": "Select a subscription plan with logo", "variant": "L-Slot Avatar", "config": "L-Slot=True, Avatar Type=Brand, Size=36"},
+        {"context": "Select a product category", "variant": "L-Slot Icon", "config": "L-Slot=True, Icon 20px wrapper, outline icon"},
+        {"context": "Consent with partner brand", "variant": "L-Slot Avatar", "config": "L-Slot=True, Avatar Type=Brand, Size=28"}
+      ],
+      "rules": [
+        "Use 'with Text' only for a single isolated option such as a single 'I agree' checkbox.",
+        "Both slots are off by default; enable and place the correct component inside based on design intent.",
+        "Title text / Body text are content properties — populate from design context, not from a fixed default."
+      ],
+      "category": "atom"
+    },
+    {
+      "name": "Radio with Text (Stack)",
+      "node_id": "",
+      "description": "A group of radio options displayed in a vertical list. Default for all final screen designs. Each stack item is a 'Radio with text' instance separated by a built-in Horizontal divider.",
+      "properties": [
+        {"name": "Count", "type": "Variant", "default": "", "options": ["1", "2", "3", "4", "5", "Plenty"], "notes": "Plenty renders a scrollable overflow state — use when the count is dynamic or unknown at design time."},
+        {"name": "Size", "type": "Variant", "default": "", "options": ["Small", "Med"], "notes": ""}
+      ],
+      "variants": [],
+      "use_cases": [],
+      "rules": [
+        "Use the Stack in all final screen designs.",
+        "Each stack item is a Radio with text instance separated by a Horizontal divider — the divider is built into the stack, do not add dividers manually.",
+        "Always use Stack for lists of 1 or more options in final screens."
+      ],
+      "category": "atom"
+    },
+    {
+      "name": "Checkbox with Text (Stack)",
+      "node_id": "",
+      "description": "A group of checkbox options displayed in a vertical list. Default for all final screen designs. Each stack item is a 'Checkox with text' instance separated by a built-in Horizontal divider.",
+      "properties": [
+        {"name": "Count", "type": "Variant", "default": "", "options": ["1", "2", "3", "4", "5", "Plenty"], "notes": "Plenty renders a scrollable overflow state — use when the count is dynamic or unknown at design time."},
+        {"name": "Size", "type": "Variant", "default": "", "options": ["Small", "Med", "Large"], "notes": ""}
+      ],
+      "variants": [],
+      "use_cases": [],
+      "rules": [
+        "Use the Stack in all final screen designs.",
+        "Each stack item is a Checkox with text instance separated by a Horizontal divider — the divider is built into the stack, do not add dividers manually.",
+        "Always use Stack for lists of 1 or more options in final screens."
+      ],
+      "category": "atom"
+    },
+    {
+      "name": "Toggle",
+      "node_id": "",
+      "description": "A standalone base atom for switching a single setting or preference on or off — an immediate binary action with no confirmation step. There is no Toggle with Text or Toggle Stack variant; place inside a parent layout component when a label is needed.",
+      "properties": [
+        {"name": "Size", "type": "Variant", "default": "Large", "options": ["Large", "Med"], "notes": "Large = default, settings screens, preference rows; Med = dense rows, inline toggles with limited vertical space."},
+        {"name": "State", "type": "Variant", "default": "Off", "options": ["Off", "On"], "notes": "Off = inactive, On = active."},
+        {"name": "Promoted", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Highlights toggle to grab user attention (adds a highlighted ring). Disabled always overrides promoted."},
+        {"name": "Is disabled", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": ""},
+        {"name": "Indeterminate", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Loading or unknown state — neither On nor Off. Resolve to definitive On/Off once data is available."}
+      ],
+      "variants": [
+        {"name": "Off / Indeterminate=False / Promoted=False / Is disabled=False", "semantic_use": "Default — inactive", "example": ""},
+        {"name": "On / Indeterminate=False / Promoted=False / Is disabled=False", "semantic_use": "Active", "example": ""},
+        {"name": "Off / Indeterminate=False / Promoted=False / Is disabled=True", "semantic_use": "Inactive + disabled", "example": ""},
+        {"name": "On / Indeterminate=False / Promoted=False / Is disabled=True", "semantic_use": "Active + disabled", "example": ""},
+        {"name": "Off / Indeterminate=False / Promoted=True / Is disabled=False", "semantic_use": "Promoted inactive — highlighted to grab attention", "example": ""},
+        {"name": "On / Indeterminate=False / Promoted=True / Is disabled=False", "semantic_use": "Promoted active", "example": ""},
+        {"name": "On / Indeterminate=True / Promoted=False / Is disabled=False", "semantic_use": "Indeterminate — state is loading or unknown", "example": ""},
+        {"name": "On / Indeterminate=True / Promoted=False / Is disabled=True", "semantic_use": "Indeterminate + disabled", "example": ""},
+        {"name": "On / Indeterminate=True / Promoted=True / Is disabled=True", "semantic_use": "Promoted + disabled — falls back to the same disabled visual as non-promoted disabled state", "example": ""}
+      ],
+      "use_cases": [
+        {"context": "Immediate on/off setting (e.g. enable notifications)", "variant": "Toggle", "config": ""},
+        {"context": "Live preference that takes effect instantly", "variant": "Toggle", "config": ""}
+      ],
+      "rules": [
+        "Toggle has no Stack or with Text variant — always place it inside a parent layout component when a label is needed.",
+        "Promoted=True adds a highlighted ring; when combined with Is disabled=True, promoted styling is suppressed (disabled always overrides promoted).",
+        "Indeterminate is used during loading or unknown state; always resolve to a definitive On or Off once data is available.",
+        "Use Toggle for immediate/live settings; use Checkbox for selection within a form submitted later or single consent/agreement.",
+        "Indeterminate state is valid on both Checkbox and Toggle — never on Radio.",
+        "Disabled states are visual only — ensure the disabled logic is also enforced in code."
+      ],
+      "category": "atom"
+    },
+    {
+      "name": "Rating Star",
+      "node_id": "",
+      "description": "Base atom for a single rating star. Never used directly in screens — it is only the building block for 'rating - star group'.",
+      "properties": [
+        {"name": "state", "type": "Variant", "default": "", "options": ["full", "half", "empty"], "notes": "full = fully filled, contributes 1.0; half = half-filled, contributes 0.5; empty = unfilled, contributes 0."}
+      ],
+      "variants": [
+        {"name": "full", "semantic_use": "Fully filled star — contributes 1.0 to score", "example": ""},
+        {"name": "half", "semantic_use": "Half-filled star — contributes 0.5 to score", "example": ""},
+        {"name": "empty", "semantic_use": "Unfilled star — contributes 0 to score", "example": ""}
+      ],
+      "use_cases": [],
+      "rules": [
+        "Never place individual rating - star atoms directly in a screen — always use rating - star group."
+      ],
+      "category": "atom"
+    },
+    {
+      "name": "Rating Star Group",
+      "node_id": "",
+      "description": "A composed star display built from five 'rating - star' atoms. The rating prop drives the combination of full/half/empty stars (0–5 in 0.5 increments). Used for star-based rating scores on product cards, reviews, and listing rows.",
+      "properties": [
+        {"name": "rating", "type": "Variant", "default": "", "options": ["0", "0.5", "1", "1.5", "2", "2.5", "3", "3.5", "4", "4.5", "5"], "notes": "All 11 values (0–5 in 0.5 steps) are pre-built as variants — always use the variant, never manually arrange individual stars."}
+      ],
+      "variants": [
+        {"name": "rating=5", "semantic_use": "", "example": "★ ★ ★ ★ ★"},
+        {"name": "rating=4.5", "semantic_use": "", "example": "★ ★ ★ ★ ½"},
+        {"name": "rating=4", "semantic_use": "", "example": "★ ★ ★ ★ ☆"},
+        {"name": "rating=3.5", "semantic_use": "", "example": "★ ★ ★ ½ ☆"},
+        {"name": "rating=3", "semantic_use": "", "example": "★ ★ ★ ☆ ☆"},
+        {"name": "rating=2.5", "semantic_use": "", "example": "★ ★ ½ ☆ ☆"},
+        {"name": "rating=2", "semantic_use": "", "example": "★ ★ ☆ ☆ ☆"},
+        {"name": "rating=1.5", "semantic_use": "", "example": "★ ½ ☆ ☆ ☆"},
+        {"name": "rating=1", "semantic_use": "", "example": "★ ☆ ☆ ☆ ☆"},
+        {"name": "rating=0.5", "semantic_use": "", "example": "½ ☆ ☆ ☆ ☆"},
+        {"name": "rating=0", "semantic_use": "", "example": "☆ ☆ ☆ ☆ ☆"}
+      ],
+      "use_cases": [],
+      "rules": [
+        "Use rating - star group when the full star spread is needed for clarity (product detail pages, review sections).",
+        "Rating values are always a number between 0–5 in 0.5 increments — never render a 4.3 or 3.7.",
+        "Always use the variant, never manually arrange individual stars."
+      ],
+      "category": "atom"
+    },
+    {
+      "name": "Rating Badge",
+      "node_id": "",
+      "description": "A self-contained, independent component displaying a compact numeric rating score with its own built-in single star icon and score text. Not derived from rating - star or rating - star group. Used on product cards, thumbnails, and listing rows where a full star group doesn't fit.",
+      "properties": [
+        {"name": "Type", "type": "Variant", "default": "", "options": ["Translucent", "Green", "Grey", "Transparent"], "notes": "Translucent = semi-transparent dark over image/media; Green = success fill for high ratings (>= 4.0) on light surfaces; Grey = neutral fill for mid/unrated states; Transparent = no background for inline text/dense rows."}
+      ],
+      "variants": [
+        {"name": "Type=Translucent", "semantic_use": "Over image surfaces, media cards", "example": "Semi-transparent dark background"},
+        {"name": "Type=Green", "semantic_use": "High ratings (>= 4.0) on light surfaces", "example": "Success green fill"},
+        {"name": "Type=Grey", "semantic_use": "Mid or unrated states on light surfaces", "example": "Neutral grey fill"},
+        {"name": "Type=Transparent", "semantic_use": "Inline text contexts, dense data rows", "example": "No background"}
+      ],
+      "use_cases": [],
+      "rules": [
+        "Use Rating badge when horizontal space is constrained and only the score number is needed.",
+        "Rating Badge is self-contained with its own built-in single star icon and score text — do not use rating - star group to construct a Rating Badge."
+      ],
+      "category": "atom"
+    },
+    {
+      "name": "Autopay Merch",
+      "node_id": "17595:21186",
+      "description": "Renders a merchant brand image inside a standardised card. Each brand is a separate component variant in the 'New' frame. Contains a single Background Image rectangle filled with the brand artwork; there are no text layers inside. Figma component name is 'Autopay Merch componenet' (typo matches Figma).",
+      "properties": [
+        {"name": "Background Image", "type": "Image", "default": "", "options": [], "notes": "The brand artwork fills this rectangle. Map the Figma brand label to the corresponding code asset name; never use the Figma label directly as a file name (casing/spacing differ). Use the 'no-brand-icon' fallback when a brand is not in the list."}
+      ],
+      "variants": [],
+      "use_cases": [],
+      "rules": [
+        "Always map the Figma brand label to the corresponding code asset name; never use the Figma label directly as a file name.",
+        "Never recolour the brand image — render at full colour only.",
+        "Never overlay text directly on the brand image inside the component.",
+        "When a brand is not in the list, use the 'No brand icon' fallback variant.",
+        "The component does not contain a visible label — the merchant name is always rendered by the parent layout."
+      ],
+      "category": "atom"
+    },
+    {
+      "name": "Scrim",
+      "node_id": "13658:26423",
+      "description": "An overlay layer placed between content and backgrounds. This covers the 'Without Blur' section only — the flat/gradient scrim variants. Blur scrims are documented separately.",
+      "properties": [
+        {"name": "Type", "type": "Variant", "default": "Block", "options": ["Block", "Top", "Bottom", "Bottom sheet"], "notes": "Block = solid fill, full-surface overlay; Top = top->transparent fade down (nav/header overlays); Bottom = transparent->bottom fade up (CTAs above content, tab bar); Bottom sheet = transparent->bottom steep fade for drag handle area."},
+        {"name": "Opacity", "type": "Variant", "default": "100%", "options": ["100%", "70%", "1%"], "notes": "100% = #0D0D0D full, maximum blocking; 70% = #0D0D0D at 70%, standard modal/sheet overlay (most common); 1% = #0D0D0D at 1%, near-invisible tap-capture layer."},
+        {"name": "Use", "type": "Variant", "default": "True", "options": ["True", "False"], "notes": "Toggles scrim layer visibility. False hides the scrim while keeping the node in the layer structure — for states where the scrim conditionally appears. Design articulation only; in code, conditionally render or hide based on state."}
+      ],
+      "variants": [
+        {"name": "Block 70%", "semantic_use": "Standard modal overlay", "example": "Type=Block, Opacity=70%"},
+        {"name": "Top 100%", "semantic_use": "Header/nav fade", "example": "Type=Top, Opacity=100%"},
+        {"name": "Top 70%", "semantic_use": "Softer header fade", "example": "Type=Top, Opacity=70%"},
+        {"name": "Bottom 100%", "semantic_use": "CTA / tab bar strong fade", "example": "Type=Bottom, Opacity=100%"},
+        {"name": "Bottom 70%", "semantic_use": "CTA / tab bar standard fade", "example": "Type=Bottom, Opacity=70%"},
+        {"name": "Bottom sheet 70%", "semantic_use": "Bottom sheet drag overlay", "example": "Type=Bottom sheet, Opacity=70%"}
+      ],
+      "use_cases": [],
+      "rules": [
+        "Almost all scrims are embedded inside the component they belong to — rarely place a Scrim atom manually. Only place directly when building a custom overlay with no parent component encapsulating it.",
+        "Always place Scrim above the content it overlays and below any interactive UI (buttons, close icons).",
+        "Use Block for full-page overlays and modals.",
+        "Use Top or Bottom gradient variants for partial fades — never stretch a Block scrim and reduce opacity to simulate a gradient.",
+        "Use 1% opacity only when an invisible tap-capture layer is required — never for visible overlays.",
+        "Never apply additional colour fills or effects on top of the Scrim component.",
+        "The Use=False toggle is for design articulation only — in code, conditionally render or hide the scrim based on state."
+      ],
+      "category": "atom"
+    },
+    {
+      "name": "Avatar",
+      "node_id": "",
+      "description": "The main avatar circle representing people, brands, or system icons in a circular (or square for brand/icon/illustration) container. 72 total variants.",
+      "properties": [
+        {"name": "Type", "type": "Variant", "default": "", "options": ["People - Initials", "People - Image", "Brand", "Icon", "Illsutration"], "notes": "People - Initials = circular container with initials text (fallback when no image); People - Image = circular container with photo; Brand = square container with brand logo; Icon = square container with system icon; Illustration = square container with system illustration. (Illustration option spelled 'Illsutration' in Figma.)"},
+        {"name": "Fill (for 'Icon' only)", "type": "Variant", "default": "", "options": ["Not icon - People / Brand", "Primary - Highlighted", "Secondary - Highlighted", "Tertiary - Transparent", "Only icon", "Primary - 50%", "Not icon - Illustration"], "notes": "Only applies when Type=Icon. For People and Brand types value is always 'Not icon - People / Brand' and should not be changed. Primary - Highlighted = strong filled bg, high emphasis; Secondary - Highlighted = medium fill; Tertiary - Transparent = no background, low emphasis; Only icon = bare icon, no container fill."},
+        {"name": "Size", "type": "Variant", "default": "", "options": ["16", "28", "36", "56", "64", "130"], "notes": "16 = micro (inline mention, dense rows); 28 = small (compact lists, comment rows); 36 = medium (standard list rows, chat); 56 = large (profile headers, contact cards); 64 = XL (prominent profile surfaces); 130 = hero (full profile page, onboarding)."},
+        {"name": "Is disabled", "type": "Variant", "default": "", "options": ["False", "True"], "notes": ""}
+      ],
+      "variants": [
+        {"name": "Type=People - Initials", "semantic_use": "When no profile image is available", "example": "Circular container with initials text"},
+        {"name": "Type=People - Image", "semantic_use": "When a profile photo is available", "example": "Circular container with photo"},
+        {"name": "Type=Brand", "semantic_use": "Merchant, partner, or app icons", "example": "Square container with brand logo"},
+        {"name": "Type=Icon", "semantic_use": "Generic/system contexts, anonymous users", "example": "Square container with a system icon"},
+        {"name": "Type=Illustration", "semantic_use": "Generic/system contexts, offers", "example": "Square container with a system illustration"}
+      ],
+      "use_cases": [],
+      "rules": [
+        "Never manually scale an Avatar — always use the nearest available size variant.",
+        "Use People - Initials as the fallback when no image is available — never show an empty circle.",
+        "Use Brand type only for logos — never for people profiles.",
+        "Fill only applies when Type=Icon; for People and Brand types keep 'Not icon - People / Brand'."
+      ],
+      "category": "atom"
+    },
+    {
+      "name": "Dot",
+      "node_id": "",
+      "description": "A small presence or status indicator attached to an avatar.",
+      "properties": [
+        {"name": "Colour", "type": "Variant", "default": "", "options": ["Orange", "White", "Red", "Blue", "Green", "Yellow"], "notes": "Green = online/active; Orange = away/busy (brand); Red = do not disturb/alert; Blue = in a call/focused; Yellow = idle/pending; White = invert, for use on dark avatar rings."},
+        {"name": "Size", "type": "Variant", "default": "", "options": ["6", "8", "10"], "notes": "6px pairs with 16px/28px avatars; 8px pairs with 36px/56px; 10px pairs with 64px/130px."}
+      ],
+      "variants": [
+        {"name": "Colour=Green", "semantic_use": "Online / active", "example": ""},
+        {"name": "Colour=Orange", "semantic_use": "Away / busy (brand)", "example": ""},
+        {"name": "Colour=Red", "semantic_use": "Do not disturb / alert", "example": ""},
+        {"name": "Colour=Blue", "semantic_use": "In a call / focused", "example": ""},
+        {"name": "Colour=Yellow", "semantic_use": "Idle / pending", "example": ""},
+        {"name": "Colour=White", "semantic_use": "Invert — for use on dark avatar rings", "example": ""}
+      ],
+      "use_cases": [
+        {"context": "Paired with 16px or 28px avatar", "variant": "Size=6", "config": "Size=6"},
+        {"context": "Paired with 36px or 56px avatar", "variant": "Size=8", "config": "Size=8"},
+        {"context": "Paired with 64px or 130px avatar", "variant": "Size=10", "config": "Size=10"}
+      ],
+      "rules": [
+        "Always pair a Dot with the correct avatar size using the size guidance table.",
+        "Dot is positioned and sized by the design system — do not reposition it relative to the Avatar circle."
+      ],
+      "category": "atom"
+    },
+    {
+      "name": "Flag",
+      "node_id": "",
+      "description": "A coloured flag badge marking an avatar with a categorical flag (e.g. premium, verified, new).",
+      "properties": [
+        {"name": "Type", "type": "Variant", "default": "", "options": ["Orange", "White", "Green", "Red"], "notes": "Orange = brand/promoted; Green = verified/success; Red = alert/flagged; White = invert, light surface contexts."}
+      ],
+      "variants": [
+        {"name": "Type=Orange", "semantic_use": "Brand / promoted", "example": ""},
+        {"name": "Type=Green", "semantic_use": "Verified / success", "example": ""},
+        {"name": "Type=Red", "semantic_use": "Alert / flagged", "example": ""},
+        {"name": "Type=White", "semantic_use": "Invert — light surface contexts", "example": ""}
+      ],
+      "use_cases": [],
+      "rules": [
+        "Always pair a Flag with the correct avatar size using the size guidance tables.",
+        "Flag is positioned and sized by the design system — do not reposition it relative to the Avatar circle."
+      ],
+      "category": "atom"
+    },
+    {
+      "name": "Fave Icon",
+      "node_id": "",
+      "description": "A favourite/bookmark action attached to an avatar (e.g. saved contacts, wishlisted merchants).",
+      "properties": [
+        {"name": "Colour", "type": "Variant", "default": "", "options": ["Orange", "White", "Green", "Blue", "Black", "New fave", "fave icon"], "notes": ""},
+        {"name": "Size", "type": "Variant", "default": "", "options": ["20px", "24px", "28px", "32px"], "notes": "20px pairs with 36px avatar; 24px with 56px; 28px with 64px; 32px with 130px."},
+        {"name": "Is active", "type": "Variant", "default": "", "options": ["True", "False"], "notes": "True = item favourited (filled icon); False = not favourited (outline icon)."}
+      ],
+      "variants": [
+        {"name": "Is active=True", "semantic_use": "Item is favourited — filled icon", "example": ""},
+        {"name": "Is active=False", "semantic_use": "Item is not favourited — outline icon", "example": ""}
+      ],
+      "use_cases": [
+        {"context": "Paired with 36px avatar", "variant": "Size=20px", "config": "Size=20px"},
+        {"context": "Paired with 56px avatar", "variant": "Size=24px", "config": "Size=24px"},
+        {"context": "Paired with 64px avatar", "variant": "Size=28px", "config": "Size=28px"},
+        {"context": "Paired with 130px avatar", "variant": "Size=32px", "config": "Size=32px"}
+      ],
+      "rules": [
+        "Always pair a Fave icon with the correct avatar size using the size guidance table.",
+        "Fave icon is positioned and sized by the design system — do not reposition it relative to the Avatar circle."
+      ],
+      "category": "atom"
+    },
+    {
+      "name": "Avatar Stack",
+      "node_id": "",
+      "description": "An overlapping group of multiple avatars showing a compact group of people (participants, contributors, followers).",
+      "properties": [
+        {"name": "Count", "type": "Variant", "default": "", "options": ["1", "2", "3"], "notes": "Number of visible avatars in the overlap (max 3)."},
+        {"name": "Type", "type": "Variant", "default": "", "options": ["Logo", "Icon"], "notes": "Logo = brand/app logos; Icon = people/generic icons."},
+        {"name": "More", "type": "Variant", "default": "", "options": ["True", "False"], "notes": "When True, appends a '+N' overflow indicator after the visible avatars."}
+      ],
+      "variants": [],
+      "use_cases": [],
+      "rules": [
+        "Use Avatar stack with More=True when the total count exceeds 3 — do not add more than 3 visible avatars manually."
+      ],
+      "category": "atom"
+    }
+  ]
+}

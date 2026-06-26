@@ -1,0 +1,835 @@
+{
+  "components": [
+    {
+      "name": "Status bar",
+      "node_id": "32:2490",
+      "description": "Status bar showing native OS-rendered icons (signal, wifi, battery, time). The design system represents these as-is for documentation only and does not control their styling.",
+      "properties": [
+        { "name": "Theme", "type": "Variant", "default": "Transparent", "options": ["Transparent", "Light", "Dark"], "notes": "Controls icon and text colour — must match the surface behind the status bar" },
+        { "name": "System", "type": "Variant", "default": "iOS", "options": ["iOS", "android"], "notes": "Switches between iOS and Android icon sets and layout conventions" }
+      ],
+      "variants": [
+        { "name": "Transparent", "semantic_use": "Over images, gradients, or dark hero surfaces — uses onwhite icon assets", "example": "" },
+        { "name": "Light", "semantic_use": "Over light/white surfaces — uses onblack icon assets", "example": "" },
+        { "name": "Dark", "semantic_use": "Over dark solid surfaces — uses onwhite icon assets", "example": "" },
+        { "name": "iOS", "semantic_use": "iPhone / iOS — uses *-IOS onblack.svg (Light) or *-IOS onwhite.svg (Transparent / Dark)", "example": "" },
+        { "name": "android", "semantic_use": "Android devices — uses *-Android onblack.svg (Light) or *-Android onwhite.svg (Transparent / Dark)", "example": "" }
+      ],
+      "use_cases": [],
+      "rules": [
+        "Never place Status bar directly on a screen. Always use the Top bar organism — the Status bar is already embedded inside it.",
+        "The design system does not style or override status bar icons — use only the listed assets.",
+        "Always match the icon set to the surface theme — the wrong set on a dark or light background produces invisible or illegible icons.",
+        "Never replace status bar icons with custom artwork.",
+        "Time text in the status bar is always OS-rendered — never mock it with a static text layer in production.",
+        "Use viewBox on all SVG assets to ensure correct proportional scaling across device sizes."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "App bar",
+      "node_id": "14143:8449",
+      "description": "Sits at the very top of the screen content area (below the OS status bar). Provides the primary identity and top-level navigation context for the current app surface.",
+      "properties": [
+        { "name": "Type", "type": "Variant", "default": "Default", "options": ["Default", "Profile"], "notes": "Controls left-side treatment" },
+        { "name": "R-slot", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Reveals a right-side slot for custom components (e.g. search, CTA)" },
+        { "name": "R-icon", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Reveals a right-side icon action (e.g. notification bell, settings)" },
+        { "name": "Count (L-icon)", "type": "Variant", "default": "1", "options": ["1", "2", "3", "4"], "notes": "Nested Icon button property — number of icons shown in the left slot; icons stack horizontally. Icon size locked at 24px." },
+        { "name": "Count (R-icon)", "type": "Variant", "default": "1", "options": ["1", "2", "3", "4"], "notes": "Nested Icon button property — number of icons shown in the right slot; icons stack horizontally. Icon size locked at 24px." }
+      ],
+      "variants": [
+        { "name": "Default", "semantic_use": "Standard app bar with logo/wordmark on the left", "example": "All standard screens — home, listing, detail pages" },
+        { "name": "Profile", "semantic_use": "Left side shows a profile avatar instead of a logo", "example": "Screens where the signed-in user's identity is the primary context (e.g. account home, personal feed)" }
+      ],
+      "use_cases": [
+        { "context": "Right side needs a non-icon component (search bar, notification badge with avatar, CTA button)", "variant": "", "config": "R-slot=True" },
+        { "context": "Right side icon-only actions (settings gear, filter, notification bell, share)", "variant": "", "config": "R-icon=True, set Count to add up to 4 icons" }
+      ],
+      "rules": [
+        "The App bar is always full-width and pinned to the top of the content area — never scrolls with content.",
+        "Do not use the App bar inside a bottom sheet or modal — use Title bar instead.",
+        "Only one App bar per screen.",
+        "Do not add additional navigation items to the App bar — use Tab - Stack or Section header for in-page navigation.",
+        "Icon size in both L and R icon slots is always 24px — never override this.",
+        "Use Count on the nested Icon button to control how many icons appear; do not stack separate icon instances manually."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Title bar",
+      "node_id": "90:7176",
+      "description": "Provides a screen or section title, optional body text, and optional flanking icons/slots. Used inside modals, bottom sheets, sub-pages, and anywhere a full App bar is not appropriate. Single component with no variant axis.",
+      "properties": [
+        { "name": "Title text", "type": "Text", "default": "Title", "options": [], "notes": "The primary screen/section label" },
+        { "name": "Body text", "type": "Text", "default": "Body", "options": [], "notes": "Supporting subtitle or description" },
+        { "name": "Body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Toggles the body/subtitle text line" },
+        { "name": "L-slot", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Left slot — typically a back button or close icon" },
+        { "name": "L-icon - Title", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Icon left of the title text" },
+        { "name": "R-icon - Title", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Icon right of the title text" },
+        { "name": "R-icon - Body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Icon right of the body text" },
+        { "name": "L-icon - Body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Icon left of the body text" },
+        { "name": "R-slot", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right slot — for a CTA button, avatar, or action component" },
+        { "name": "R-overflow", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Gradient overflow fade on the right edge — used when title text is long" }
+      ],
+      "variants": [],
+      "use_cases": [
+        { "context": "Bottom sheet", "variant": "", "config": "L-slot=False, R-slot=False (handle drag area takes the place of navigation)" },
+        { "context": "Sub-page / pushed screen", "variant": "", "config": "L-slot=True (back arrow), optional R-slot for action" },
+        { "context": "Modal", "variant": "", "config": "L-slot=True (close icon), Title text set to modal name" },
+        { "context": "Section with sub-label", "variant": "", "config": "Body=True with Body text set to context info" }
+      ],
+      "rules": [
+        "Never place Title bar directly on any screen, layout, modal, or bottom sheet. Always use the Top bar organism — the Title bar is already embedded inside it.",
+        "Do not use Title bar as a section header inside a page or list — use Section header instead.",
+        "Do not use Title bar to add a heading or title to a bottom sheet or modal — those surfaces have their own header patterns; place Top bar only at the top of a full screen.",
+        "Do not use Title bar as an in-page title or content heading — it is a navigation component, not a typographic element.",
+        "Always set Title text — never leave the default 'Title' placeholder in production.",
+        "Set Body=True only when a subtitle genuinely adds context; do not use it for decorative purposes.",
+        "R-overflow=True is for design articulation only — ensure truncation is handled in code via text-overflow: ellipsis.",
+        "L-slot and R-slot accept any component — use Icon (atom) or Button (molecule) only."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Section row item",
+      "node_id": "21922:87422",
+      "description": "Individual rows used inside a section or list containing a left label, an optional right label, and a separator. Represents an actionable or informational pairing between two pieces of data (label and value, category and count, setting name and state).",
+      "properties": [
+        { "name": "Size", "type": "Variant", "default": "Medium", "options": ["Medium", "Small", "Large"], "notes": "Controls row height and text size" },
+        { "name": "Style", "type": "Variant", "default": "Primary", "options": ["Primary", "Tertiary"], "notes": "Controls visual weight of the row" },
+        { "name": "Separator", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows/hides the dot (·) separator between the L label and R label" },
+        { "name": "R Label", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Toggles the right-side label" },
+        { "name": "L - Label", "type": "Text", "default": "Label", "options": [], "notes": "Left-side label — the key / category" },
+        { "name": "R - Label", "type": "Text", "default": "Label", "options": [], "notes": "Right-side label — the value / action" }
+      ],
+      "variants": [
+        { "name": "Small", "semantic_use": "Dense data rows, compact settings lists", "example": "" },
+        { "name": "Medium", "semantic_use": "Default — standard list rows, settings", "example": "" },
+        { "name": "Large", "semantic_use": "Prominent actionable rows, touch-target-critical contexts", "example": "" },
+        { "name": "Primary", "semantic_use": "Full visual weight — stronger text and border treatment; default rows, primary content areas", "example": "" },
+        { "name": "Tertiary", "semantic_use": "Lighter visual weight — subdued text and border; secondary info rows, supplementary content", "example": "" }
+      ],
+      "use_cases": [
+        { "context": "Settings row", "variant": "", "config": "L - Label='Notifications', R - Label='On', Style=Primary, Separator=True" },
+        { "context": "Payment detail", "variant": "", "config": "L - Label='Amount', R - Label='₹1,200', Style=Primary, R Label=True" },
+        { "context": "Profile info", "variant": "", "config": "L - Label='PAN', R - Label='ABCDE1234F', Size=Medium" },
+        { "context": "Category filter", "variant": "", "config": "L - Label='Electronics', R - Label='24', R Label=True for count" },
+        { "context": "Rows where labels need no separator", "variant": "", "config": "Separator=False — hide the dot when the two labels read as a single continuous value" }
+      ],
+      "rules": [
+        "Use Separator=False when the dot between the two labels would be visually confusing or redundant — e.g. when the L and R labels together form a single continuous value.",
+        "Use R Label=False only when the row is purely label-only and no value or action is needed.",
+        "L - Label and R - Label are content properties — always populate them with real content; never leave 'Label' as the final text.",
+        "Do not use Section row item as a full-page navigation row — use List (organism) for navigation patterns.",
+        "Section row items are stacked vertically — never placed side by side."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Nudge",
+      "node_id": "22619:189447",
+      "description": "A floating action bar fixed at the bottom of the screen. Its vertical position depends on the content below it (bottom nav, CTA, etc.) and is set by the designer per screen. Communicates status, warnings, errors, success states, or contextual guidance without a modal or toast.",
+      "properties": [
+        { "name": "Variant", "type": "Variant", "default": "Default", "options": ["Default", "Success", "Error", "Warning"], "notes": "Sets the semantic colour and icon treatment" },
+        { "name": "L - icon", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Leading icon on the left (typically a semantic icon matching the variant)" },
+        { "name": "R - icon", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Trailing icon on the right (typically a dismiss/close icon)" },
+        { "name": "Link text", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows an inline text link/CTA at the end of the label" },
+        { "name": "Label text", "type": "Text", "default": "Label", "options": [], "notes": "The nudge message content" }
+      ],
+      "variants": [
+        { "name": "Default", "semantic_use": "Neutral info / general guidance", "example": "Add UPI ID to enable faster payments" },
+        { "name": "Success", "semantic_use": "Positive confirmation", "example": "KYC verified successfully" },
+        { "name": "Error", "semantic_use": "Validation failure / error state", "example": "UPI ID not found. Please check and retry." },
+        { "name": "Warning", "semantic_use": "Caution / non-blocking alert", "example": "Your session will expire in 2 minutes" }
+      ],
+      "use_cases": [
+        { "context": "Form field validation error", "variant": "Error", "config": "L-icon=True, R-icon=False, Link text=False" },
+        { "context": "Successful action confirmation below a button", "variant": "Success", "config": "L-icon=True, R-icon=True (dismiss)" },
+        { "context": "Informational tip in a settings section", "variant": "Default", "config": "L-icon=True, Link text=True (e.g. 'Learn more')" },
+        { "context": "Expiry warning on a limited-time offer", "variant": "Warning", "config": "L-icon=True, R-icon=False" }
+      ],
+      "rules": [
+        "Nudge is a bottom-floating bar — never placed inline within content flow. Its vertical offset above other bottom elements is defined by the designer per screen.",
+        "Always set Label text to the actual message — never leave the default placeholder.",
+        "Use L-icon=True as the default — the semantic icon reinforces the variant meaning. Only turn it off when space is critically constrained.",
+        "Link text=True is for a single actionable link only — do not use it as a general CTA button; use a Button atom for primary actions.",
+        "R-icon is typically a dismiss/close affordance — only use it when the nudge can be manually dismissed.",
+        "A screen should contain at most one Nudge at a time per content zone."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Inline action row",
+      "node_id": "21200:197929",
+      "description": "A horizontal container that holds a row of inline action items — typically icon-label pairs, quick-action chips, or compact navigation items. Used inside cards, sections, and panels where a compact row of actions is needed.",
+      "properties": [
+        { "name": "L + R padding", "type": "Variant", "default": "false", "options": ["false", "true"], "notes": "Adds left and right padding when true — use when the row lives inside a padded container" },
+        { "name": "Divider", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows/hides the top or bottom divider line separating the action row from adjacent content" }
+      ],
+      "variants": [
+        { "name": "L + R padding=false", "semantic_use": "Row is edge-to-edge (e.g. inside a full-bleed card or a section with no outer padding)", "example": "" },
+        { "name": "L + R padding=true", "semantic_use": "Row has its own horizontal breathing room (e.g. inside a padded card or list section)", "example": "" }
+      ],
+      "use_cases": [
+        { "context": "Quick action row at the bottom of a card", "variant": "", "config": "L + R padding=false, Divider=True" },
+        { "context": "Action row inside a padded settings section", "variant": "", "config": "L + R padding=true, Divider=True" },
+        { "context": "Last action row in a panel (no trailing separator)", "variant": "", "config": "Divider=False" }
+      ],
+      "rules": [
+        "The Inline action row is a layout container — populate its internal slots with the correct action atoms (Icon, Button, or Chip).",
+        "Set Divider=False on the last row in a section — a trailing divider is incorrect.",
+        "Use L + R padding=true only when the row's parent container does not already provide horizontal padding — do not double-pad.",
+        "Do not use the Inline action row as a primary navigation element — it is for compact supplementary actions only."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Seaction header",
+      "node_id": "94:1422",
+      "description": "Labels a content group and optionally provides a body/subtitle line, flanking icons, a right slot, and an overflow treatment. Placed directly above a list or grid of related items. (Component name typo 'Seaction header' is intentional — matches Figma.) Single component with no variant axis.",
+      "properties": [
+        { "name": "Title text", "type": "Text", "default": "Title", "options": [], "notes": "The section label / group name" },
+        { "name": "Body text", "type": "Text", "default": "Body", "options": [], "notes": "Optional supporting subtitle or description" },
+        { "name": "Body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Toggles the body/subtitle text line" },
+        { "name": "L-icon - Title", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Icon left of the title" },
+        { "name": "R-icon - Title", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Icon right of the title (e.g. info icon, status indicator)" },
+        { "name": "L-icon - Body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Icon left of the body text" },
+        { "name": "R-icon - Body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Icon right of the body text" },
+        { "name": "R-slot", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right-side slot — for a 'See all' CTA, count badge, or icon button" },
+        { "name": "R-overflow", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Gradient fade on the right edge of the title — for long or scrolling labels" }
+      ],
+      "variants": [],
+      "use_cases": [
+        { "context": "Simple section label", "variant": "", "config": "Title text set, all booleans off" },
+        { "context": "Section with 'See all' CTA", "variant": "", "config": "R-slot=True, place a text Button or Link inside the slot" },
+        { "context": "Section with a count or badge", "variant": "", "config": "R-slot=True, place a Badge inside the slot" },
+        { "context": "Section with description", "variant": "", "config": "Body=True, Body text set" },
+        { "context": "Section title with info icon", "variant": "", "config": "R-icon - Title=True" }
+      ],
+      "rules": [
+        "Always set Title text — never leave 'Title' as the production label.",
+        "Use Body=True only when a subtitle genuinely helps the user — not as decoration.",
+        "R-slot accepts any component — prefer Button (text variant), Badge, or Icon.",
+        "R-overflow=True is for design articulation only — handle truncation in code.",
+        "Section headers are not interactive themselves — any action belongs in the R-slot.",
+        "Do not use Section header to replace Title bar inside modals or sheets."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Chip",
+      "node_id": "1526:12162",
+      "description": "Compact interactive control used for filtering, selection, and categorical navigation. Comes as an individual unit.",
+      "properties": [
+        { "name": "State", "type": "Variant", "default": "Toggle", "options": ["Toggle", "Cross", "Dropdown", "Switch"], "notes": "Controls the chip's interaction type" },
+        { "name": "Is active", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Selected/active state" },
+        { "name": "Is disabled", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Disabled state" },
+        { "name": "Size", "type": "Variant", "default": "Large", "options": ["Large", "Med"], "notes": "" },
+        { "name": "L-Icon", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Leading icon inside the chip" }
+      ],
+      "variants": [
+        { "name": "Toggle", "semantic_use": "Simple on/off selection — no trailing indicator; filter chips, category selection", "example": "" },
+        { "name": "Cross", "semantic_use": "Active state shows a dismiss (✕) icon to deselect; applied filters that can be removed inline", "example": "" },
+        { "name": "Dropdown", "semantic_use": "Trailing chevron — opens a picker or menu; multi-value filters, sort options", "example": "" },
+        { "name": "Switch", "semantic_use": "Trailing toggle — binary on/off within the chip; feature toggles presented as chips", "example": "" },
+        { "name": "Large", "semantic_use": "Default — filter bars, category rows", "example": "" },
+        { "name": "Med", "semantic_use": "Dense layouts, nested filter areas", "example": "" }
+      ],
+      "use_cases": [],
+      "rules": [
+        "Always use Chip - Stack for groups of chips — never place individual Chip atoms side-by-side manually.",
+        "Use Cross state for applied / removable filters — not for general selection.",
+        "Use Dropdown only when tapping the chip opens a picker — not as a decorative indicator."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Chip - Stack",
+      "node_id": "5835:7001",
+      "description": "A horizontal stack/row of chips with optional overflow fades and dividers between chips.",
+      "properties": [
+        { "name": "Count", "type": "Variant", "default": "2", "options": ["2", "3", "4", "5", "Plenty"], "notes": "Number of chips in the row. Plenty renders a scrollable overflow state — use when the chip count is dynamic or unknown at design time." },
+        { "name": "Size", "type": "Variant", "default": "Large", "options": ["Large", "Med"], "notes": "Matches the individual Chip size" },
+        { "name": "L-overflow", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Left edge fade — indicates chips are scrollable to the left" },
+        { "name": "R-overflow", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right edge fade — indicates chips are scrollable to the right" },
+        { "name": "Divider", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Vertical divider between chips in the stack" }
+      ],
+      "variants": [],
+      "use_cases": [],
+      "rules": [
+        "Always use Chip - Stack for groups of chips — never place individual Chip atoms side-by-side manually.",
+        "Use L-overflow and R-overflow together when a chip row is horizontally scrollable.",
+        "Divider=False should only be used when a visually clean separation-free row is required (rare)."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": ".Tab Unit",
+      "node_id": "3018:1630",
+      "description": "Base tab unit. Used inside a custom layout or inside Tab - Stack. Not used standalone in final screens.",
+      "properties": [
+        { "name": "Is active", "type": "Variant", "default": "True", "options": ["True", "False"], "notes": "Active/selected state" },
+        { "name": "Is disabled", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Disabled state" },
+        { "name": "R-icon - Title", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Icon to the right of the tab label" },
+        { "name": "L-icon - Title", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Icon to the left of the tab label" },
+        { "name": "Title text", "type": "Text", "default": "Label • 0", "options": [], "notes": "Tab label — set the text per tab context" }
+      ],
+      "variants": [],
+      "use_cases": [],
+      "rules": [
+        "Always use a Stack component for final screens — never place individual Tab Unit atoms manually in a row.",
+        "The active tab must always be visually distinguishable — never set all tabs to Is active=False."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Tab - Stack",
+      "node_id": "6022:17794",
+      "description": "A horizontal row of standard underline tabs. Default tab pattern for in-page navigation.",
+      "properties": [
+        { "name": "Count", "type": "Variant", "default": "2", "options": ["2", "3", "4", "5", "Plenty"], "notes": "Number of tabs. Plenty renders a scrollable overflow state — use when tab count is dynamic." },
+        { "name": "R-overflow", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right edge fade — scrollable tabs overflow indicator" },
+        { "name": "L-overflow", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Left edge fade — scrollable tabs overflow indicator" },
+        { "name": "Switch tab - Page swipe", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Indicates the tab is linked to a horizontal page swipe — active tab follows swipe gesture" }
+      ],
+      "variants": [],
+      "use_cases": [
+        { "context": "In-page section navigation (2–5 tabs)", "variant": "", "config": "Tab - Stack" }
+      ],
+      "rules": [
+        "Always use a Stack component for final screens — never place individual Tab Unit atoms manually in a row.",
+        "Use Plenty with overflow indicators (L-overflow, R-overflow) when tabs scroll horizontally.",
+        "Switch tab - Page swipe=True must be wired to a horizontal scroll/swipe container in code — not purely decorative."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Tab - Pill - Units",
+      "node_id": "4575:15060",
+      "description": "A single pill-style tab unit — used inside Tab - Pill - Stack.",
+      "properties": [
+        { "name": "Is active", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "" },
+        { "name": "Is disabled", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "" },
+        { "name": "Title text", "type": "Text", "default": "00", "options": [], "notes": "" }
+      ],
+      "variants": [],
+      "use_cases": [],
+      "rules": [],
+      "category": "molecule"
+    },
+    {
+      "name": "Tab - Pill - Stack",
+      "node_id": "4575:15065",
+      "description": "A compact pill-style tab group — typically 2–3 options. Common for binary or ternary views (e.g. 'Monthly / Yearly', 'All / Income / Expense').",
+      "properties": [
+        { "name": "Count", "type": "Variant", "default": "2", "options": ["2", "3"], "notes": "Number of pill tabs" },
+        { "name": "BG", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Background fill on the pill container" },
+        { "name": "Selected", "type": "Variant", "default": "Left", "options": ["Left", "Centre", "Right"], "notes": "Which tab is currently selected" },
+        { "name": "Is disabled", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Disabled state for the whole group" }
+      ],
+      "variants": [],
+      "use_cases": [
+        { "context": "Binary or ternary view toggle", "variant": "", "config": "Tab - Pill - Stack" }
+      ],
+      "rules": [
+        "Tab - Pill - Stack supports maximum 3 tabs — for more options use Tab - Stack.",
+        "The active tab must always be visually distinguishable — never set all tabs to Selected=False."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Tab - Fancy - Unit",
+      "node_id": "13799:24700",
+      "description": "An atom — a building block only. Never placed directly on a screen. Always use Image Tab w bg which composes these units into a ready-to-use tab bar.",
+      "properties": [
+        { "name": "Selected", "type": "Variant", "default": "True", "options": ["True", "False"], "notes": "True = tab is in the active/selected state; False = tab is inactive" }
+      ],
+      "variants": [
+        { "name": "True", "semantic_use": "The tab is in the active/selected state", "example": "" },
+        { "name": "False", "semantic_use": "The tab is inactive", "example": "" }
+      ],
+      "use_cases": [],
+      "rules": [
+        "Never use Tab - Fancy - Unit directly — always use Image Tab w bg, which composes these units into a complete tab bar."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Tab - Visual",
+      "node_id": "13734:19715",
+      "description": "Tabs that include an image, icon, or rich visual indicator alongside the label. An atom — a building block only. Never placed directly on a screen. Always use Tab - Visual - Stack instead.",
+      "properties": [
+        { "name": "Type", "type": "Variant", "default": "", "options": ["W Image", "W Icon", "W Tab"], "notes": "W Image = tab with an image thumbnail; W Icon = tab with an icon; W Tab = tab with a nested sub-tab indicator" }
+      ],
+      "variants": [
+        { "name": "W Image", "semantic_use": "Tab with an image thumbnail", "example": "" },
+        { "name": "W Icon", "semantic_use": "Tab with an icon", "example": "" },
+        { "name": "W Tab", "semantic_use": "Tab with a nested sub-tab indicator", "example": "" }
+      ],
+      "use_cases": [],
+      "rules": [
+        "Never use Tab - Visual directly — always use Tab - Visual - Stack instead."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Tab - Visual - Stack",
+      "node_id": "13455:174081",
+      "description": "A stack of visual tabs (image/icon/sub-tab) for media/category browsing with visuals.",
+      "properties": [
+        { "name": "Count", "type": "Variant", "default": "", "options": ["1", "2", "3", "4", "5", "6", "Plenty"], "notes": "" },
+        { "name": "Padding", "type": "Variant", "default": "", "options": ["True", "False"], "notes": "" }
+      ],
+      "variants": [],
+      "use_cases": [
+        { "context": "Media/category browsing with visuals", "variant": "", "config": "Tab - Visual - Stack" }
+      ],
+      "rules": [
+        "Never use Tab - Visual directly — always use Tab - Visual - Stack instead."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Bottom nav 2",
+      "node_id": "14290:55619",
+      "description": "The primary bottom navigational bar of the app. Fixed at the bottom of the screen, provides top-level destination switching across the three core app sections. Carries a Cart FAB that surfaces conditionally when the user is on the Shop tab with pending cart items.",
+      "properties": [
+        { "name": "Tab", "type": "Variant", "default": "Home", "options": ["Home", "Shop", "Card"], "notes": "Sets which tab destination is currently active" },
+        { "name": "Collapsed", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Collapses the nav bar — used when the screen needs full vertical space (e.g. scrolled state)" }
+      ],
+      "variants": [
+        { "name": "Home", "semantic_use": "Home feed / dashboard — user is on the home screen", "example": "" },
+        { "name": "Shop", "semantic_use": "Shop / marketplace — user is browsing the shop", "example": "" },
+        { "name": "Card", "semantic_use": "Card / payments — user is on the card or payments screen", "example": "" },
+        { "name": "Collapsed=False", "semantic_use": "Full nav bar visible — default for all standard screens", "example": "" },
+        { "name": "Collapsed=True", "semantic_use": "Nav bar collapses — use when scrolling or full-bleed content requires reclaiming vertical space; defined by designer per screen", "example": "" }
+      ],
+      "use_cases": [],
+      "rules": [
+        "Bottom nav 2 is always fixed to the bottom of the screen — never scroll it with content.",
+        "Only one instance of Bottom nav 2 per screen.",
+        "Always set Tab to the active destination — never leave all tabs in an inactive state.",
+        "Collapsed=True is set by the designer per screen based on scroll behaviour — do not default to collapsed.",
+        "Cart FAB is only shown on the Shop tab when the user has pending cart items — do not show it on Home, Card, or any empty-cart state.",
+        "The Avatar (Brand type, 28px) next to the Cart FAB shows product images of the pending cart items — it is not a user profile avatar.",
+        "Chevron visibility on the Cart FAB is a product decision — the designer specifies the condition under which it appears (e.g. expandable cart drawer, proceed to checkout). Do not apply it without a defined interaction.",
+        "Do not detach or manually modify the embedded Cart FAB or Avatar sub-components — configure them through the exposed properties only.",
+        "Embedded sub-components: Cart FAB (floating cart action), Avatar (Brand type, 28px), Chevron (inside Cart FAB), Icon Wrapper (tab icon, size 20px)."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Input field",
+      "node_id": "3821:4239",
+      "description": "Standard form text input — the primary input component. State, Is active, and Is filled are independent properties and must all be read and applied simultaneously in code, never as a switch/if-else chain.",
+      "properties": [
+        { "name": "State", "type": "Variant", "default": "Default", "options": ["Default", "Error", "Success", "Disabled"], "notes": "Semantic input state" },
+        { "name": "BG", "type": "Variant", "default": "True", "options": ["True", "False"], "notes": "Background fill on the input container" },
+        { "name": "Is active", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Focus/active state (cursor visible)" },
+        { "name": "Is filled", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Whether user has entered a value" },
+        { "name": "L-icon", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Leading icon inside the input" },
+        { "name": "R-icon", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Trailing icon (e.g. eye for password, clear ✕)" },
+        { "name": "R-slot", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Trailing slot for a component (e.g. OTP resend link, inline CTA)" },
+        { "name": "R-overflow", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right overflow fade for long pre-filled content" },
+        { "name": "Info message", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Shows an info helper message below the field" },
+        { "name": "Pre-filled", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Shows a prefix label inside the field (e.g. country code, ₹)" },
+        { "name": "Post-filled", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Shows a suffix label inside the field (e.g. .00, @yespop)" },
+        { "name": "Placeholder text", "type": "Text", "default": "Placeholder", "options": [], "notes": "Hint text shown when the field is empty" },
+        { "name": "Body text", "type": "Text", "default": "Filled", "options": [], "notes": "The entered/filled value text" },
+        { "name": "Title text", "type": "Text", "default": "Title", "options": [], "notes": "Field label above the input" },
+        { "name": "Info text", "type": "Text", "default": "Info message", "options": [], "notes": "Helper text shown below (requires Info message=True)" },
+        { "name": "Error text", "type": "Text", "default": "Error message", "options": [], "notes": "Error message (shown in State=Error)" },
+        { "name": "Success text", "type": "Text", "default": "Success message", "options": [], "notes": "Success message (shown in State=Success)" },
+        { "name": "Pre-filled text", "type": "Text", "default": "Prefilled", "options": [], "notes": "Prefix content (e.g. '+91', '₹')" },
+        { "name": "Post-filled text", "type": "Text", "default": "@yespop", "options": [], "notes": "Suffix content (e.g. '.00', '@yespop')" }
+      ],
+      "variants": [
+        { "name": "Default", "semantic_use": "Idle, empty — field is waiting for input", "example": "" },
+        { "name": "Default + Is Active", "semantic_use": "Focused, empty — cursor is active, keyboard is open", "example": "" },
+        { "name": "Default + Is Filled", "semantic_use": "Unfocused, has value — user typed and moved away", "example": "" },
+        { "name": "Default + Is Active + Is Filled", "semantic_use": "Focused, has value — user is editing existing content", "example": "" },
+        { "name": "Error", "semantic_use": "Validation failed, empty", "example": "" },
+        { "name": "Error + Is Filled", "semantic_use": "Validation failed, has value", "example": "" },
+        { "name": "Error + Is Active + Is Filled", "semantic_use": "Validation failed, focused — user is editing to correct the error", "example": "" },
+        { "name": "Success", "semantic_use": "Validated, empty", "example": "" },
+        { "name": "Success + Is Filled", "semantic_use": "Validated, has value", "example": "" },
+        { "name": "Success + Is Active + Is Filled", "semantic_use": "Validated, focused — user is editing a validated field", "example": "" },
+        { "name": "Disabled", "semantic_use": "Locked, empty — cannot be interacted with", "example": "" },
+        { "name": "Disabled + Is Filled", "semantic_use": "Locked, has value — shows content but not editable", "example": "" }
+      ],
+      "use_cases": [
+        { "context": "Standard form text input", "variant": "", "config": "Input field" }
+      ],
+      "rules": [
+        "Error + Is Active and Success + Is Active (focused but empty) are not valid states — error and success only appear after a user has entered a value. A focused empty field is always Default + Is Active.",
+        "Always set Title text — never leave 'Title' as the production label.",
+        "Always set Placeholder text to contextual hint copy — never leave 'Placeholder'.",
+        "Use State=Error + Error text for validation failures.",
+        "Pre-filled and Post-filled are for non-editable prefix/suffix content (e.g. ₹, +91, .00) — not for default-filled values.",
+        "BG=False is for inputs on surfaces that already have a container background — prevents double-layering."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Input field - Small",
+      "node_id": "8220:47609",
+      "description": "Compact form input for dense layouts — same behaviour as the primary Input field but at a smaller scale.",
+      "properties": [
+        { "name": "State", "type": "Variant", "default": "Default", "options": ["Default", "Error", "Success", "Disabled"], "notes": "Semantic input state" },
+        { "name": "BG", "type": "Variant", "default": "True", "options": ["True", "False"], "notes": "Background fill on the input container" },
+        { "name": "Is active", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Focus/active state — cursor visible, keyboard open" },
+        { "name": "Is filled", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Whether user has entered a value" },
+        { "name": "Pre-filled", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Shows prefix label inside the field" },
+        { "name": "Post-filled", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Shows suffix label inside the field" },
+        { "name": "Info message", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Shows an info helper message below the field" },
+        { "name": "R-overflow", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right overflow fade for long content" },
+        { "name": "Title", "type": "Text", "default": "Add note", "options": [], "notes": "Field label above the input" },
+        { "name": "Placeholder text", "type": "Text", "default": "Eg. Lunch", "options": [], "notes": "Hint text shown when the field is empty" },
+        { "name": "Body text", "type": "Text", "default": "Dinner", "options": [], "notes": "The entered/filled value" },
+        { "name": "Pre-filled text", "type": "Text", "default": "Prefilled", "options": [], "notes": "Prefix content" },
+        { "name": "Post-filled text", "type": "Text", "default": "@yespop", "options": [], "notes": "Suffix content" },
+        { "name": "Info text", "type": "Text", "default": "Try 'RENT'", "options": [], "notes": "Helper text shown below (requires Info message=True)" },
+        { "name": "Error text", "type": "Text", "default": "'.' not allowed", "options": [], "notes": "Error message shown in State=Error" },
+        { "name": "Success text", "type": "Text", "default": "Promo applied", "options": [], "notes": "Success message shown in State=Success" }
+      ],
+      "variants": [],
+      "use_cases": [],
+      "rules": [],
+      "category": "molecule"
+    },
+    {
+      "name": "Input field - Naked Large",
+      "node_id": "4354:21420",
+      "description": "Large borderless amount/currency entry — the primary pattern for payment amount inputs. Warning state is unique to this variant.",
+      "properties": [
+        { "name": "State", "type": "Variant", "default": "Default", "options": ["Default", "Error", "Success", "Disabled", "Warning"], "notes": "Semantic input state — Warning is unique to this variant" },
+        { "name": "Is active", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Focus/active state — cursor visible, keyboard open" },
+        { "name": "Is filled", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Whether user has entered a value" },
+        { "name": "Pre-filled", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows prefix label inside the field (e.g. ₹) — on by default" },
+        { "name": "Post-filled", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Shows suffix label inside the field (e.g. .00)" },
+        { "name": "Title", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Shows a label above the input field" },
+        { "name": "L-overflow", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Left overflow fade for long content" },
+        { "name": "R-overflow", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right overflow fade for long content" },
+        { "name": "Info message", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Shows an info helper message below the field" },
+        { "name": "L-icon - Info", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Leading icon on the info helper message" },
+        { "name": "R-icon - Info", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Trailing icon on the info helper message" },
+        { "name": "L-icon - Error", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Leading icon on the error message" },
+        { "name": "R-icon - Error", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Trailing icon on the error message" },
+        { "name": "L-icon - Success", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Leading icon on the success message" },
+        { "name": "R-icon - Success", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Trailing icon on the success message" },
+        { "name": "L-icon - Warning", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Leading icon on the warning message" },
+        { "name": "R-icon - Warning", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Trailing icon on the warning message" },
+        { "name": "Title text", "type": "Text", "default": "Title", "options": [], "notes": "Field label above the input" },
+        { "name": "Body text", "type": "Text", "default": "1,234", "options": [], "notes": "The entered/filled value" },
+        { "name": "Pre-filled text", "type": "Text", "default": "₹", "options": [], "notes": "Prefix content (e.g. ₹, +91)" },
+        { "name": "Post-filled text", "type": "Text", "default": ".00", "options": [], "notes": "Suffix content (e.g. .00, %)" },
+        { "name": "Info text", "type": "Text", "default": "Info message", "options": [], "notes": "Helper text shown below (requires Info message=True)" },
+        { "name": "Error text", "type": "Text", "default": "Error message", "options": [], "notes": "Error message shown in State=Error" },
+        { "name": "Success text", "type": "Text", "default": "Success message", "options": [], "notes": "Success message shown in State=Success" },
+        { "name": "Warning text", "type": "Text", "default": "Warning message", "options": [], "notes": "Warning message shown in State=Warning" }
+      ],
+      "variants": [
+        { "name": "Default", "semantic_use": "Idle / empty amount input", "example": "" },
+        { "name": "Error", "semantic_use": "Validation failed", "example": "" },
+        { "name": "Success", "semantic_use": "Validated", "example": "" },
+        { "name": "Disabled", "semantic_use": "Locked, cannot be interacted with", "example": "" },
+        { "name": "Warning", "semantic_use": "Caution state — unique to this variant", "example": "" }
+      ],
+      "use_cases": [
+        { "context": "Currency / amount entry", "variant": "", "config": "Input field - Naked Large" }
+      ],
+      "rules": [
+        "Use Input field - Naked Large for all currency amount entry — never a standard Input field for amount screens."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Input field - Naked Small",
+      "node_id": "3825:5885",
+      "description": "Inline borderless input — for add-note fields, tags, compact edit contexts.",
+      "properties": [
+        { "name": "State", "type": "Variant", "default": "Default", "options": ["Default", "Error", "Success", "Disabled"], "notes": "Semantic input state" },
+        { "name": "Is active", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Focus/active state — cursor visible, keyboard open" },
+        { "name": "Is filled", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Whether user has entered a value" },
+        { "name": "L-icon", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Leading icon inside the input" },
+        { "name": "R-icon", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Trailing icon (e.g. clear ✕)" },
+        { "name": "R-slot", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Trailing slot for an inline component" },
+        { "name": "R-overflow", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right overflow fade for long content" },
+        { "name": "Pre-filled", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Shows prefix label inside the field" },
+        { "name": "Post-filled", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Shows suffix label inside the field" },
+        { "name": "Title", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows a label above the input field" },
+        { "name": "Info message", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Shows an info helper message below the field" },
+        { "name": "Title text", "type": "Text", "default": "Title", "options": [], "notes": "Field label above the input" },
+        { "name": "Body text", "type": "Text", "default": "Filled", "options": [], "notes": "The entered/filled value" },
+        { "name": "Placeholder text", "type": "Text", "default": "Placeholder", "options": [], "notes": "Hint text shown when the field is empty" },
+        { "name": "Pre-filled text", "type": "Text", "default": "SBIN", "options": [], "notes": "Prefix content (e.g. bank code, +91)" },
+        { "name": "Post-filled text", "type": "Text", "default": "@yespop", "options": [], "notes": "Suffix content (e.g. @handle, %)" },
+        { "name": "Info text", "type": "Text", "default": "Info message", "options": [], "notes": "Helper text shown below (requires Info message=True)" },
+        { "name": "Error text", "type": "Text", "default": "Error message", "options": [], "notes": "Error message shown in State=Error" },
+        { "name": "Success text", "type": "Text", "default": "Success message", "options": [], "notes": "Success message shown in State=Success" }
+      ],
+      "variants": [],
+      "use_cases": [
+        { "context": "Add note / tag / inline edit", "variant": "", "config": "Input field - Naked Small" }
+      ],
+      "rules": [],
+      "category": "molecule"
+    },
+    {
+      "name": "Input item - Discrete",
+      "node_id": "4189:12557",
+      "description": "A single OTP digit box — always used as part of Input organism - Discrete, not standalone.",
+      "properties": [
+        { "name": "Size", "type": "Variant", "default": "", "options": ["56", "44"], "notes": "" },
+        { "name": "State", "type": "Variant", "default": "", "options": ["Default", "Error", "Disabled"], "notes": "" },
+        { "name": "BG", "type": "Variant", "default": "", "options": ["True", "False"], "notes": "" },
+        { "name": "Is active", "type": "Variant", "default": "", "options": ["False", "True"], "notes": "" },
+        { "name": "Is filled", "type": "Variant", "default": "", "options": ["False", "True"], "notes": "" }
+      ],
+      "variants": [],
+      "use_cases": [],
+      "rules": [],
+      "category": "molecule"
+    },
+    {
+      "name": "Input organism - Discrete",
+      "node_id": "4235:17681",
+      "description": "Full OTP entry experience — includes the digit boxes, identifier text, body message, and resend/edit CTAs.",
+      "properties": [
+        { "name": "Digit count", "type": "Variant", "default": "4", "options": ["4", "6"], "notes": "Number of OTP digits" },
+        { "name": "Size", "type": "Variant", "default": "56", "options": ["56", "44"], "notes": "Height of each digit box" },
+        { "name": "State", "type": "Variant", "default": "Default", "options": ["Default", "Error", "Disabled"], "notes": "" },
+        { "name": "Filled", "type": "Variant", "default": "0", "options": ["0", "1", "2", "3", "4", "5", "6"], "notes": "How many digits are filled (0–6)" },
+        { "name": "Primary CTA enabled", "type": "Variant", "default": "True", "options": ["True", "False"], "notes": "Whether the resend CTA is active or in countdown mode" },
+        { "name": "Body", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the 'OTP sent on…' message" },
+        { "name": "Secondary CTA", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the 'Edit' CTA to change the phone number" },
+        { "name": "Identifier", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the identifier (e.g. phone number)" },
+        { "name": "Identifier text", "type": "Text", "default": "99999 99999", "options": [], "notes": "The masked phone number" },
+        { "name": "Body text", "type": "Text", "default": "OTP sent on +91", "options": [], "notes": "Helper message below the OTP boxes" },
+        { "name": "Primary CTA enabled text", "type": "Text", "default": "Resend OTP", "options": [], "notes": "Active resend label" },
+        { "name": "Primary CTA disabled text", "type": "Text", "default": "Resend in 00:29", "options": [], "notes": "Countdown label when resend is disabled" },
+        { "name": "Secondary CTA text", "type": "Text", "default": "Edit", "options": [], "notes": "Edit CTA label" }
+      ],
+      "variants": [],
+      "use_cases": [
+        { "context": "OTP entry (4 or 6 digit)", "variant": "", "config": "Input organism - Discrete" }
+      ],
+      "rules": [
+        "Input organism - Discrete must always use Digit count matching the OTP length from the backend — never hardcode 4 digits for a 6-digit OTP flow."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Input organism - Discrete - Naked",
+      "node_id": "4453:16354",
+      "description": "Naked (borderless) full OTP input — same structure as the standard Discrete OTP organism but without the background/border treatment.",
+      "properties": [
+        { "name": "Digit count", "type": "Variant", "default": "4", "options": ["4", "6"], "notes": "Number of OTP digit cells" },
+        { "name": "Size", "type": "Variant", "default": "56", "options": ["56", "44"], "notes": "Height of each digit cell in px" },
+        { "name": "State", "type": "Variant", "default": "Default", "options": ["Default", "Error", "Disabled"], "notes": "Semantic state" },
+        { "name": "Filled", "type": "Variant", "default": "0", "options": ["0", "1", "2", "3", "4", "5", "6"], "notes": "How many digits are currently filled" },
+        { "name": "Primary CTA enabled", "type": "Variant", "default": "False", "options": ["True", "False"], "notes": "Whether the resend CTA is in active/enabled state" },
+        { "name": "Body", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the helper body text below the OTP cells" },
+        { "name": "Identifier", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the identifier (e.g. masked phone number) alongside body text" },
+        { "name": "Secondary CTA", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Shows the secondary action (e.g. Edit)" },
+        { "name": "Body text", "type": "Text", "default": "OTP sent on +91", "options": [], "notes": "Helper message below the OTP cells" },
+        { "name": "Identifier text", "type": "Text", "default": "99999 99999", "options": [], "notes": "The masked phone/email identifier shown in body" },
+        { "name": "Primary CTA enabled text", "type": "Text", "default": "Resend OTP", "options": [], "notes": "Label shown on resend CTA when enabled" },
+        { "name": "Primary CTA disabled text", "type": "Text", "default": "Resend in 00:29", "options": [], "notes": "Label shown on resend CTA when on cooldown" },
+        { "name": "Secondary CTA text", "type": "Text", "default": "Edit", "options": [], "notes": "Label for the secondary action" }
+      ],
+      "variants": [],
+      "use_cases": [],
+      "rules": [],
+      "category": "molecule"
+    },
+    {
+      "name": "Input - Search",
+      "node_id": "4536:12367",
+      "description": "Search bar with optional keyboard icon. Keypad icon=True shows a keyboard icon — used when the search field triggers a custom keypad rather than the OS keyboard.",
+      "properties": [
+        { "name": "State", "type": "Variant", "default": "", "options": ["Default", "Error", "Success", "Disabled"], "notes": "" },
+        { "name": "BG", "type": "Variant", "default": "", "options": ["True", "False"], "notes": "" },
+        { "name": "Is active", "type": "Variant", "default": "", "options": ["False", "True"], "notes": "" },
+        { "name": "Is filled", "type": "Variant", "default": "", "options": ["False", "True"], "notes": "" },
+        { "name": "Keypad icon", "type": "Variant", "default": "", "options": ["False", "True"], "notes": "True shows a keyboard icon — used when the search field triggers a custom keypad rather than the OS keyboard" }
+      ],
+      "variants": [],
+      "use_cases": [
+        { "context": "Search bar", "variant": "", "config": "Input - Search" }
+      ],
+      "rules": [],
+      "category": "molecule"
+    },
+    {
+      "name": "Input - Mobile",
+      "node_id": "4235:14047",
+      "description": "Mobile number entry — includes a country flag and dialling prefix (+91) pre-wired on the left. Use for all phone number input fields. The flag and +91 prefix are built in — do not add them separately. No additional boolean or text properties beyond the three variant axes.",
+      "properties": [
+        { "name": "State", "type": "Variant", "default": "Default", "options": ["Default", "Error", "Success", "Disabled"], "notes": "Semantic input state" },
+        { "name": "Is active", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Focus/active state — cursor visible, keyboard open" },
+        { "name": "Is filled", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Whether the user has entered a number" }
+      ],
+      "variants": [],
+      "use_cases": [],
+      "rules": [
+        "The country flag and +91 prefix are built into the component — do not add them separately."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Help Text",
+      "node_id": "7765:36103",
+      "description": "Displays helper, error, success, or warning text below an input field. Can be used standalone or is built into the input field components.",
+      "properties": [
+        { "name": "Type", "type": "Variant", "default": "Info", "options": ["Info", "Success", "Error", "Warning"], "notes": "Semantic colour treatment" },
+        { "name": "Padding", "type": "Variant", "default": "12", "options": ["12", "8", "0"], "notes": "Top padding from the input above it" },
+        { "name": "L-Icon", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Leading semantic icon" },
+        { "name": "R-icon", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Trailing icon" },
+        { "name": "Link text", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Inline link/CTA in the helper text" },
+        { "name": "R-Overflow", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right overflow fade for long messages" }
+      ],
+      "variants": [
+        { "name": "Info", "semantic_use": "Informational helper message", "example": "" },
+        { "name": "Success", "semantic_use": "Success message", "example": "" },
+        { "name": "Error", "semantic_use": "Error/validation message", "example": "" },
+        { "name": "Warning", "semantic_use": "Warning message", "example": "" }
+      ],
+      "use_cases": [
+        { "context": "Helper/error message below input", "variant": "", "config": "Help Text" }
+      ],
+      "rules": [],
+      "category": "molecule"
+    },
+    {
+      "name": "Input stack (horizontal)",
+      "node_id": "21910:9493",
+      "description": "Two inputs side by side (e.g. First name + Last name, Day + Month).",
+      "properties": [
+        { "name": "Variant", "type": "Variant", "default": "", "options": ["Large + Small", "Small + Large", "Equal (Fill container)"], "notes": "" }
+      ],
+      "variants": [
+        { "name": "Large + Small", "semantic_use": "Left input large, right input small", "example": "" },
+        { "name": "Small + Large", "semantic_use": "Left input small, right input large", "example": "" },
+        { "name": "Equal (Fill container)", "semantic_use": "Both inputs equal width, filling container", "example": "" }
+      ],
+      "use_cases": [
+        { "context": "Two inputs side by side", "variant": "", "config": "Input stack (horizontal)" }
+      ],
+      "rules": [],
+      "category": "molecule"
+    },
+    {
+      "name": "Card",
+      "node_id": "5344:1233",
+      "description": "Contained content block with optional header, slot rows, background, and border treatment. When Divider - Header=True or Divider - Body=True a Horizontal divider atom is rendered inside the card, exposing Type and Colour properties.",
+      "properties": [
+        { "name": "Slot", "type": "Variant", "default": "0", "options": ["0", "1", "2", "3", "4", "5", "Plenty"], "notes": "Number of content slot rows inside the card. 0=header only; 1–5=fixed rows; Plenty=scrollable overflow for dynamic count" },
+        { "name": "BG", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Background gradient fill on the card" },
+        { "name": "Enclosed", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Border/stroke on the card container" },
+        { "name": "Header", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Toggles the card header (title + optional body + optional right slot)" },
+        { "name": "Title", "type": "Boolean", "default": "True", "options": ["True", "False"], "notes": "Title text in the header" },
+        { "name": "Body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Body/subtitle text in the header" },
+        { "name": "Title text", "type": "Text", "default": "Title", "options": [], "notes": "Header title content" },
+        { "name": "Body text", "type": "Text", "default": "Body", "options": [], "notes": "Header subtitle content" },
+        { "name": "L-icon - Title", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Icon left of the header title" },
+        { "name": "R-icon - Title", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Icon right of the header title" },
+        { "name": "L-icon - Body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Icon left of the header body" },
+        { "name": "R-icon - Body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Icon right of the header body" },
+        { "name": "R-slot - Header", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Right slot in the header (for a CTA, avatar, or icon)" },
+        { "name": "R-overflow - Header", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Gradient overflow fade on the header title" },
+        { "name": "Divider - Header", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Divider below the header" },
+        { "name": "Divider - Body", "type": "Boolean", "default": "False", "options": ["True", "False"], "notes": "Dividers between slot rows in the card body" },
+        { "name": "Type (nested Horizontal divider)", "type": "Variant", "default": "Continuous", "options": ["Continuous", "Dashed", "Stylised"], "notes": "Controls the line style of the nested Horizontal divider (when Divider - Header or Divider - Body is True)" },
+        { "name": "Colour (nested Horizontal divider)", "type": "Variant", "default": "Secondary", "options": ["Primary", "Secondary", "Tertiary", "Blured", "Mixed"], "notes": "Controls the colour token of the nested divider. Default Secondary uses Border/Secondary → Greys/Grey-700 (#333333)" }
+      ],
+      "variants": [
+        { "name": "BG=True, Enclosed=True", "semantic_use": "Gradient background + border — default card appearance", "example": "" },
+        { "name": "BG=False, Enclosed=True", "semantic_use": "No background + border — outlined flat card", "example": "" },
+        { "name": "BG=False, Enclosed=False", "semantic_use": "No background, no border — frameless/ghost card", "example": "" }
+      ],
+      "use_cases": [],
+      "rules": [
+        "Use Card - Stack for all lists of multiple cards — never manually stack individual Card instances.",
+        "Always populate Title text and Body text with real content — never leave 'Title' or 'Body' as production text.",
+        "Slot=0 is for header-only cards (e.g. a simple label card with no content rows).",
+        "Enclosed=False with BG=False is a ghost card — use only when the card must be visually frameless (e.g. inside a tinted surface that provides its own container).",
+        "Divider - Header=True separates the header from the first content slot — always use when both Header=True and Slot ≥ 1.",
+        "Only change nested divider Type or Colour if the card surface requires a different treatment — for most cards the defaults are correct."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "Card - Stack",
+      "node_id": "6690:5925",
+      "description": "Displays a vertical list of cards with consistent spacing.",
+      "properties": [
+        { "name": "Count", "type": "Variant", "default": "1", "options": ["1", "2", "3", "4", "5", "Plenty"], "notes": "Plenty renders a scrollable overflow of cards. Use for dynamic content lists." }
+      ],
+      "variants": [],
+      "use_cases": [],
+      "rules": [
+        "Use Card - Stack for all lists of multiple cards — never manually stack individual Card instances."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": ".Header item",
+      "node_id": "",
+      "description": "Local component scoped to ODP Card only — must not be used outside of it. Renders the top bar (L-Label • R-Label + chevron) of an ODP Card.",
+      "properties": [
+        { "name": "with bg", "type": "Variant", "default": "False", "options": [], "notes": "Background fill on header row" },
+        { "name": "L - Label", "type": "Text", "default": "Label", "options": [], "notes": "Left label — typically category or merchant name" },
+        { "name": "R - Label", "type": "Text", "default": "Label", "options": [], "notes": "Right label — typically a date, ID, or secondary context" }
+      ],
+      "variants": [],
+      "use_cases": [],
+      "rules": [
+        "Local component — .Header item is scoped to ODP Card only and must not be used outside of it.",
+        "Always populate L - Label and R - Label with real content — these are the primary identifiers for the card."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": ".footer item",
+      "node_id": "",
+      "description": "Local component scoped to ODP Card only — must not be placed or used outside of it. Visible when Footer=True on the parent ODP Card. Renders a Rating bar item row at the bottom of the card — a label pair with an optional right slot for a supplementary component (e.g. rating star, badge, icon).",
+      "properties": [
+        { "name": "L-label", "type": "Text", "default": "Label", "options": [], "notes": "Left label text — e.g. rating score, offer tag" },
+        { "name": "R - Label", "type": "Text", "default": "Label", "options": [], "notes": "Right label text — e.g. review count, expiry date" },
+        { "name": "R-label", "type": "Boolean", "default": "True", "options": [], "notes": "Toggles the right label on/off" },
+        { "name": "Separator", "type": "Boolean", "default": "True", "options": [], "notes": "Shows/hides the dot (·) separator between L and R labels" }
+      ],
+      "variants": [],
+      "use_cases": [],
+      "rules": [
+        "Local component — .footer item is scoped to ODP Card only and must not be placed or used outside of it.",
+        "The Slot inside Rating bar item is a free placement slot — put the relevant component (e.g. Rating badge, Badge) directly into it. Do not leave it empty when Footer=True."
+      ],
+      "category": "molecule"
+    },
+    {
+      "name": "ODP card",
+      "node_id": "21904:39171",
+      "description": "Offer Detail Panel card — a structured card used to display an offer, product, or detail entry with a header and an optional rating/info footer. Structure: .Header item (top bar), PDP Card slot (content), and .Footer item (only when Footer=True).",
+      "properties": [
+        { "name": "Footer", "type": "Variant", "default": "False", "options": ["False", "True"], "notes": "Shows/hides the footer bar below the card" },
+        { "name": "Slot", "type": "Slot", "default": "", "options": [], "notes": "Content slot inside the card body — preferred instance is OLP-list (any component)" }
+      ],
+      "variants": [],
+      "use_cases": [
+        { "context": "Offer card without rating", "variant": "Footer=False", "config": "Standard offer/deal card" },
+        { "context": "Offer card with rating/review info", "variant": "Footer=True", "config": "Shows footer with rating bar" },
+        { "context": "Product detail entry in a list", "variant": "Footer=False", "config": ".Header item shows product category + ID" }
+      ],
+      "rules": [
+        "Always populate L - Label and R - Label in .Header item with real content — these are the primary identifiers for the card.",
+        "Use Footer=True only when there is actual rating or supplementary data to display — do not use the footer as decoration.",
+        "The PDP Card slot is a free slot — place the appropriate product/offer component from the design library.",
+        "The Rating bar item inside the footer is display-only — do not wire an interaction to it directly; use a parent tap target wrapping the card.",
+        "Border radius: top-only radius when Footer=True — the footer attaches flush below the card body with bottom radius on the footer strip."
+      ],
+      "category": "molecule"
+    }
+  ]
+}

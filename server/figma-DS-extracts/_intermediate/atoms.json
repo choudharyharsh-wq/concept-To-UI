@@ -1,0 +1,145 @@
+{
+  "components": [
+    {
+      "name": "Slot",
+      "node_id": "",
+      "description": "A blank, fixed-size placeholder with no visual style of its own. Its sole purpose is to receive a component swapped into it.",
+      "properties": [
+        {
+          "name": "component swap",
+          "type": "instance swap",
+          "default": "",
+          "options": [],
+          "notes": "Use the component swap property to replace the Slot with the desired component (icon, avatar, badge, image, etc.)."
+        }
+      ],
+      "variants": [],
+      "use_cases": [],
+      "rules": [
+        "Slots are used directly in layouts — place the Slot component, then swap a component inside it.",
+        "Use the component swap property to replace the Slot with the desired component (icon, avatar, badge, image, etc.).",
+        "A Slot has no visual output on its own — it inherits entirely from the swapped component."
+      ],
+      "category": "atom"
+    },
+    {
+      "name": "Slot Container",
+      "node_id": "",
+      "description": "Wraps a Slot inside a structural layer. It manages structural layout and is never the final drop target.",
+      "properties": [],
+      "variants": [],
+      "use_cases": [],
+      "rules": [
+        "Slot Containers are never placed or used directly in a layout as a content target.",
+        "To add content: double-click into the container, navigate inside, select the Slot, then swap the component inside the Slot.",
+        "The container manages structural layout. The Slot inside it manages the content.",
+        "Never swap content directly onto a Slot Container — always go one level deeper to the Slot."
+      ],
+      "category": "atom"
+    },
+    {
+      "name": "Icon Wrapper",
+      "node_id": "",
+      "description": "The container that sizes and renders every icon. Always place icons inside a wrapper rather than dropping raw icon components directly into layouts. Display-only.",
+      "properties": [
+        {
+          "name": "Wrapper Size",
+          "type": "enum",
+          "default": "24px",
+          "options": ["16px", "20px", "24px", "28px", "32px", "40px", "48px"],
+          "notes": "Icon size inside matches the wrapper size (e.g. 16px wrapper = 16×16 icon). Default is 24px. Never manually resize a raw icon — always use a wrapper size from the table."
+        }
+      ],
+      "variants": [
+        {
+          "name": "16px",
+          "semantic_use": "Inline with small text, compact list rows, tag suffixes",
+          "example": "16×16 icon inside"
+        },
+        {
+          "name": "20px",
+          "semantic_use": "Inline with body text (Label/Small, Paragraph/Small)",
+          "example": "20×20 icon inside"
+        },
+        {
+          "name": "24px",
+          "semantic_use": "Default — app bar, section rows, input fields, standard buttons",
+          "example": "24×24 icon inside"
+        },
+        {
+          "name": "28px",
+          "semantic_use": "Slightly emphasised — section headers, feature labels",
+          "example": "28×28 icon inside"
+        },
+        {
+          "name": "32px",
+          "semantic_use": "Medium emphasis — card headers, onboarding steps",
+          "example": "32×32 icon inside"
+        },
+        {
+          "name": "40px",
+          "semantic_use": "Touch target — tappable icon actions (see Icon Button)",
+          "example": "40×40 icon inside"
+        },
+        {
+          "name": "48px",
+          "semantic_use": "Large emphasis — empty states, hero spots, UPI app logos",
+          "example": "48×48 icon inside"
+        }
+      ],
+      "use_cases": [],
+      "rules": [
+        "Always place icons inside a wrapper — never drop raw icon components directly into layouts.",
+        "Use Icon Button (not Icon Wrapper) wherever the icon is tappable.",
+        "Icon Wrapper is display-only. Icon Button provides the correct 40px touch target.",
+        "Never manually resize a raw icon — always use a wrapper size from the table.",
+        "Missing icon? Use Icons/placeholder as a temporary stand-in and replace it once the correct icon is added. Never use a random icon as a substitute.",
+        "Apply colour via token, never hardcoded (e.g. token('icon/primary'))."
+      ],
+      "category": "atom"
+    },
+    {
+      "name": "Icon Button",
+      "node_id": "",
+      "description": "The tappable variant of the Icon Wrapper. It provides a 40px touch target and is used wherever an icon triggers an action.",
+      "properties": [
+        {
+          "name": "Count",
+          "type": "enum",
+          "default": "1",
+          "options": ["1", "2", "3", "4"],
+          "notes": "Number of icon actions. Width scales with count: 1=40px, 2=86px, 3=132px, 4=178px."
+        }
+      ],
+      "variants": [
+        {
+          "name": "Count = 1",
+          "semantic_use": "Single icon action — close, share, more",
+          "example": "Width 40px"
+        },
+        {
+          "name": "Count = 2",
+          "semantic_use": "Two icon actions side by side — share + bookmark",
+          "example": "Width 86px"
+        },
+        {
+          "name": "Count = 3",
+          "semantic_use": "Three icon actions — app bar trailing group",
+          "example": "Width 132px"
+        },
+        {
+          "name": "Count = 4",
+          "semantic_use": "Four icon actions — full action row",
+          "example": "Width 178px"
+        }
+      ],
+      "use_cases": [],
+      "rules": [
+        "Use Icon Button (not Icon Wrapper) wherever the icon is tappable.",
+        "Icon Button provides the correct 40px touch target; Icon Wrapper is display-only.",
+        "Tappable icon? Use Icon Button, not Icon Wrapper."
+      ],
+      "category": "atom"
+    }
+  ]
+}

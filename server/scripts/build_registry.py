@@ -125,6 +125,7 @@ def build_registry() -> list[dict]:
         registry.append({
             "name":        name,
             "key":         best_key,
+            "node_id":     node_id,          # component-set node id — join key for DS docs
             "description": desc,
             "type":        "component_set",
             "variant_count": len(variants),
@@ -142,6 +143,7 @@ def build_registry() -> list[dict]:
         registry.append({
             "name":        name,
             "key":         key,
+            "node_id":     comp.get("node_id", ""),   # component node id — join key for DS docs
             "description": comp.get("description", ""),
             "type":        "standalone",
             "variant_count": 1,
