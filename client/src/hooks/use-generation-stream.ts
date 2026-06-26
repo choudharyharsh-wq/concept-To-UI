@@ -166,7 +166,7 @@ export function useGenerationStream() {
   );
 
   const startGeneration = useCallback(
-    (concept: string, figmaUrl: string) => {
+    (concept: string, figmaUrl: string, useDs: boolean = false) => {
       if (eventSourceRef.current) eventSourceRef.current.close();
 
       setError(null);
@@ -179,7 +179,7 @@ export function useGenerationStream() {
 
       const sessionId = `session_${Date.now()}`;
       sessionIdRef.current = sessionId;
-      const url = `${BACKEND_URL}/api/generate?concept=${encodeURIComponent(concept)}&figma_url=${encodeURIComponent(figmaUrl)}&session_id=${sessionId}`;
+      const url = `${BACKEND_URL}/api/generate?concept=${encodeURIComponent(concept)}&figma_url=${encodeURIComponent(figmaUrl)}&session_id=${sessionId}&use_ds=${useDs}`;
       const es = new EventSource(url);
       eventSourceRef.current = es;
       attachHandlers(es);

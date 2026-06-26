@@ -7,6 +7,7 @@ class GraphState(TypedDict):
     """
     concept: str
     figma_url: str
+    use_ds: bool                     # toggle: compile against the POP Design System vs generic primitives
     prd_data: Dict[str, Any]
     ia_data: Dict[str, Any]
     user_flow_data: Dict[str, Any]

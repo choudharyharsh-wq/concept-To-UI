@@ -11,26 +11,38 @@ from .design_head import run_prd_evaluator, apply_prd_feedback
 
 load_dotenv(override=True)
 
-# ── Component registry (Figma DS) ─────────────────────────────────────────────
-# Loaded once at import time. If the registry extract exists (built by
-# scripts/build_registry.py) the pipeline uses real DS component names.
-# Otherwise it falls back to the generic invented vocabulary.
+# ── Design-System index (Figma DS) ────────────────────────────────────────────
+# Loaded once at import time from the enriched ds_index.json (built by the DS
+# extraction step: registry key + node_id + description + properties + rules).
+# When the user enables DS mode, the compiler uses these as a PREFERRED-WHEN-FITS
+# vocabulary alongside generic primitives — never an exclusive one.
 
-_REGISTRY_PATH = Path(__file__).parent.parent / "figma-DS-extracts" / "registry3.json"
+_DS_INDEX_PATH = Path(__file__).parent.parent / "figma-DS-extracts" / "ds_index.json"
 
-def _load_registry() -> list:
-    if _REGISTRY_PATH.exists():
-        with open(_REGISTRY_PATH) as f:
-            reg = json.load(f)
-        print(f"[REGISTRY] Loaded {len(reg)} components from {_REGISTRY_PATH.name}")
-        return reg
-    print(f"[REGISTRY] {_REGISTRY_PATH.name} not found — using invented component vocabulary.")
-    return []
+def _load_ds_index() -> list:
+    """Return the list of USABLE DS components: has an importable key and is not
+    an internal ('.'/'_' prefixed) component. Each item keeps its full spec
+    (description, properties, variants, use_cases, rules) for the compiler."""
+    if not _DS_INDEX_PATH.exists():
+        print(f"[DS] {_DS_INDEX_PATH.name} not found — DS mode unavailable, using invented vocabulary.")
+        return []
+    with open(_DS_INDEX_PATH) as f:
+        data = json.load(f)
+    comps = data.get("components", []) if isinstance(data, dict) else data
+    usable = [
+        c for c in comps
+        if c.get("key") and not c.get("name", "").lstrip().startswith((".", "_"))
+    ]
+    print(f"[DS] Loaded {len(usable)} usable components from {_DS_INDEX_PATH.name} "
+          f"(of {len(comps)} documented).")
+    return usable
 
-DS_REGISTRY: list = _load_registry()
+DS_REGISTRY: list = _load_ds_index()
 
-# Build a name→key lookup for the Figma plugin
+# name → key lookup for the Figma plugin, name → full spec, and the set of valid keys
 DS_REGISTRY_MAP: dict = {c["name"]: c["key"] for c in DS_REGISTRY}
+DS_SPEC_BY_NAME:  dict = {c["name"]: c for c in DS_REGISTRY}
+DS_VALID_KEYS:    set  = {c["key"] for c in DS_REGISTRY}
 
 
 # ── IA Blueprint Pydantic schemas ────────────────────────────────────────────
@@ -656,48 +668,78 @@ class WireframePayloadCollection(BaseModel):
 
 def _filter_registry_for_batch(batch_pages: list, top_n: int = 40) -> list:
     """
-    Returns the top_n most relevant DS components for a batch of pages.
-    Scores each DS component by counting how many keywords from the pages'
-    component_inventory and layout_pattern appear in the component name.
-    Falls back to a broad structural set if nothing scores.
+    Returns the top_n most relevant DS components for a batch of pages, scored
+    against each component's name + description + use-case contexts (richer than
+    name-only). Components unrelated to the screens score zero and are excluded —
+    this is what keeps domain-irrelevant components (e.g. payment/bank components
+    in a dating app) OUT of the vocabulary the model ever sees.
     """
-    # Collect all keyword tokens from this batch
-    keywords: set = set()
+    # Weighted keyword tokens from this batch
+    keywords: dict = {}
+    def add(tok: str, w: int = 1):
+        tok = tok.strip()
+        if len(tok) > 2:
+            keywords[tok] = max(keywords.get(tok, 0), w)
+
     for page in batch_pages:
-        # from layout pattern e.g. "list_feed" → ["list", "feed"]
         for tok in page.get("layout_pattern", "").lower().replace("_", " ").split():
-            keywords.add(tok)
-        # from component_inventory e.g. "1x Sign-In Button" → ["sign", "in", "button"]
+            add(tok, 2)
         for item in page.get("component_inventory", []):
             for tok in item.lower().replace("-", " ").replace("_", " ").split():
-                if len(tok) > 2:
-                    keywords.add(tok)
-        # page name tokens
+                add(tok, 3)
         for tok in page.get("name", "").lower().replace("-", " ").split():
-            if len(tok) > 2:
-                keywords.add(tok)
+            add(tok, 2)
+        for tok in (page.get("description", "") or "").lower().split():
+            add(tok, 1)
 
-    # Score every DS component
     scored = []
     for comp in DS_REGISTRY:
-        name_lower = comp["name"].lower()
-        score = sum(1 for kw in keywords if kw in name_lower)
+        name_l = comp["name"].lower()
+        desc_l = (comp.get("description") or "").lower()
+        uc_l   = " ".join(
+            f"{u.get('context','')} {u.get('variant','')}"
+            for u in comp.get("use_cases", []) if isinstance(u, dict)
+        ).lower()
+        score = 0
+        for kw, w in keywords.items():
+            if kw in name_l:                       score += 3 * w   # name match = strongest signal
+            elif kw in desc_l or kw in uc_l:       score += 1 * w   # semantic match
         if score > 0:
             scored.append((score, comp))
 
     scored.sort(key=lambda x: x[0], reverse=True)
     filtered = [c for _, c in scored[:top_n]]
 
-    # Always include a few essential structural components so every screen
-    # has at least navigation + button + text options available
-    essential_keywords = ["button", "nav", "tab", "card", "text", "input", "header"]
-    already_names = {c["name"].lower() for c in filtered}
+    # Always include a few DOMAIN-NEUTRAL structural components so every screen has
+    # navigation + button + text + input available regardless of domain.
+    essential     = ["button", "tab bar", "app bar", "input field", "list item", "divider", "section header"]
+    finance_words = ("payment", "upi", "bank", "rupee", "balance", "transaction",
+                     "popcoin", "coin", "rcbp", "biller", "amount", "kyc", "payee", "offer")
+    have = {c["name"].lower() for c in filtered}
     for comp in DS_REGISTRY:
-        name_lower = comp["name"].lower()
-        if any(kw in name_lower for kw in essential_keywords):
-            if name_lower not in already_names and len(filtered) < top_n + 20:
-                filtered.append(comp)
-                already_names.add(name_lower)
+        nl = comp["name"].lower()
+        # never let the structural fallback pull finance-specific components into a
+        # non-fintech screen — the domain comes through scoring, not this safety net.
+        if nl in have or any(f in nl for f in finance_words):
+            continue
+        if any(e in nl for e in essential) and len(filtered) < top_n + 15:
+            filtered.append(comp)
+            have.add(nl)
+
+    # Domain gate (the hard guarantee): if the batch shows NO finance/commerce
+    # intent, drop finance-specific components entirely so a dating/social/utility
+    # app can never even be OFFERED payment/bank/UPI components — keyword scoring
+    # alone leaks them via generic tokens like "button"/"card".
+    blob = " ".join(
+        f"{p.get('name','')} {p.get('layout_pattern','')} {p.get('description','')} "
+        f"{' '.join(p.get('component_inventory', []))}"
+        for p in batch_pages
+    ).lower()
+    intent_words = finance_words + ("pay", "money", "wallet", "bill", "checkout",
+                                    "price", "cart", "order", "subscription",
+                                    "fintech", "finance", "invoice", "merchant")
+    if not any(w in blob for w in intent_words):
+        filtered = [c for c in filtered if not any(f in c["name"].lower() for f in finance_words)]
 
     return filtered
 
@@ -720,12 +762,14 @@ def wireframe_compiler_node(state: GraphState):
     screen_layouts = ux_layout_data.get("screen_layouts", [])
     ux_directives  = prd_data.get("ux_anchor_directives", {})
 
-    # Force fallback mode until the DS library is accessible from the
-    # logged-in Figma account. Set to True once library access is confirmed.
-    _, _ds_available = _get_vocabulary()
-    is_ds_mode = False  # flip to _ds_available when library access is ready
-    mode_label = "DS mode (real components)" if is_ds_mode else "fallback mode (invented types)"
-    print(f"    Total screens to compile: {len(pages)} | {mode_label}")
+    # DS mode is driven by the user's toggle (state['use_ds']) and only enabled
+    # when usable DS components are actually loaded. When on, DS components are a
+    # preferred-when-fits palette offered ALONGSIDE primitives — never exclusive.
+    use_ds     = bool(state.get("use_ds", False))
+    is_ds_mode = use_ds and bool(DS_REGISTRY)
+    mode_label = ("DS mode (POP Design System, preferred-when-fits + primitives)"
+                  if is_ds_mode else "primitive mode (generic element types)")
+    print(f"    Total screens to compile: {len(pages)} | use_ds={use_ds} | {mode_label}")
 
     SYSTEM_PROMPT_BASE = """You are a Wireframe Compiler. Translate a spatial layout blueprint into a
 pixel-precise UI element tree that a Figma plugin renders directly.
@@ -755,10 +799,19 @@ RULES:
 8. `children` is a metadata hint only — coordinates are always absolute.
 9. Leaf elements have empty children[]."""
 
-    DS_RULES = """10. `type` must be the exact DS component name string — capitalisation matters.
-11. `ds_key` must be the matching Figma component key from the vocabulary table."""
+    DS_RULES = """10. DS components are a PREFERRED palette, NOT a requirement. Use one ONLY when it
+    genuinely matches the element's purpose. If nothing fits, use a PRIMITIVE type
+    (section B) and leave `ds_key` empty — mixing DS components and primitives on the
+    same screen is expected and correct. A typical screen is mostly primitives with a
+    few DS components in the meaningful slots.
+11. DOMAIN GUARDRAIL: never place payment, currency (₹ / UPI), bank, KYC, or other
+    finance-specific components in an app that is not clearly a payments/fintech product.
+    When unsure whether a component fits the domain, use a primitive instead.
+12. When you DO use a DS component: `type` must be the exact component name (capitalisation
+    matters), `ds_key` must be its key from the name→ds_key lookup, and any variant choices
+    must be drawn from that component's listed options — never invent option values."""
 
-    FALLBACK_RULES = "10. Leave `ds_key` as an empty string."
+    FALLBACK_RULES = "10. Leave `ds_key` as an empty string for every element."
 
     BATCH_SIZE = 2
     all_screens: List[ScreenWireframe] = []
@@ -775,16 +828,32 @@ RULES:
 
             # ── Build per-batch vocabulary ────────────────────────────────────
             if is_ds_mode:
-                batch_registry = _filter_registry_for_batch(batch_pages, top_n=40)
-                batch_names    = [c["name"] for c in batch_registry]
-                batch_key_map  = {c["name"]: c["key"] for c in batch_registry}
-                vocab_section  = (
-                    f"ALLOWED COMPONENT NAMES (your Figma DS — use ONLY these as `type`):\n"
-                    f"{json.dumps(batch_names)}\n\n"
-                    f"name → ds_key lookup:\n{json.dumps(batch_key_map)}"
+                batch_components = _filter_registry_for_batch(batch_pages, top_n=40)
+                batch_key_map    = {c["name"]: c["key"] for c in batch_components}
+
+                catalog_lines = []
+                for c in batch_components:
+                    desc = (c.get("description") or "").strip().replace("\n", " ")[:140]
+                    prop_hint = "; ".join(
+                        f"{p['name']}=" + "|".join((p.get("options") or [])[:6])
+                        for p in c.get("properties", []) if p.get("options")
+                    )[:280]
+                    line = f"- {c['name']} [{c.get('category','')}]: {desc}"
+                    if prop_hint:
+                        line += f"  (variants → {prop_hint})"
+                    catalog_lines.append(line)
+
+                vocab_section = (
+                    "Choose each element's `type` from TWO sources:\n\n"
+                    "A) DS COMPONENTS — PREFERRED when one fits the element's purpose AND the app domain.\n"
+                    "   Use the name verbatim as `type`, set `ds_key`, and pick variants from the options shown:\n"
+                    + "\n".join(catalog_lines)
+                    + "\n\n   name → ds_key lookup:\n   " + json.dumps(batch_key_map)
+                    + "\n\nB) PRIMITIVES — use when NO DS component fits (leave ds_key empty):\n   "
+                    + json.dumps(FALLBACK_ELEMENT_TYPES)
                 )
                 extra_rules = DS_RULES
-                print(f"    Batch {batch_num}: {len(batch_names)} DS components injected for {batch_ids}")
+                print(f"    Batch {batch_num}: {len(batch_components)} DS components offered (+primitives) for {batch_ids}")
             else:
                 vocab_section = f"ALLOWED ELEMENT TYPES:\n{json.dumps(FALLBACK_ELEMENT_TYPES)}"
                 extra_rules   = FALLBACK_RULES
@@ -828,12 +897,17 @@ Brand/UX directives:
                 HumanMessage(content=batch_prompt),
             ])
 
-            # Backfill any ds_key the LLM missed
-            if is_ds_mode:
-                for screen in collection.screens:
-                    for el in screen.elements:
-                        if not el.ds_key:
-                            el.ds_key = DS_REGISTRY_MAP.get(el.type, "")
+            # ── Validate & repair DS usage (Stage C) ──────────────────────────
+            # Guarantee every DS-typed element carries the CORRECT key, strip any
+            # hallucinated keys (→ render as primitive), and keep primitives keyless.
+            for screen in collection.screens:
+                for el in screen.elements:
+                    if is_ds_mode and el.type in DS_REGISTRY_MAP:
+                        el.ds_key = DS_REGISTRY_MAP[el.type]   # correct / backfill
+                    elif el.ds_key and el.ds_key not in DS_VALID_KEYS:
+                        el.ds_key = ""                         # invalid key → primitive
+                    elif not is_ds_mode:
+                        el.ds_key = ""
 
             print(f"    Batch {batch_num} done — {len(collection.screens)} screen(s) compiled.")
             all_screens.extend(collection.screens)

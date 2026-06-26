@@ -9,15 +9,17 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.graph import app
 
-def run_workflow(concept: str, figma_url: str):
+def run_workflow(concept: str, figma_url: str, use_ds: bool = False):
     print(f"\n🚀 Starting 'Concept to UI' Pipeline")
     print(f"Concept: {concept}")
-    print(f"Figma URL: {figma_url}\n")
-    
+    print(f"Figma URL: {figma_url}")
+    print(f"Use DS: {use_ds}\n")
+
     # Initial state
     initial_state = {
         "concept": concept,
         "figma_url": figma_url,
+        "use_ds": use_ds,
         "prd_data": {},
         "ia_data": {},
         "copy_data": {},

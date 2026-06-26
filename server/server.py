@@ -108,11 +108,12 @@ async def generate(
     concept:    str = Query(...),
     figma_url:  str = Query(...),
     session_id: str = Query(default="default"),
+    use_ds:     bool = Query(default=False),
 ):
     config = {"configurable": {"thread_id": session_id}}
 
     initial_state = {
-        "concept": concept, "figma_url": figma_url,
+        "concept": concept, "figma_url": figma_url, "use_ds": use_ds,
         "prd_data": {}, "ia_data": {}, "user_flow_data": {},
         "ux_layout_data": {}, "wireframe_payload": {}, "render_data": {},
         "review_data": {}, "human_feedback": {"round_number": 1},

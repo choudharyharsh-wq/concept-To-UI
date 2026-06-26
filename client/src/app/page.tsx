@@ -1,13 +1,15 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Sparkles, Send, Loader2, Lightbulb } from "lucide-react";
+import { Sparkles, Send, Loader2, Lightbulb, IndianRupee } from "lucide-react";
 import { useGenerationStream } from "@/hooks/use-generation-stream";
 import { PipelineWorkspace } from "@/components/pipeline/pipeline-workspace";
 import { cn } from "@/lib/utils";
 
 // ── Idea starters — one-click concept one-pagers ──────────────────────────────
-const IDEA_STARTERS: { label: string; concept: string }[] = [
+// `domain: "fintech"` starters auto-enable the POP Design System on click, since
+// the DS is built for UPI/payments products and component matches will be high.
+const IDEA_STARTERS: { label: string; concept: string; domain?: "fintech"; enableDs?: boolean }[] = [
   {
     label: "E-com app for pet parents",
     concept: `Product: A mobile-first e-commerce app for pet parents to shop for their pets.
@@ -78,11 +80,65 @@ Non-goals: investment trading, tax filing, lending products.
 
 Tone: professional, calm, trustworthy.`,
   },
+  {
+    label: "POP UPI — payments app",
+    domain: "fintech",
+    enableDs: true,
+    concept: `Product: POP UPI — a UPI-first payments app to send money, pay merchants, and earn rewards.
+
+Target user: Indian smartphone users (18–45) who pay friends, shops, and bills over UPI every day and want a faster experience that also rewards them.
+
+Core problem: Existing UPI apps are cluttered and give nothing back. Users want quick pay, a clear balance, and visible rewards.
+
+Goals:
+- Send and request money to contacts and UPI IDs in a few taps.
+- Scan-and-pay at merchants via QR.
+- See bank balance, recent transactions, and earned POPcoin rewards at a glance.
+
+Key screens:
+- Home: balance card, quick actions (Scan, Pay, Request), a payment list of recent contacts, a POPcoin rewards strip, and a bottom tab bar.
+- Pay flow: payee details, amount input, optional note, pay button, and a transaction result (success / failed) state.
+- Transaction history: a transaction list with status per row.
+- Rewards: POPcoin balance and available offers.
+
+Components likely needed: app bar, balance list, payment list, transaction list, amount input field, primary button, status nudge, POPcoin units, tabs.
+
+Non-goals: lending, investments, insurance.
+
+Tone: fast, trustworthy, rewarding.`,
+  },
+  {
+    label: "POP Bills & recharge",
+    domain: "fintech",
+    enableDs: true,
+    concept: `Product: POP Bills — pay bills and recharge in one place, settled over UPI.
+
+Target user: People who juggle mobile, DTH, electricity, and credit-card bills across multiple apps and keep missing due dates.
+
+Core problem: Bill payments are scattered and easy to forget; there's no single trusted place with reminders and saved billers.
+
+Goals:
+- Recharge mobile/DTH and pay utility and credit-card bills quickly.
+- See upcoming and overdue bills with clear reminders.
+- Pay via UPI using saved billers.
+
+Key screens:
+- Bills home: category grid (mobile, DTH, electricity, credit card), an upcoming-bills list, app bar, and a bottom tab bar.
+- Biller flow: biller details, amount input, pay button, an overdue/recurring bill pattern, and a transaction result state.
+- Recharge: operator and plan selection, input field, and a pay button.
+
+Components likely needed: app bar, payment list, recurring-bill (RCBP) pattern, input field, button, status nudge, tabs, section header.
+
+Non-goals: lending, investments.
+
+Tone: reliable, organized, reassuring.`,
+  },
 ];
 
 export default function Dashboard() {
   const [concept, setConcept]   = useState("");
   const [figmaUrl, setFigmaUrl] = useState("https://www.figma.com/file/123456789/Concept-To-UI-Test");
+  const [useDs, setUseDs]       = useState(false);
   const { isGenerating, stages, error, startGeneration, submitReviewFeedback } = useGenerationStream();
   const [hasStarted, setHasStarted] = useState(false);
 
@@ -109,7 +165,7 @@ export default function Dashboard() {
     e.preventDefault();
     if (!concept) return;
     setHasStarted(true);
-    startGeneration(concept, figmaUrl);
+    startGeneration(concept, figmaUrl, useDs);
   };
 
   // ── Full-screen workspace ─────────────────────────────────────────────────
@@ -148,19 +204,33 @@ export default function Dashboard() {
               <div className="space-y-2">
                 <label className="font-mono text-xs uppercase tracking-widest text-zinc-500">Your Concept</label>
 
-                {/* Idea starters — click to drop in a full concept one-pager */}
+                {/* Idea starters — click to drop in a full concept one-pager.
+                    Fintech starters also flip on the POP Design System. */}
                 <div className="flex flex-wrap gap-2 pb-1">
-                  {IDEA_STARTERS.map((idea) => (
-                    <button
-                      key={idea.label}
-                      type="button"
-                      onClick={() => setConcept(idea.concept)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-800/60 border border-zinc-700 text-zinc-300 text-xs hover:bg-zinc-700/70 hover:border-zinc-600 active:scale-[0.98] transition-all"
-                    >
-                      <Lightbulb size={12} className="text-amber-400/80" />
-                      {idea.label}
-                    </button>
-                  ))}
+                  {IDEA_STARTERS.map((idea) => {
+                    const isFintech = idea.domain === "fintech";
+                    return (
+                      <button
+                        key={idea.label}
+                        type="button"
+                        onClick={() => {
+                          setConcept(idea.concept);
+                          if (idea.enableDs !== undefined) setUseDs(idea.enableDs);
+                        }}
+                        className={cn(
+                          "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs active:scale-[0.98] transition-all",
+                          isFintech
+                            ? "bg-violet-500/10 border-violet-500/40 text-violet-200 hover:bg-violet-500/20 hover:border-violet-400/60"
+                            : "bg-zinc-800/60 border-zinc-700 text-zinc-300 hover:bg-zinc-700/70 hover:border-zinc-600"
+                        )}
+                      >
+                        {isFintech
+                          ? <IndianRupee size={12} className="text-violet-300" />
+                          : <Lightbulb size={12} className="text-amber-400/80" />}
+                        {idea.label}
+                      </button>
+                    );
+                  })}
                 </div>
 
                 <textarea
@@ -171,6 +241,35 @@ export default function Dashboard() {
                   required
                 />
               </div>
+
+              {/* DS toggle — build with the real POP Design System (best for fintech) */}
+              <button
+                type="button"
+                onClick={() => setUseDs(v => !v)}
+                className="w-full flex items-center justify-between gap-3 rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-3 text-left hover:border-zinc-700 transition-colors"
+              >
+                <span className="flex items-center gap-2.5">
+                  <IndianRupee size={15} className={useDs ? "text-violet-300" : "text-zinc-600"} />
+                  <span className="flex flex-col">
+                    <span className="text-sm font-medium text-zinc-200">Use POP Design System</span>
+                    <span className="text-xs text-zinc-500">Build with real POP UPI components — best for fintech/payments apps.</span>
+                  </span>
+                </span>
+                <span
+                  className={cn(
+                    "relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors",
+                    useDs ? "bg-violet-500" : "bg-zinc-700"
+                  )}
+                  aria-hidden
+                >
+                  <span
+                    className={cn(
+                      "inline-block h-4 w-4 transform rounded-full bg-white transition-transform",
+                      useDs ? "translate-x-4" : "translate-x-0.5"
+                    )}
+                  />
+                </span>
+              </button>
 
               <button
                 type="submit"
