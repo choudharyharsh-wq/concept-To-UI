@@ -12,19 +12,19 @@ from .design_head import run_prd_evaluator, apply_prd_feedback
 load_dotenv(override=True)
 
 # ── Component registry (Figma DS) ─────────────────────────────────────────────
-# Loaded once at import time. If registry.json exists (built by
+# Loaded once at import time. If the registry extract exists (built by
 # scripts/build_registry.py) the pipeline uses real DS component names.
 # Otherwise it falls back to the generic invented vocabulary.
 
-_REGISTRY_PATH = Path(__file__).parent.parent / "registry.json"
+_REGISTRY_PATH = Path(__file__).parent.parent / "figma-DS-extracts" / "registry3.json"
 
 def _load_registry() -> list:
     if _REGISTRY_PATH.exists():
         with open(_REGISTRY_PATH) as f:
             reg = json.load(f)
-        print(f"[REGISTRY] Loaded {len(reg)} components from registry.json")
+        print(f"[REGISTRY] Loaded {len(reg)} components from {_REGISTRY_PATH.name}")
         return reg
-    print("[REGISTRY] registry.json not found — using invented component vocabulary.")
+    print(f"[REGISTRY] {_REGISTRY_PATH.name} not found — using invented component vocabulary.")
     return []
 
 DS_REGISTRY: list = _load_registry()

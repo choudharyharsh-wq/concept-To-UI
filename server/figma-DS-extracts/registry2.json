@@ -1,0 +1,2984 @@
+[
+  {
+    "name": "AIRTEL DIGITAL LIMITED",
+    "key": "cc531096dfdf76e9b157d9b7fb08837ec41feb86",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "APPLE MEDIA SERVICES",
+    "key": "4214975c5e76ba93c3f8a37110a7a54784d9cb33",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "AUGMONT GOLDTECH PRIVATE LIMITED",
+    "key": "24cb8cea2a11299d838132ffdc009386583ee78e",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Aadhaar service unavailable",
+    "key": "a1f4e6048adec4cecdce1bea8d7730d486802b3c",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Amazon",
+    "key": "e66637f74d8ec313530192eafe1f84f51743f1ab",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Amazon Pay",
+    "key": "80be86df6598f9b1ca1cd1f04086291174609c50",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Application declined",
+    "key": "50012ad0683a6cf1d639d14ca2737619f1f17a01",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Application withheld",
+    "key": "30aec58d72052297c8aa2d68a221693f9f82e285",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "AuraGold",
+    "key": "31f4b4a5b36934fde1396366a8225bdc560cf04a",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Autopay Merch componenet",
+    "key": "ef62451bb4c4bedb2c06bfa1a00d33aeb66ccf17",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Axis",
+    "key": "09dd336d6bd3434f0a3f795d6a78668e99270b94",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Bank",
+    "key": "0bc52314ed96073c1dc30aae9ba37876b0b7f89e",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Bank servers unavailable",
+    "key": "58e1ec8814c99cc2864aaf1587697ee910a50c5d",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Bank transfer",
+    "key": "8c7f93b354efb738127d155e25983655b300a7bc",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/BBPS",
+    "key": "c1111d005f8d18613607dca46fdefe969f8f32eb",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/BSNL",
+    "key": "92b9690f99267540e3205701006fef39118c5dc9",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/Jio",
+    "key": "d796936f4002cd9a238a4f7617aef2b53041b104",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/Mtnl",
+    "key": "0cb3b0dc552a3bb5e16c8ec5c57ee2c279ad2b86",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/Placeholder",
+    "key": "62dfbbc1d88837ff2c0fa4019dc98bf009597285",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/Pop 1",
+    "key": "4ee939dfe41b523e0e62e3e4d1a6fd63b132b665",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/RuPay",
+    "key": "5cda28adc3de5cbd911cff3925aca99e21759861",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/UPI",
+    "key": "e653bbb6445e742bf6c532ee45238ee969199f75",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/UPI 2",
+    "key": "f1139d82377589ba57d6f8ac3d88c44249316d0b",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/Vodafone",
+    "key": "bca3fc8bcc09a485f657b7bb297f5e27c997129a",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/aditya-birla-capital-digital-square",
+    "key": "32b6198ae01d5057ae884fbc1cd831e52c202f33",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/airtel",
+    "key": "37f9b5a1205017c4372287da7286b24510c10332",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/airtel-payments-bank-square",
+    "key": "204a94304372ad62b7fcb401236088248eda0e66",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/amazonpay-square",
+    "key": "698bc368fd35430466ea76b732095a57ce1f17d1",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/au-small-finance-bank-apps-square",
+    "key": "947f03b7a631998db580352e8d6cdf0513b8701a",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/axis-bank-apps-square",
+    "key": "8ccbf3a4206caa064c19246ede80d2b1079de3ac",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/bajaj-finserv-square",
+    "key": "62d82b208f64b017f84e279c41b87207ca453782",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/bank-of-baroda-apps-square",
+    "key": "b131b6f7f2c5b51ac12224e220a508d9eecceb20",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/bank-of-india-apps-square",
+    "key": "3df042993153eb429471fa68274ec4bde332cff0",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/bank-of-maharashtra-square",
+    "key": "064b4f1080a5ac0dcbb0c3843662b42e0e73e83b",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/bhim-square",
+    "key": "7b3181967ce87cf6126b8d52f805c12c0bced02e",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/canara-bank-apps-square",
+    "key": "c61cfdc78639e977e61aaaa886d8fb1a2553a1f8",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/central-bank-of-india-square",
+    "key": "8686e134022681fd5277056d31d29c51c4291e7d",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/citi-bank-apps--square",
+    "key": "97a53344304667386d16690b5ccca925ea6ae9ea",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/cred-square",
+    "key": "f54d9d93c173c3d4e06cdf21adb27b1ba25a4acd",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/dbs-digibank-apps-square",
+    "key": "4ae17697c482f5f6c679238f92da2c2d3b9633a8",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/deutsch-bank-apps-square",
+    "key": "f11f60c5e8c6a0db669a9dca6c59d565dd257ae3",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/dhani-square",
+    "key": "19f18162bd0bbad01c74f4db12f03295e063f095",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/digikhata-square",
+    "key": "7e4588c5eb6a552fe4c5ec780802f6969da87528",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/equitas-small-finance-bank-apps-square",
+    "key": "a0546704a2d757bf97735224d52d0eb3b4640e04",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/fampay-square",
+    "key": "c11b8ecb14732a3ac519bce081f051694ed265c2",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/federal-bank-apps-square",
+    "key": "d0b53f8d91dcf5ab4e611cdfd1cee78be0d1d2e9",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/fino-payment-bank-apps-square",
+    "key": "8c0ec6516243dd03f44bffe4b2f52fc0a19124b7",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/flipkart-square",
+    "key": "b2d962b87784dd9cd51f180cb861e34e95bcb7d1",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/googlepay-square",
+    "key": "055f74ac84d55b6760dcab17be37b2b5ffa19882",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/groww-square",
+    "key": "5847182faea926e88c174d96111b049719c028fe",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/hdfc-bank-apps-square",
+    "key": "9ed782b4aa0641b600d43d08cdaccd6db29a8f60",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/hsbc-bank-apps-square",
+    "key": "726e6273a660dfa36f2e2d18c6c23a55bd96a62d",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/icici-bank-apps-square",
+    "key": "4b9778400dfeb1ebd852438ee392ffdad331178b",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/idbi-bank-apps-square",
+    "key": "2e1cec7ca8a451eb5539da7d6a1324b8d28b131b",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/idfc-bank-apps-square",
+    "key": "dcf3134fdf5db8dcddf849803bdc62ae3bc2cd71",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/india-post-payments-app-square",
+    "key": "9cdab96ac83f8baf7292fa36388a6dc08faec820",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/indian-bank-apps-square",
+    "key": "76aa7de77b3a48e2f585dd3b81bc6833d047edf5",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/indian-overseas-bank-app-square",
+    "key": "7e6a13fb48f7c669c64f55dc59163dc7c2ff48d7",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/indusind-bank-apps-square",
+    "key": "a0f9ad32cdf535ba6d2171150c3f26d29bb40f7d",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/jammu-and-kashmir-bank-apps-square",
+    "key": "792e7fcfbe2146818507cf1dfdeaedc2916872f9",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/jio-payments-bank-apps-square",
+    "key": "152aa27713fd25fa29a3e14bd7fd908a1de7e0c1",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/jupiter-square",
+    "key": "b39a061b5160cef736b34fd291ee173e765334e4",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/karnataka-bank-apps-square",
+    "key": "7c7ae2560f54ffad11a7e3d17ef78f2a974d8c35",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/kiwi-square",
+    "key": "d711227c39ea3d8e2f4ff97120f7bdfcf8ee6cb2",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/kotak-mahindra-bank-apps-square",
+    "key": "4c0079ead97995b96fff4d6329ef933132d432b5",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/krur-vyasya-bank-square",
+    "key": "68c2763ab8c1d195d1f8b77568779d6e9faca38c",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/make-my-trip-square",
+    "key": "78de5d3aba4f34fd65ff58edcf963d83f59be341",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/mobiqwik-square",
+    "key": "abe1bbd88ec47a271bed09ce306231b023916e07",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/navi-square",
+    "key": "8cadab713fe7561fabbd9a6978b6f143dd76c7fd",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/niyo-global-square",
+    "key": "6cab80c7e358a1a56b3d2984ee0f7d11973fd72b",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/nsdl-payments-bank-apps-square",
+    "key": "556d1fcb1f0d60dc1cb1465cf6fdf05e1bcdd86c",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/omnicard-square",
+    "key": "18311573938e09c646072967c25c2a0fe6eeb133",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/paytm-square",
+    "key": "0d04e9d66218653d913a0cd8f59d7a902f065203",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/phonepe-square",
+    "key": "07bd7c18522de81c73135ce6f9b1fcf5b084de4c",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/punjab-national-bank-square",
+    "key": "0c0c92f4a1db2f2686e0a0450487f62fc5abc68d",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/punjab-sind-bank-apps-square",
+    "key": "f2067deab7f0698265fc0eee9ef53eb64671b69e",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/rbl-bank-apps-square",
+    "key": "78cb855be1dc1f4c999d10e9bd20cb53ccffd51b",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/samsung-pay-square",
+    "key": "3da3db46d714b4db002ccf7961c95e69917cf014",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/shriram-one-square",
+    "key": "129ac1ecddcf2d4f0b130c851f89af912f4c2155",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/slice-square",
+    "key": "859f82923abc8fa23c23070ca17ddac5702a13a0",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/south-indian-bank-apps-square",
+    "key": "eebb62b8019da6a4f6507e3e2b9c68b92b60f06b",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/standard-charted-bank-apps-square",
+    "key": "b380ad48bea00eeff2c3abac5278b95955e377ce",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/state-bank-of-india-square",
+    "key": "a243f45ac9ead09926cc8cbf138b657d1a518c9d",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/tamilnad-mercantile-bank-apps-sqaure",
+    "key": "cd2b5310a31adc9548e706468f96335f76d65106",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/tataneu-square",
+    "key": "47735eb6b5c1eaa2d9293d3940082b7d2190484e",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/timepay-square",
+    "key": "f0bb06b5a55c60f0e08e123398c4ce929e0bb5dd",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/uco-bank-apps-square",
+    "key": "78e72651361e962799cef8fd77b17e4d3a20ed18",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/ultracash-square",
+    "key": "20fcd222499dd3634cb7596da976c33b5120325c",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/union-bank-apps-square",
+    "key": "cce9c1b0c95774d21d200d2555ecc4c97be1b74b",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/whatsapp-square",
+    "key": "674a655455e544707ca217a51c49b602e32d603d",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Banks/yes-bank-apps-square",
+    "key": "8670e2c7d77e7e04cee97b2d213929b636cee6ae",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Bento Grid - 3",
+    "key": "778f24edf966d67417f2ccdf920246c4de0fe8e6",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Bento grid- 2",
+    "key": "997a1db53bb214f241c5c9e9c27d8d671fdad8cc",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Bewakoof",
+    "key": "711edd5b6ab401af0f458ef26aec7041b6582827",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Blocked VPA",
+    "key": "26d523166796d4b078e79ccb1098298b60b76644",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Boat",
+    "key": "55ca0a14ac8a4ccbdb1034cd95b32655906167e7",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Bombay Shaving Company",
+    "key": "0510e23383bee031700aa5ce15a6a25296881b1a",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Bonkers Corner",
+    "key": "721ddad5572188fc8ad9108c7533dd64a114ff25",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Brand logo / Cetaphil",
+    "key": "3023e0eefd1ab6838202eb221ce38bdcd8930d7a",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Brand logo / LP",
+    "key": "34a61c70b5cbed59b3a2240a85ba549fa9a955e4",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Brand logo / Plum",
+    "key": "47bd84c012153488dfc491b2869696ecbf967ec1",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Brand logo / Zara",
+    "key": "3a704dddac24a6eb05588097fd542c7e282d9949",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "COLD BREW TECH PRIVATE LIMITED",
+    "key": "d3ee783f1f043589ec794096259fc83831adc691",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "CSAT",
+    "key": "0978a645529f3dd54a557498da99133e61ea4d2f",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Camera",
+    "key": "4a2e4747f5c8161be083ad3ff67179891bac2e31",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Campus",
+    "key": "0e004c6545a1ff5ad840209924af52e9cc570cbd",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Card - RCBP - Pattern/Overdue",
+    "key": "890446aad4862ed50cdd760de4db9903e258234e",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Card set",
+    "key": "09724187ee7e2a15a0a801fa56e897cfef46150b",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Card stack",
+    "key": "2ba0fa166c6235d943c3a2f5353aa0150b75f152",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Cashfree Payments",
+    "key": "6ff3b7c9d7df56fb0e603e911764a519a33d0511",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Certification images",
+    "key": "99c60ea1f37ac6d71da3fcde46d5d445c1aa7607",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Check balance",
+    "key": "ce37c57616efc3681e29295d5e7542179143b297",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Checkmark",
+    "key": "fb63b550993803053993df0ee822dc0388a62de8",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Collection of money 1",
+    "key": "3bf6a45e035ebe72baeee146626bf878b9254770",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Color swatch",
+    "key": "3234b0de2f5c33bcb0b0f9a48fdb96ba93f1796e",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Comet",
+    "key": "399c528c3c8bc28674324df0fecfa53f0c6eee00",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Completed",
+    "key": "271d4b6ecbaf7449c486616da85fa0b3e6a791c8",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Component /card with bg",
+    "key": "1057b6ab583227bc97b93eccb4864a6178a4b746",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Component 10/card",
+    "key": "269f229d97e96a9eac6a1be3a47babdd8da23f26",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Component 22",
+    "key": "583583a556ea53e988f7275bb407fe6e68912574",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Content Card - shop",
+    "key": "c11245d1be79227c78ce38e6dcf3f240c1af8db0",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Content card stack",
+    "key": "7c46810f40680ebdb7c710a2c51bec488d17fcb6",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "CrunchyrollPrivateLimited",
+    "key": "245a541fc5c4d99d946867f6b04b93e6da09cfc5",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "DASHVERSE INDIA PRIVATE LIMITED",
+    "key": "ec37ad2ed85ff14dd9653f692628a5101fdabac6",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "DECIML APP",
+    "key": "3a2b1f08d3fcbbd8e01d9db978dcaec4526191a8",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Discovery card",
+    "key": "478cb2f7ff874976c73c3c818efc4de9f48a6b98",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Error",
+    "key": "f56fd90840de127f852d8f655dcf2493e2193a0d",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Everything UPI",
+    "key": "ad4b61c4c5e80b6a942d96a23eccf2eecd294ec7",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Exit",
+    "key": "32dacac81b8b3f9bc26082ba9f0451e9b6777b8d",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "FATAKPAY DIGITAL PRIVATE LIMITED",
+    "key": "ee38ac21aad83b622d7803d96f69ce040731cc6a",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Failed",
+    "key": "2300ef2bcd528f5316cf224e1be894b83285c9b7",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Filled Icons/Cart-Filled",
+    "key": "601fd86b2223e3b2a64e75eb22b6bd31fcace094",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Filled Icons/Heart",
+    "key": "117d14c6c980edc253e2f9a7d8a71320d6e51920",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Filled Icons/Placeholder - filled",
+    "key": "a852cc34ebcd9fafff63259d0ee2f49bfe7a3435",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Filled Icons/alert-circle-Filled",
+    "key": "9a9388835be8e41c757c0a9f219ace97cfcd4610",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Filled Icons/alert-hexagon-Filled",
+    "key": "b3b912b80bdeda221cf8f3683ed501453ef8cfdc",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Filled Icons/alert-triangle-Filled",
+    "key": "872eea95769e8b624ecf67744e2c7ec0a01c033b",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Filled Icons/bank-Filled",
+    "key": "4db8f027d68c7fe340dd8aad4f5836d9d13f73b7",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Filled Icons/bell-02-Filled",
+    "key": "ea94dc223da7098bb1b3b9c2499f616929b79d88",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Filled Icons/bell-off-02-Filled",
+    "key": "76e1debd5351ee1df9d23939562c7e127a4af214",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Filled Icons/bell-ringing-02-Filled",
+    "key": "69342e05626200da9a5b2aeff13a629caa531072",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Filled Icons/bell-ringing-04-Filled",
+    "key": "434ba15a57184b03c83f1f093fd79ed9d105639c",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Filled Icons/check-circle-Filled",
+    "key": "17a08b0fcb35557542b2c9b202ed42793f57fc5a",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Filled Icons/check-verified-02-Filled",
+    "key": "17403a27421329ed6ce1546058386112ec16af4c",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Filled Icons/credit-card-02-Filled",
+    "key": "3c44998c2e36c1bf9db9859aa5d63f7ba01b1ec3",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Filled Icons/credit-card-x-Filled",
+    "key": "85bba2f06346d7a26d37a89a0744d6b781f7122d",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Filled Icons/eye-Filled",
+    "key": "9bd636b8dacf53efb3d6ed6e33f70766ee882b34",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Filled Icons/eye-off-Filled",
+    "key": "a5593fda5682b45cd1a33efef2c9550b7eb1f6b6",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Filled Icons/flag-02",
+    "key": "742c52d0f50bcf99f91693b397760c6649b8e5a2",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Filled Icons/gift-01-Filled",
+    "key": "a2ba037d40ff290112816e2f4fd31920827563d3",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Filled Icons/pause",
+    "key": "d7cea8ee698a66fa1f008f632b4bde687ccd281e",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Filled Icons/play",
+    "key": "438c24c8dec4364a164a466fe0a403ef625bd3bc",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Filled Icons/plus-circle-Filled",
+    "key": "fa9181fc0416230ee358fd2bdc9bbd25e0ddaad5",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Filled Icons/receipt-check-Filled",
+    "key": "755a0b5fad480a7981dabe5ba50d04ec7a066a1e",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Filled Icons/sale-01-Filled",
+    "key": "d008236f8d14a187d6adb4f11175c05d63c5ab6d",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Filled Icons/sale-03-Filled",
+    "key": "2684caee0b542664b77a7d91481c805bd15527f5",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Filled Icons/settings-02-Filled",
+    "key": "904e1da41858c38809aa75f7cac15ae8ed78ffaf",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Filled Icons/share-06-Filled",
+    "key": "08d05c125ab63fbe3d31d4d5010116301521c9db",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Filled Icons/shopping-cart-03-Filled",
+    "key": "778f244212a6545c9881c5fefa25f65ad3e46bec",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Filled Icons/star-01",
+    "key": "1fb790b15ca7232e9ecb0a4f256983786d7a42cb",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Filled Icons/trash-04-Filled",
+    "key": "a7d082e195c948c5b3d15a6609b5c4d91269b4fc",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Filled Icons/upi",
+    "key": "42e1f17e99fbc9569852ce468b4b45c0347442a5",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Filled Icons/upload-03-Filled",
+    "key": "e289ed2afe35546c02be7f5b71d7737d476c9e61",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Filled Icons/user-03-Filled",
+    "key": "8ffa07f44a5b1883a8d5391b74e9b2333301e8b1",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Filled Icons/user-circle-Filled",
+    "key": "3c801c925926e2b93455c847639a4b356026af92",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Filled Icons/zap-Filled",
+    "key": "cbdec8855e5cad88d90ca93bb7aa6c06ab2777da",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Folder",
+    "key": "8395e8797ace5f0c34c1c32ddd2918772a9bd5ff",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Footer/ button+amt",
+    "key": "27dad26def073a953ac8b5efe07f89365f73513f",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "GULLAKMONEY",
+    "key": "0f2de0f957260f4e5d94c7c9dcf326acc11b6ce1",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Gamma Gaana Limited",
+    "key": "1a60c390a8329b0c0e30747fb68668dac6f120b9",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Google",
+    "key": "122145b0676ddc267c3b21b90cb68de8adfee7b0",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Google Play",
+    "key": "226aa9e41d1af2b60efc726745b132b55e079629",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Grid unit",
+    "key": "76d6a7e5b8fc7429eadc03bcbe55bffb296671df",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "HOSTINGER PTE LTD",
+    "key": "2ac9b68170a7b82b1ef35fa188ead6cd52f4aac8",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "INDmoney",
+    "key": "6bfac3f2fa2481cab7a4fe38f645046a9f7cad62",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/ EMI",
+    "key": "d3417cbfaaf489a200f099fc5c0dbef2f57ab17d",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/ vertical loader",
+    "key": "fe907adca451d44a21a5db6da83d08aa09a6aa72",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/Autopay",
+    "key": "40e155d4168030543e4e6d6587682497bc63c42b",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/Cross",
+    "key": "a66f267f675feb205a1dcff87d9eaf1c7f761323",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/DTH 1",
+    "key": "93aa98c47153a72fe8c8ba01481397f4cacd204f",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/Deactivate",
+    "key": "2e2a29dc9e93db686880c36a8a8bf12fba1d5c9d",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/Headphones",
+    "key": "3a813609392ea4eadbd024a5630377ed63c93e61",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/Heart",
+    "key": "5e2c3f8ef93c5607eb130282e57b8c94d1ba2a9d",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/Offers-%",
+    "key": "a4434d6aa77fae4f684a5c56c60d7908c8ed2202",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/Pending",
+    "key": "08952767c72b3cf28d459b852d38a0971a2ca41b",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/Placeholder",
+    "key": "5acc2255aa400be943932a206c0f0f20e3a78a61",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/Refresh",
+    "key": "0088a57701d2c3f8765c695d54fac1e3729ff856",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/Request",
+    "key": "2c7e3f0852ab30219149eeb3e6de6464786114af",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/Slider_03",
+    "key": "72b3f77896d1889b349b67369f83986a6b7d9141",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/UPI Lite",
+    "key": "97a5deb1dccbedd00c4024cec455b0398528e79a",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/alert-circle",
+    "key": "4999231ade45ff617fe7a2c6ee97b36fab3ecdd3",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/alert-hexagon",
+    "key": "dbc4b43487e04739cd60994cf611b440b9ebe793",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/alert-triangle",
+    "key": "c385edd2005d38150aff05875f9107fb93de65e1",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/arrow-narrow-down-left",
+    "key": "6a36cfbb2b18df4dd16972841032e04fb41be9e0",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/arrow-narrow-down-right",
+    "key": "7ba75f0e6da4cfbdc801e13c43d235e6c97d380a",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/arrow-narrow-up-left",
+    "key": "83c783ca60e2752a54a0f63b4c1cfded6e727bdf",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/arrow-narrow-up-right",
+    "key": "43ef02704c0ce4523c86216e7cd14a2759eea285",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/bank",
+    "key": "5bac5a2227604919823081ce3f481efd5ae03290",
+    "description": "bank, building, currency, deposit",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/bell-ringing-02",
+    "key": "b8e6cdd0ce7bdbb1b5a6b72a88938dfb2cba2f96",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/bills",
+    "key": "16b5d1a55e036402104b988f804faa7f0cb0f84c",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/block",
+    "key": "244845e8e958c0e554e47cbbfe43eead7487855f",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/blocked VPA",
+    "key": "a17ae2f7340eba4673a82b4d9b9197e3ba356715",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/book-help",
+    "key": "19107f46ce715a6fe7d185b26ffe323ca7a2bd5d",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/camera",
+    "key": "d93569cad54cb9231ac9761e993ff66c09cb738e",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/cashback",
+    "key": "152b82b276ae9db9e1c317a2a85367d2558c3727",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/check",
+    "key": "bfb543c3864039b1b915a821a3513ed96248b542",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/check balance",
+    "key": "e9900d0744259df33aa204b4f9ce784f31985ac4",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/check-verified-02",
+    "key": "2fb3b0f9bb212ce0ed32e61b26810ee16e6ef9e4",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/chevron-right-double",
+    "key": "d11a12c2c102481180f5c9b87d938ea8200ff73f",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/copy-06",
+    "key": "66120310b30f15bdabd82ea55e8e4522bb842245",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/create upi no.",
+    "key": "cd381abb6a4dd0878f3c419daf51db00f6c382c3",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/credit-card-upload",
+    "key": "251f6eaea4fac5b2d2b4c60cb533a3549aadcfe3",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/currency-rupee",
+    "key": "1a9569ac70a71b243b11edfe7e2f9a5aa23af133",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/delete",
+    "key": "8786d21bfe37b7eeb14dd0dda539e93dc12a3b83",
+    "description": "delete, backspace, editor",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/delivery",
+    "key": "80c5d6a174bf8097513fbf8a1030661cdb5a8a07",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/dots-horizontal",
+    "key": "c65bef58822e97f7bb5cb90e6bfc977e35f782d2",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/dots-vertical",
+    "key": "da5b49b917d02772b327f5bc664d14d48190d087",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/download-01",
+    "key": "87cb49d655de9c79699513ea209662e6d21674d6",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/electricity",
+    "key": "a610da5757e1fe7137dd610d014a8dd51723b0cb",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/eye",
+    "key": "09f2a5ab0ceea587a126095349b8be728b7cb21f",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/eye-off",
+    "key": "2a82f63ea5b75b93806a45c88172f614415480b2",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/face-id",
+    "key": "83de30159d90b8285568a1b1d379c9165a3eab46",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/fastag",
+    "key": "e481c6763d01e51b4ff3bdd3a5d6511979b0aee8",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/fingerprint",
+    "key": "3f582c7f67f67edde765aa891ac272f1d065003a",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/flag-02",
+    "key": "f2d5f3c12796aec71a3771593ef2d6f105323e27",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/gift-01",
+    "key": "d3f35ad2e8e938f13df0c8bfe759f48cf60f3bf0",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/hash-02",
+    "key": "056baa22b7e6efb1c5f17a540ee9089729e7efed",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/help-circle",
+    "key": "c2971c220a45d5b4167066df212882ba8b930a39",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/hisotru 2",
+    "key": "fa93f6db573fa101dae61f1e3f050de83d88789f",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/home-03",
+    "key": "9dc378291e7c0e20014bbd2377c080f8d8d61bc1",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/image",
+    "key": "ee0eaf02cf60017ae1a9c11a9ce1a63d618bb09c",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/info-circle",
+    "key": "a624d946262066c4a3e2607467e339bfbd870387",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/info-square",
+    "key": "2139fb0f7ab4fd989c4fbf8b25b0ea0fac4d8d2b",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/link-01",
+    "key": "c0b5c1f6bdd4e8661f0949dc3c7161315fa64c66",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/link-04",
+    "key": "d14fb341bfe2993727036a1f1beb1d2b669f85c7",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/loading-02",
+    "key": "89c94b759ccd7ec4530ab1f70ba3be9bebc8aad1",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/location",
+    "key": "e471be74605664c0220d38db1c0b969f66fd5cf8",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/log-out-01",
+    "key": "3f4ea619cc541a1bda99906e6dba5b4a3c50522a",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/mail",
+    "key": "c9710171e53cae89eed37e45da4ecbd7d34e941a",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/manage accounts",
+    "key": "f9c1634a07e930b56bedbbd7ef1d2c0289a9ae16",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/manage autopay",
+    "key": "5664180dee02174b8a416f6d427381ac20caf4e7",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/manage upi id",
+    "key": "e688c507c6db989fb9d1c02521bed778065a4a8d",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/mark",
+    "key": "7c78210a235cbd886b929e6e9e2a758162dd1e03",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/marker-pin-04",
+    "key": "5aea769dfd1b3316763ef5fcec0166c85c7fb6d0",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/menu-01",
+    "key": "c8517197d17f336a0ff22bed77ac364b486f797f",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/message-alert-circle",
+    "key": "50bc7317016078a6d31d28050081e2345306ea0b",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/message-text-circle-01",
+    "key": "65f8e80ee3a7d15167c7f2496f886d31995d62f4",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/message-x-circle",
+    "key": "433a61f9585772eb4ea3785ba20bf6ae6c0ddd04",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/mobile-phone-01",
+    "key": "e8c41d6501febdadffd6231ddc328611c1baa699",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/money-4",
+    "key": "d95320dae3e5dfbd19ab8e62601a3b14bef09dec",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/more",
+    "key": "724a05aaf77e2ab0c7b31f03542e469f0cbb0e40",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/mute",
+    "key": "52ece3908fe730a9b1ad74c57a8dfb27fa109031",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/my queries",
+    "key": "a51ee841c9f5fd9dcd93dc0b183a9ecdbeca025b",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/passcode-lock",
+    "key": "14e840e750f903b38e3520ce0f0cc8b418bc5e99",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/pay-bills",
+    "key": "e31cdd621f33073460d098a46a3ea8c7210e7941",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/pencil-line-edit",
+    "key": "8f0c2f96b09a6b21542aa7dde2322ce1c0cca72f",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/plus",
+    "key": "bdffd300f534ac43e7f8578092892a16124cf001",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/qr-code-01",
+    "key": "814e5500dfafaf745b3963b521be66adf357063b",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/queries",
+    "key": "98fb9e2f65987fb0391fb309d19077e08ed9a3b2",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/random",
+    "key": "b29a4ad85040748bd7f1cfc9451f42ce6870099e",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/rate-us",
+    "key": "603c4276c8c18d3b343090340d8be5185a6f6fab",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/receipt-check",
+    "key": "4f0cba5724184ab935f9272d2148ca70338c58d1",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/refresh-ccw-01",
+    "key": "06f297988642e4b7629bb577b3750b1262e20355",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/sale-01",
+    "key": "fb6305cb374b11d32f80794ed165f6413824fbb1",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/saved",
+    "key": "d24255d86930ba85beab5b7fa09bd8d38e74186d",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/scan QR",
+    "key": "9381e67942c85a773bd077b07a9c17569a3629e7",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/search-md",
+    "key": "3a4ea1b096e50405847635daf2612f8e7e28a359",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/send-01",
+    "key": "17c88b4b2d846aea41ec5abed5ce6a691aa8ea25",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/settings-02",
+    "key": "00ba4e813411194e32edfa5a84cd530bd10d8f98",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/share-01",
+    "key": "efa23d1af5a3058a6336fe80a2aceb0d1204cd98",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/share-06",
+    "key": "c5c47b9c7ffdd63e12a6f4f5fa25098f07e1cf20",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/shield-tick",
+    "key": "76fc981faec4154e19ac93d016d50a0ebe7a1e6a",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/shop",
+    "key": "c33060459b4efe73b70b06e96d36d3613b6a7001",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/shopping-bag-02",
+    "key": "e883eb23d356f48c697b603d17264da0979efc01",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/shopping-cart-03",
+    "key": "7ab9ce78f1003be4b62782a1703661d24edaac4c",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/spam",
+    "key": "09eb553b67211b01df77f6bf48fbc3c0cd01d75a",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/speaker max",
+    "key": "d7efd297c43ce82656d20e149f8b45133fb3c73f",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/store",
+    "key": "6e1165cbaea8ded3c79a6ac1e0d608e34a71ce02",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/sun",
+    "key": "feed70c68e7d268cab4b79792a83c2fd6b953ea2",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/terms&condition",
+    "key": "9842511f74db8e19798be480ae3ff15fae9339b0",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/torch",
+    "key": "5bd666307bc682a88a4c7547d0d883894ba756b0",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/transaction history",
+    "key": "f4d63c80e176e34ac6dbca0fa08c775a97f44285",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/transfer",
+    "key": "08ccf943341a21bc0bf2109d80f756cce34d2392",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/trash-04",
+    "key": "edd897218b0b8ea76e24f2706ddecf1afc66e676",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/upi",
+    "key": "1e778bbc6dfa0f48df86d9573676f48f9313e1a4",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/upload-01",
+    "key": "5b3f0522bc8d1f43a3e9d345f9f1c90ba6656036",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/user-01",
+    "key": "2c1d083d82807ddf9fcaea2769608cd621f2740c",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/user-square",
+    "key": "efa478e314c8c59ea7aea8c68507f057031816b4",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/user-up-01",
+    "key": "1d438c30199c138531315808108ab9ab822863d3",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/users-plus",
+    "key": "6712e9856ea3230eb4fca8b5de402a423d867508",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/zap",
+    "key": "b80f5064850c434c6917cf7e0533f4420ad12c7a",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Icons/zap-fast",
+    "key": "b29875ef16234a274e56b4ac27fd9c44ffb1bf76",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Illustration/Cash-Money",
+    "key": "8cf1a11ac2be68aa001ba483be1df41bc62c5b9a",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Illustration/Check-02",
+    "key": "99f4263ca4aa06888acbf9debb92df2bfd87513d",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Illustration/Decorative star",
+    "key": "8ef9c434d062f070a4ee3c4a8fb91b6e8cc79595",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Illustration/Default",
+    "key": "2ecb37073ab7d4da234564199fb9c4707334a68e",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Illustration/Error",
+    "key": "2fecca3c245172d157fb52dcf9ba50d4e55bf4ac",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Illustration/Offers-%",
+    "key": "e7ac527bf3e044d557314fe38de871d206d4814d",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Illustration/POPcoin bag",
+    "key": "78f6d053b8345296fce6d7671ba132be1ae55c88",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Illustration/Payin3-split",
+    "key": "216d747a8e00a66623d3ec92d444e24e308dcb25",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Illustration/Pending",
+    "key": "9ef306dfff442b4e210eac774d9dd84ab15f297a",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Illustration/Shield",
+    "key": "c9be215d4cc09fd9b035fc23d15c2c90c4400655",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Illustration/Star-Shape",
+    "key": "7003626aadf40de924892a1cc55037c01c8509c2",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Illustration/UPI Lite",
+    "key": "21fc4db59df9c796996c43ccf829a7946bfd7d97",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Illustration/coin tilted",
+    "key": "46185989ee9dcbf70d679ed8dac756c5adf8e31f",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Illustration/fave",
+    "key": "131b09e6a93ed67bb5d6068cbd9056dfe44da621",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Image Tab w bg",
+    "key": "25939f059f55bf6496c9a622af4ad43c57f86ee9",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Instamoney",
+    "key": "cdf4980ed21c47766316a26423392495ec61b676",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Issuance callout/Default",
+    "key": "beb2690aad5a482f9f69a958d26916044dd7a6a5",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Jar Gold",
+    "key": "82f520542752981b3468b09da6629795f26592a3",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "JioCinema",
+    "key": "711a5550d5fd9fe053040afc358e851ab015aeec",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "JioHotstar",
+    "key": "18f41ea29fc192cbe8540c605c7dc9bf567fd338",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "KYC not completed",
+    "key": "d147feb15fc1826f16d11fbc5372139fa9a052d7",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Keypad",
+    "key": "12c04556299a802e77d564e3639d4b3c52dd251c",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "KreditBee",
+    "key": "7d6361b150cd2244664f3f494ed39ea4f11866f5",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "KukuFM",
+    "key": "813693819d53ada8b33a152464b9d9430c043867",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Lenden Club",
+    "key": "3ffbb35a6d9f2e0f7fcee27fd63f2b195afe77d0",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Link UPI",
+    "key": "64be78fe518e3e7b4175b70c93645da93f4e51c4",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Local Card",
+    "key": "d3e45977cb46fc1215bd0a01d85989881ccc1733",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Logos&Others/Indian-flag1",
+    "key": "5bf483a9f8853726aad3be9d1f7fa20d500a0ea9",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Logos&Others/UPI autopay",
+    "key": "d5fb7832b8ca65cfa65e896aa823f3d3f1cd3138",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Logos&Others/upi lite",
+    "key": "305317c3bd39b68a908b84e7a6b95a65aff23484",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Logos/Pop2",
+    "key": "6cc9490f1c84fdf3c0b70ce13bbea7ad8f3b2ee3",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Logos/upi",
+    "key": "aa3faae4584b0e3e8cbda42a2551a407234577e3",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "MONEYVIEWGOLD",
+    "key": "9972d2909282080e766e7b64202225320f25310a",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "MPOKKET",
+    "key": "a9fe765b02a9a95b38e66b6a509f0c9d3ab022f9",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Mailbox",
+    "key": "0ad4dbfd7ccf7c89c7d4f705f02ed0b5899e2167",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Manage autopay",
+    "key": "83f1d4ad87c6fd2a9395898ea2d06f1d945c0e7a",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Maps",
+    "key": "ef0920eae9a74a8810f5955ac4f9bc67c17a0ad4",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Mini - Card",
+    "key": "89df806c5bd404cf74fb59b6ee14d0787207ad5d",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Minipix Entertainment Private Limit",
+    "key": "c5f556b84c0495aaab7579fd4a7903654a4f3d8d",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Money pot",
+    "key": "bec805725c60526f208d4aa2b95e1049417fb288",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "NAMMAYATRI",
+    "key": "a50aa1febe5788297ee766f106f9d89726cfee12",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "NAVI AMC LIMITED",
+    "key": "2336c8d83fbd0a43a878746a5ee7eeeaad2eb983",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "NETFLIX COM",
+    "key": "2e21e2d392f529fb7cbecd8bc90703df4620f12a",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "NPCI",
+    "key": "47725075fcaa579d7f0aa002f9f122e1a1e7abd9",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Neeman's",
+    "key": "35b8e2d1906b207c3b6acdd73b1370324e82ccd9",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Nike",
+    "key": "bc4839d7992cdd53ac7e80d2dd47047a41844856",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "No brand icon",
+    "key": "0c11b868cbb46f8cd0b8a27cbb7db8e946c714f3",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Notepad",
+    "key": "2193600ecee57b35ba772c8879873cef1671f427",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "ODP-list",
+    "key": "2bfa240118222d79f28b005610cd00b0c6f50a4f",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "OLP-list",
+    "key": "e64928f676b1a0456e547f35d5b5a37695400cff",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "OOLKASUBS",
+    "key": "2c32b2ce63b663528fe9ebd348b6a57963f6dcd8",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "OTP",
+    "key": "0303c2ff0a7b120df05c006193cd9750720bce1b",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "OpenAI LLC",
+    "key": "a567a9a98c00638d887f28c0e8edd8d25eeff1d1",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Overlay",
+    "key": "f5bf58a192884854d9fcc67d32ee0f748624263b",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "P3 offer image",
+    "key": "cfea2abcc42862a7c7fc6bbdc67ee26a9e46d242",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "PAYTM MONEY LIMITED",
+    "key": "4516a95054b9aee4105b9e985e2ea8bc5bca69c3",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "POP coins",
+    "key": "eb9c3fcf2a69568e102bbafe9e92c8bd79b18726",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "POPcoin - Unit large- stylized",
+    "key": "88f44f3787537508c0ce0455d49a635318c5333a",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "POPpowder room",
+    "key": "6316cbb7622692fc318687a7d57087be55be82f3",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "POPtunes",
+    "key": "d6ed1971efefafe22293446171643ff48657f5fd",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Passbook",
+    "key": "eda09aaafef96af63da15c54461887a3a3ce3e9e",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Pay friends",
+    "key": "eaf1d875efb0bb428332c0da1a50763da9b51111",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Pay with biometric",
+    "key": "7a8235f7da3a1bfb567856c3d2dd8af190a265fc",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Pay with face ID",
+    "key": "9f706e3dcea8ff4842de0e6b0d2ae9bac425cb93",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Pay with fingerprint",
+    "key": "e58d9f716cca43b7a86fd38c9bc458f6b593ca26",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Pay with touch ID",
+    "key": "9b9775c5e1f994ab89e1bd563507ced99ad4ec22",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Pending",
+    "key": "657e7078de5ce9fd8ce328b965d8a55401459c66",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Phonebook",
+    "key": "0bb54743d59191029c6ba8e9fac99e03950654ce",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Piramal Capital and Housing Finance",
+    "key": "7f26ae268b928fedd4370706b8baaa7dffe5a56d",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Plum",
+    "key": "37dbee8d77ca8e57b9501da3075080f23ce39868",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "PocketFM",
+    "key": "efaae1815c89acfc363712499bfc6e32c10fe5fc",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Pop your bills",
+    "key": "37cc76ea46d80f97f95333437ea30dd6b8d30294",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Pop-card",
+    "key": "3b9fdc672d623ebef8402f3a19195b20c05329c4",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Popchop shop with button",
+    "key": "f4b5275da48e76e79526ffee8d5fdd862af5a182",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Popcoin offer image",
+    "key": "490b87876967fe642a6a7044f44ce76e91c56031",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Portronics",
+    "key": "bc7cadf8685ea6153c93563be13a1148e536b53a",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Product listing - Tag",
+    "key": "237d080bada387f32492f63b764c407b6152531a",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Puma",
+    "key": "bd4dae85893f13f22caac398ebe3c89cf1ef50c8",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "RCBP",
+    "key": "2e50f33d0c80b104d6f7e809d78246d86673ebef",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "RCBP/POP Coin issuance",
+    "key": "dc177f0d1382c575a96fb676f8eeac39923fec5d",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "RCBP/POPCard",
+    "key": "c6ad2d2b33d611d992654b730f4cdc7c0b49d8cc",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Rating - Score group",
+    "key": "c657a950bfedb846fa51aa0517558e6e54aa64d3",
+    "description": "Only one number can be selected at a time\nThe component stretches to fill the screen width minus the horizontal margins. Always use fill container so it scales correctly across devices",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Razorpay Software Private Limited",
+    "key": "847f046c4327e5b1c7b9a4e47f2e80f1e344efda",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Rblbank",
+    "key": "62a9bd8a74204b475de5125c0270a0d0604fb60b",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Recharge card-unit",
+    "key": "8ad25ffe77fd373c8bd19cc0bf0df41b5f5ea692",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Record-player",
+    "key": "7e856bef7962146937e2ea8f9783cf8e85781f34",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Recordplayer",
+    "key": "ac7c96ee6d42bf76de4270309c66cf84fa509047",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Redirection loader",
+    "key": "9a14110ac65999a25106a4bf5704fddf3a730a61",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Router",
+    "key": "3c34d9c736624cb06d350b5526aa296a58de4817",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "SAAVNMEDIALIMITED",
+    "key": "e27a960b556b6962cea342e5c81aa903828ac45b",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "SAFE GOLD",
+    "key": "0e87b269801112b0efaa4d3a44a0a271c36da358",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "SANATANAPP PRIVATE LIMITED",
+    "key": "4783912ab606a78cac783002f35a21b23ce5ef51",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "SHRIRAM FINANCE LIMITED",
+    "key": "cf834ab41c7333337f188ca91dcc769dd34a4eeb",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Section header",
+    "key": "4c86d9591bebdeb2afb6e02708d4317c9a28859c",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Seekho",
+    "key": "92f4a232903aeb6c315e896550ca510da6ac2db3",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Self transfer",
+    "key": "fa5802f390337c4d3f4ef8a46ce034e50f00e5e4",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Settings",
+    "key": "c04a2c0c7d2eefd7277459afc2ae2620da0292b9",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Sharechat",
+    "key": "f984776624f04b8aa9cec30c69dc46c2e9d6d62a",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Showcase - Carousel",
+    "key": "e89cfdfcf7c03564f07ea67009bfa465b04d7237",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Simpl",
+    "key": "7275e6ae41a1a9b0b910790e2ac87bfab330d200",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Slot",
+    "key": "88d3b9c02bf7e258155cb207ebdf81fd9761d0ef",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Slot container",
+    "key": "8b2b0cf3a3d6033fc00b23e74e6dc9208a07cace",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Snackible",
+    "key": "64d2529d3d9a4472712611820d25b1d4dd4e62af",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Snapmint Financial Services Pvt Ltd",
+    "key": "988f70cdbedf4001ac740f3d62f8c3c497191227",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Something went wrong",
+    "key": "3238379c4a9824bcc6579db6cbf0d71cc1da4cf0",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Soulstore",
+    "key": "8e69859be7f9a157028610ec4051c42d2641e6cf",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Spotify India",
+    "key": "14c20f065f1d171a34408537aaa77fa8affaf76c",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Stage",
+    "key": "b0c8f1f7a622e5fd19beb5d11bac65caf3e3ef34",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Stopwatch",
+    "key": "07c7f1cd7966426c1ded1623681f7b18a6dbf317",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Story TV",
+    "key": "0937e615ab3f34bac77fc5864cffad834a183ede",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Swiggy",
+    "key": "e68ec8841bf797cf679e08a2be9c5f4125c5bf1c",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Text/Label",
+    "key": "990eac40a93303b65188a0269736753129dfbcfc",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Text/Stylized font",
+    "key": "956f61bd8aef4511555e0d8b7bd6d0526a71bb38",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "The Man Company",
+    "key": "f290cbeada3eca629848e1549adc3c1bd7faa1b2",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Title bar",
+    "key": "8e84df7edbc33702936ccba384a22bb23896847e",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Title bar -S2S",
+    "key": "c4ed3fdc3aff420ed50f0394c8f9f31a6efef685",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Torch",
+    "key": "e473ab7d0d482ec71002f4c393caff98ea2ee7c8",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Transfer money",
+    "key": "58ae510fb63c4b412336f2b0ae7ce9c6a83f513f",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "UPI",
+    "key": "0f3197746ecfb152ac949902da4e38d46260f751",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "UPI Lite",
+    "key": "411d660c0e552f000b4b16baed2d7e1936fb2c05",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "UPI lite",
+    "key": "76eebbf983a4ccd1ea5102844c7a74ff05f0b8d2",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Vault",
+    "key": "6bcffa4cf39047f41809d2b270c845d4d0e50b53",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Video KYC under review",
+    "key": "22ef36d0e833bf0a0a959cc0e4b39a9b0cdd8593",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Viralo",
+    "key": "a35071218b0f6ed87ab395e7195bb98a3c9473e3",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "Winzo TV Entertainment",
+    "key": "72776081bd25b20703cd1ede0bab4cc2c8689b7f",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "YogaBar",
+    "key": "5af634ac2738a5a76788c759a82524da59467f98",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "ZEE5",
+    "key": "cfb1fa6e8945f876059c2ae52dc945f7aad50ebb",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "credit-card-02",
+    "key": "f95ce592b77811209c077f540dad13728b636675",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "linkedin",
+    "key": "db2acc5cc465a9a46a180b6def4ca319c47efa8d",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "postpaid",
+    "key": "31c840b4c2c8bcef3e6e37029bc9a89abff9ff59",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "prepaid",
+    "key": "1b6f2a77f63587ade940b77b123aed6c14a53d0d",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "text item",
+    "key": "183cd65fd0cfc3779e38e60ecaceea7820ad7ea7",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "vKYC not completed",
+    "key": "fd8d2ee7f2ef9ffc2868205d3ee4669e25e48762",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  },
+  {
+    "name": "vault",
+    "key": "996f25dffac68a7d509b99ba33800fdf1f35c78a",
+    "description": "",
+    "type": "standalone",
+    "variant_count": 1
+  }
+]

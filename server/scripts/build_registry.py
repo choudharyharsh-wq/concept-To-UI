@@ -27,7 +27,7 @@ load_dotenv(dotenv_path=env_path, override=True)
 
 FIGMA_PAT     = os.environ.get("FIGMA_PAT", "")
 DS_FILE_KEY   = os.environ.get("FIGMA_DS_FILE_KEY", "")
-REGISTRY_PATH = Path(__file__).parent.parent / "registry.json"
+REGISTRY_PATH = Path(__file__).parent.parent / "figma-DS-extracts" / "registry3.json"
 HEADERS       = lambda: {"X-Figma-Token": FIGMA_PAT}
 
 
@@ -76,13 +76,14 @@ def build_registry() -> list[dict]:
     standalone: list[dict] = []
 
     for comp in raw_components:
-        containing = comp.get("containing_frame", {})
-        # In Figma API, variants belong to a component_set frame
-        # We identify them by nodeType of containing_frame
-        containing_type = containing.get("nodeType", "")
-        containing_id   = containing.get("nodeId", "")
+        containing = comp.get("containing_frame", {}) or {}
+        # Variants carry their parent set under containing_frame.containingComponentSet.
+        # (Figma removed the old containing_frame.nodeType == "COMPONENT_SET" signal,
+        # which silently dropped every multi-variant component from the registry.)
+        comp_set      = containing.get("containingComponentSet") or {}
+        containing_id = comp_set.get("nodeId", "")
 
-        if containing_type == "COMPONENT_SET" and containing_id:
+        if containing_id:
             set_node_to_variants.setdefault(containing_id, []).append(comp)
         elif not is_variant_name(comp.get("name", "")):
             standalone.append(comp)
@@ -161,6 +162,7 @@ def main():
 
     reg = build_registry()
 
+    REGISTRY_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(REGISTRY_PATH, "w") as f:
         json.dump(reg, f, indent=2)
 
