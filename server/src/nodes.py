@@ -1,7 +1,7 @@
 import os
 import json
 from pathlib import Path
-from typing import List, Literal, Optional
+from typing import List, Literal, Optional, Dict
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field, model_validator
 from langchain_anthropic import ChatAnthropic
@@ -583,6 +583,17 @@ class ElementSpec(BaseModel):
     type: str = Field(description="Component name — must be taken verbatim from the allowed vocabulary list")
     ds_key: str = Field(default="", description="Figma component key from the DS registry (leave empty in fallback mode)")
     label: str = Field(description="Visible text or aria-label for the element")
+    props: Dict[str, str] = Field(
+        default_factory=dict,
+        description=(
+            "Component property name -> value, applied to the instance via Figma's "
+            "setProperties(). Use the EXACT property name from the component's listed "
+            "properties. Include BOTH (a) concrete text for every text property "
+            "(e.g. \"Title text\": \"Biller Name\") and (b) chosen variant/boolean "
+            "values from the listed options (e.g. \"Type\": \"Profile\", \"R-icon\": \"True\"). "
+            "Leave empty for primitives (ds_key is empty)."
+        ),
+    )
     x: float = Field(description="Left offset in pixels from screen origin")
     y: float = Field(description="Top offset in pixels from screen origin")
     width: float = Field(description="Width in pixels")
@@ -797,7 +808,13 @@ RULES:
 6. Every screen needs a navigation element unless it is modal/onboarding.
 7. Keep element count to 8-14 per screen — quality over quantity.
 8. `children` is a metadata hint only — coordinates are always absolute.
-9. Leaf elements have empty children[]."""
+9. Leaf elements have empty children[].
+9b. `label` is the VISIBLE text for content elements — TEXT_HEADING, TEXT_BODY, BUTTON,
+    ICON_BUTTON, BADGE, INPUT_FIELD (its placeholder/label), LIST_ITEM (its row text), and
+    NAV_BAR (its title). Always give these a real, specific label — never leave it generic
+    like "Title" or "Label". Pure containers (FRAME, CARD, MODAL_OVERLAY) are backgrounds:
+    their on-screen text comes from separate child TEXT_HEADING/TEXT_BODY elements positioned
+    on top, NOT from the container's own label."""
 
     DS_RULES = """10. DS components are a PREFERRED palette, NOT a requirement. Use one ONLY when it
     genuinely matches the element's purpose. If nothing fits, use a PRIMITIVE type
@@ -809,7 +826,21 @@ RULES:
     When unsure whether a component fits the domain, use a primitive instead.
 12. When you DO use a DS component: `type` must be the exact component name (capitalisation
     matters), `ds_key` must be its key from the name→ds_key lookup, and any variant choices
-    must be drawn from that component's listed options — never invent option values."""
+    must be drawn from that component's listed options — never invent option values.
+13. ALWAYS populate `props` for a DS component. The component renders its OWN text from its
+    text properties — `label` becomes the layer name only and is NOT shown on screen. So:
+    (a) put the real, screen-specific text into the listed "text props" using their exact names
+        (e.g. {"Title text": "Biller Name"}); and
+    (b) set the chosen variant/boolean values from the listed options
+        (e.g. {"Type": "Profile", "R-icon": "True"}).
+    Use exact property names and exact option values — never invent either. Combine both into
+    one `props` object, e.g. {"Title text": "Recent Transactions", "Body": "False"}.
+13b. The "text props" hint shows each slot's CURRENT default in quotes, e.g.
+    `text props → Title text="Title", Placeholder text="Placeholder"`. The slot whose default
+    is the generic placeholder you'd see on the empty component (usually the Title/Label slot)
+    is the one that RENDERS on screen — fill THAT one with the element's visible text. Do not
+    put the visible label only into "Placeholder text" if a "Title text"/"Label" slot exists;
+    fill the Title/Label slot (you may set both)."""
 
     FALLBACK_RULES = "10. Leave `ds_key` as an empty string for every element."
 
@@ -833,14 +864,32 @@ RULES:
 
                 catalog_lines = []
                 for c in batch_components:
-                    desc = (c.get("description") or "").strip().replace("\n", " ")[:140]
-                    prop_hint = "; ".join(
+                    desc  = (c.get("description") or "").strip().replace("\n", " ")[:140]
+                    props = c.get("properties", []) or []
+                    # Variant / boolean props the model picks an OPTION for.
+                    variant_hint = "; ".join(
                         f"{p['name']}=" + "|".join((p.get("options") or [])[:6])
-                        for p in c.get("properties", []) if p.get("options")
+                        for p in props if p.get("options")
                     )[:280]
+                    # Free-text props the model must FILL with real screen content.
+                    # (type == "Text", or an option-less prop whose name implies text.)
+                    # Show each prop's DEFAULT value so the model can tell which slot
+                    # actually renders the on-screen text (e.g. Title text="Title")
+                    # and target it — not a look-alike like "Placeholder text".
+                    def _tp(p):
+                        dv = (p.get("default") or "").strip()
+                        return f'{p["name"]}="{dv}"' if dv else p["name"]
+                    text_props = [
+                        _tp(p) for p in props
+                        if (p.get("type") or "").strip().lower() == "text"
+                        or (not p.get("options") and "text" in (p.get("name") or "").lower())
+                    ]
+                    text_hint = ", ".join(text_props[:8])[:300]
                     line = f"- {c['name']} [{c.get('category','')}]: {desc}"
-                    if prop_hint:
-                        line += f"  (variants → {prop_hint})"
+                    if variant_hint:
+                        line += f"  (variants → {variant_hint})"
+                    if text_hint:
+                        line += f"  (text props → {text_hint})"
                     catalog_lines.append(line)
 
                 vocab_section = (

@@ -55,7 +55,19 @@
       "Bash(python3 -m py_compile src/nodes.py src/state.py)",
       "Bash(python3 -m py_compile server.py src/main.py)",
       "Bash(python3 -m py_compile src/nodes.py)",
-      "Bash(curl -s http://localhost:5001/health)"
+      "Bash(curl -s http://localhost:5001/health)",
+      "Bash(python3 -c \"import ast; ast.parse\\(open\\('server/src/nodes.py'\\).read\\(\\)\\); print\\('nodes.py OK'\\)\")",
+      "Bash(node --check figma-plugin/code.js)",
+      "Bash(grep -n \"populate \\\\`props\\\\`\\\\|13\\\\. ALWAYS\\\\|renders its OWN text\" server/src/nodes.py)",
+      "Bash(timeout 60 python3 -c ' *)",
+      "mcp__f39bd90b-ba0c-49f7-bd5c-738929e82549__whoami",
+      "mcp__f39bd90b-ba0c-49f7-bd5c-738929e82549__get_screenshot",
+      "Bash(mkdir -p /tmp/figshots)",
+      "Bash(curl -s -o /tmp/figshots/add_new_biller.png \"https://www.figma.com/api/mcp/asset/3cdc516a-85a5-430b-b0f6-59b710b4d0bd\")",
+      "Read(//tmp/figshots/**)",
+      "Read(//tmp/**)",
+      "mcp__f39bd90b-ba0c-49f7-bd5c-738929e82549__get_design_context",
+      "Bash(curl -s --max-time 8 http://localhost:5001/payload -o /tmp/figshots/payload2.json)"
     ]
   }
 }

@@ -42,6 +42,22 @@ function isImageType(type) {
     || t === "THUMBNAIL" || t.indexOf("IMAGE") !== -1 || t.indexOf("PHOTO") !== -1;
 }
 
+function isInputType(type) {
+  if (!type) return false;
+  var t = type.toUpperCase();
+  return t === "INPUT_FIELD" || t === "INPUT" || t === "TEXT_FIELD"
+    || t === "TEXTFIELD" || t === "FIELD" || t === "SEARCH" || t === "SEARCH_BAR"
+    || t.indexOf("INPUT") !== -1 || t.indexOf("TEXTFIELD") !== -1;
+}
+
+function isListItemType(type) {
+  if (!type) return false;
+  var t = type.toUpperCase();
+  return t === "LIST_ITEM" || t === "LISTITEM" || t === "ROW" || t === "LIST_ROW"
+    || t === "CELL" || t === "MENU_ITEM" || t === "SECTION_ROW"
+    || t.indexOf("LIST_ITEM") !== -1 || t.indexOf("LIST_ROW") !== -1;
+}
+
 // ── DS mode: instantiate a real component by its Figma key ───────────────────
 
 async function createDSInstance(spec) {
@@ -58,10 +74,131 @@ async function createDSInstance(spec) {
     instance.y    = spec.y;
     // Resize only if the instance allows it (some components are fixed-size)
     try { instance.resize(spec.width, spec.height); } catch(e) {}
+    // Push real content INTO the instance — text properties, variants, booleans —
+    // so the rendered component shows the screen's actual text, not its defaults.
+    await applyInstanceContent(instance, spec);
     return instance;
   } catch (err) {
     send("LOG", "  [FALLBACK] importComponentByKeyAsync failed for " + spec.type + ": " + err.message);
     return createElement(spec);
+  }
+}
+
+// Collect every font used by the instance's text layers and load them. Editing a
+// TEXT component property (or a text node's characters) FAILS unless its font is
+// loaded first — the POP DS uses custom fonts (Figtree, Awesome Serif), so this
+// is essential, not optional.
+async function loadInstanceFonts(instance) {
+  var texts = [];
+  try { texts = instance.findAll(function(n){ return n.type === "TEXT"; }); } catch(e) {}
+  var fonts = {};
+  for (var i = 0; i < texts.length; i++) {
+    var t = texts[i];
+    try {
+      if (t.fontName && t.fontName !== figma.mixed) {
+        fonts[t.fontName.family + "||" + t.fontName.style] = t.fontName;
+      } else if (typeof t.characters === "string" && t.characters.length > 0) {
+        var segs = t.getRangeAllFontNames(0, t.characters.length);
+        for (var s = 0; s < segs.length; s++) {
+          fonts[segs[s].family + "||" + segs[s].style] = segs[s];
+        }
+      }
+    } catch(e) {}
+  }
+  for (var k in fonts) {
+    try { await figma.loadFontAsync(fonts[k]); } catch(e) {}
+  }
+  return texts;
+}
+
+// Match a human property name (e.g. "Title text") to the instance's real property
+// key (e.g. "Title text#123:0"), apply props by type, and fall back to writing the
+// label into the primary text slot when the model gave no props.
+async function applyInstanceContent(instance, spec) {
+  var props = spec.props || {};
+  var hasProps = false;
+  for (var _ in props) { hasProps = true; break; }
+
+  var texts = await loadInstanceFonts(instance);
+
+  var defs = {};
+  try { defs = instance.componentProperties || {}; } catch(e) { defs = {}; }
+
+  function bareName(key) {
+    var i = key.indexOf("#");
+    return (i !== -1 ? key.slice(0, i) : key);
+  }
+  function findKey(name) {
+    var target = String(name).toLowerCase();
+    for (var key in defs) {
+      if (bareName(key).toLowerCase() === target) return key;
+    }
+    return null;
+  }
+  function asBool(v) {
+    return v === true || /^(true|yes|on|1)$/i.test(String(v));
+  }
+
+  // Find a TEXT-type component property whose name looks like the element's main
+  // visible label (e.g. "Title text", "L - Label", "Label text"). This is the slot
+  // a DS component shows by default — the model often fills the wrong one (e.g.
+  // "Placeholder text" on POP's Input field, which isn't shown in the empty state).
+  function findLabelKey() {
+    for (var key in defs) {
+      if (defs[key] && defs[key].type === "TEXT" && /title|label/i.test(bareName(key))) return key;
+    }
+    return null;
+  }
+  function setOne(key, value) {
+    var p = {}; p[key] = value;
+    try { instance.setProperties(p); return true; }
+    catch (e) { send("LOG", "  [WARN] prop '" + bareName(key) + "' rejected on " + spec.type + ": " + e.message); return false; }
+  }
+
+  // 1) Apply explicit props from the model.
+  var payload = {};
+  var titleishApplied = false;
+  for (var name in props) {
+    var key = findKey(name);
+    if (!key) continue;
+    var ptype = defs[key] && defs[key].type;
+    payload[key] = (ptype === "BOOLEAN") ? asBool(props[name]) : String(props[name]); // TEXT/VARIANT/INSTANCE_SWAP → string
+    if (ptype === "TEXT" && /title|label/i.test(bareName(key))) titleishApplied = true;
+  }
+  var appliedAny = false;
+  for (var _2 in payload) { appliedAny = true; break; }
+  if (appliedAny) {
+    try {
+      instance.setProperties(payload);
+    } catch (e) {
+      // One invalid value rejects the whole payload — retry each key alone so a bad
+      // variant choice never blocks the text from being applied.
+      for (var pk in payload) setOne(pk, payload[pk]);
+    }
+  }
+
+  // 2) Safety net: guarantee the element's main visible label is never left at the
+  //    component default (e.g. "Title"). If the model didn't target a title/label
+  //    text slot, fill it from `label` ourselves.
+  if (spec.label && !titleishApplied) {
+    var labelKey = findLabelKey();
+    if (labelKey && !(labelKey in payload)) {
+      setOne(labelKey, String(spec.label));
+    } else if (!appliedAny && !labelKey) {
+      // No props matched AND no dedicated label slot — last resort: first TEXT prop,
+      // else the first text layer not bound to a property.
+      var firstText = null;
+      for (var k2 in defs) { if (defs[k2] && defs[k2].type === "TEXT") { firstText = k2; break; } }
+      if (firstText) {
+        setOne(firstText, String(spec.label));
+      } else {
+        for (var j = 0; j < texts.length; j++) {
+          var tn = texts[j];
+          if (tn.componentPropertyReferences && tn.componentPropertyReferences.characters) continue;
+          try { tn.characters = String(spec.label); break; } catch(e) {}
+        }
+      }
+    }
   }
 }
 
@@ -178,6 +315,58 @@ async function createElement(spec) {
     return btnNode;
   }
 
+  // ── Input field (bordered box with a visible placeholder/label) ──────────
+  if (isInputType(spec.type)) {
+    var inpNode          = figma.createFrame();
+    inpNode.name         = spec.label || spec.id;
+    inpNode.x            = spec.x;
+    inpNode.y            = spec.y;
+    inpNode.resize(spec.width, spec.height);
+    inpNode.cornerRadius = (spec.corner_radius !== undefined && spec.corner_radius !== null) ? spec.corner_radius : 8;
+    inpNode.fills        = [{ type: "SOLID", color: fillRgb }];
+    inpNode.strokes      = [{ type: "SOLID", color: hexToRgb("#D1D5DB", { r: 0.82, g: 0.84, b: 0.86 }) }];
+    inpNode.strokeWeight = 1;
+    inpNode.layoutMode              = "HORIZONTAL";
+    inpNode.primaryAxisAlignItems   = "MIN";
+    inpNode.counterAxisAlignItems   = "CENTER";
+    inpNode.paddingLeft = inpNode.paddingRight = 12;
+    var inpFont          = await loadFont(spec.font_weight || "Regular");
+    var inpLbl           = figma.createText();
+    await figma.loadFontAsync(inpFont);
+    inpLbl.fontName      = inpFont;
+    inpLbl.fontSize      = spec.font_size || 14;
+    inpLbl.characters    = spec.label || "";
+    // Placeholder-style muted text so it reads as a field value, not a heading.
+    inpLbl.fills         = [{ type: "SOLID", color: hexToRgb("#9CA3AF", { r: 0.61, g: 0.64, b: 0.69 }) }];
+    inpNode.appendChild(inpLbl);
+    return inpNode;
+  }
+
+  // ── List item / row (label rendered as visible left-aligned text) ────────
+  if (isListItemType(spec.type)) {
+    var rowNode          = figma.createFrame();
+    rowNode.name         = spec.label || spec.id;
+    rowNode.x            = spec.x;
+    rowNode.y            = spec.y;
+    rowNode.resize(spec.width, spec.height);
+    rowNode.cornerRadius = spec.corner_radius || 0;
+    rowNode.fills        = [{ type: "SOLID", color: fillRgb }];
+    rowNode.layoutMode              = "HORIZONTAL";
+    rowNode.primaryAxisAlignItems   = "MIN";
+    rowNode.counterAxisAlignItems   = "CENTER";
+    rowNode.paddingLeft = rowNode.paddingRight = 16;
+    var rowFont          = await loadFont(spec.font_weight || "Regular");
+    var rowLbl           = figma.createText();
+    await figma.loadFontAsync(rowFont);
+    rowLbl.fontName      = rowFont;
+    rowLbl.fontSize      = spec.font_size || 14;
+    rowLbl.characters    = spec.label || "";
+    rowLbl.fills         = [{ type: "SOLID", color: textRgb }];
+    rowLbl.layoutGrow    = 1;
+    rowNode.appendChild(rowLbl);
+    return rowNode;
+  }
+
   // ── Container (FRAME, NAV_BAR, CARD, MODAL, etc.) ─────────────────────────
   var ctnNode          = figma.createFrame();
   ctnNode.name         = spec.label || spec.id;
@@ -187,12 +376,27 @@ async function createElement(spec) {
   ctnNode.cornerRadius = spec.corner_radius || 0;
   ctnNode.fills        = [{ type: "SOLID", color: fillRgb }];
 
-  if (specType.indexOf("NAV") !== -1 || specType === "HEADER") {
+  var isTopBar = (specType.indexOf("NAV") !== -1 || specType === "HEADER"
+    || specType.indexOf("APP_BAR") !== -1 || specType.indexOf("TOP") !== -1)
+    && specType.indexOf("TAB") === -1 && specType.indexOf("BOTTOM") === -1;
+
+  if (isTopBar) {
     ctnNode.layoutMode              = "HORIZONTAL";
     ctnNode.primaryAxisAlignItems   = "SPACE_BETWEEN";
     ctnNode.counterAxisAlignItems   = "CENTER";
     ctnNode.paddingLeft = ctnNode.paddingRight = 16;
     ctnNode.paddingTop  = ctnNode.paddingBottom = 0;
+    // Render the bar's title as visible text (not just a layer name).
+    if (spec.label) {
+      var navFont       = await loadFont(spec.font_weight || "SemiBold");
+      var navLbl        = figma.createText();
+      await figma.loadFontAsync(navFont);
+      navLbl.fontName   = navFont;
+      navLbl.fontSize   = spec.font_size || 17;
+      navLbl.characters = spec.label;
+      navLbl.fills      = [{ type: "SOLID", color: textRgb }];
+      ctnNode.appendChild(navLbl);
+    }
   }
 
   if (specType.indexOf("TAB_BAR") !== -1 || specType.indexOf("BOTTOM_TAB") !== -1 || specType.indexOf("NAVIGATION") !== -1) {
