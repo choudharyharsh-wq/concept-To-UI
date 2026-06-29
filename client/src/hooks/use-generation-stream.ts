@@ -11,15 +11,43 @@ export interface PipelineStage {
   data: any;
 }
 
-const INITIAL_STAGES: PipelineStage[] = [
-  { id: "prd_node",                name: "PRD",             status: "pending", data: null },
-  { id: "prd_review_node",         name: "PRD Review",      status: "pending", data: null },
-  { id: "ia_node",                 name: "IA Map",          status: "pending", data: null },
-  { id: "user_flow_node",          name: "User Journey",    status: "pending", data: null },
-  { id: "ux_layout_node",          name: "UX Layout",       status: "pending", data: null },
+export type OutputMode = "figma" | "html";
+
+// A single self-contained HTML screen emitted by the HTML compiler node.
+export interface HtmlScreen {
+  screen_id: string;
+  screen_name: string;
+  viewport_width: number;
+  viewport_height: number;
+  html: string;
+  index?: number;
+  total?: number;
+}
+
+// Stages shared by both branches, up to and including UX Layout.
+const SHARED_STAGES: PipelineStage[] = [
+  { id: "prd_node",        name: "PRD",          status: "pending", data: null },
+  { id: "prd_review_node", name: "PRD Review",   status: "pending", data: null },
+  { id: "ia_node",         name: "IA Map",       status: "pending", data: null },
+  { id: "user_flow_node",  name: "User Journey", status: "pending", data: null },
+  { id: "ux_layout_node",  name: "UX Layout",    status: "pending", data: null },
+];
+
+const FIGMA_TAIL: PipelineStage[] = [
   { id: "wireframe_compiler_node", name: "Compiler",        status: "pending", data: null },
   { id: "render_node",             name: "Render to Figma", status: "pending", data: null },
 ];
+
+const HTML_TAIL: PipelineStage[] = [
+  { id: "html_compiler_node", name: "HTML Canvas", status: "pending", data: null },
+];
+
+function stagesForMode(mode: OutputMode): PipelineStage[] {
+  return [...SHARED_STAGES, ...(mode === "html" ? HTML_TAIL : FIGMA_TAIL)].map(s => ({ ...s }));
+}
+
+// Default to the Figma stage set until a generation starts.
+const INITIAL_STAGES: PipelineStage[] = stagesForMode("figma");
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000";
 
@@ -31,17 +59,21 @@ const NODE_DATA_KEY: Record<string, string> = {
   ux_layout_node:          "ux_layout_data",
   wireframe_compiler_node: "wireframe_payload",
   render_node:             "render_data",
+  html_compiler_node:      "html_screens",
   // prd_review_node and prd_apply_feedback_node are handled separately below.
 };
-
-const STAGE_ORDER = INITIAL_STAGES.map((s) => s.id);
 
 export function useGenerationStream() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [stages, setStages] = useState<PipelineStage[]>(INITIAL_STAGES);
+  const [htmlScreens, setHtmlScreens] = useState<HtmlScreen[]>([]);
+  const [outputMode, setOutputMode] = useState<OutputMode>("figma");
   const [error, setError] = useState<string | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
   const sessionIdRef   = useRef<string>("default");
+  // Current stage id order — depends on the selected output mode, so the
+  // "activate next stage" logic must read this rather than a fixed constant.
+  const stageOrderRef  = useRef<string[]>(INITIAL_STAGES.map(s => s.id));
   // Set true when WE close the stream intentionally (awaiting_human / done) so
   // the EventSource onerror that follows a normal close is not treated as a failure.
   const expectingCloseRef = useRef<boolean>(false);
@@ -76,6 +108,17 @@ export function useGenerationStream() {
         es.close();
         setIsGenerating(false);
         setError(data?.message || "The pipeline reported an error.");
+        return;
+      }
+
+      // HTML compiler streams one screen at a time via the custom stream.
+      if (phase === "html_compiler_node" && status === "screen_ready") {
+        setHtmlScreens(prev =>
+          prev.some(s => s.screen_id === data.screen_id)
+            ? prev
+            : [...prev, data as unknown as HtmlScreen]
+        );
+        setStageStatus("html_compiler_node", "active");
         return;
       }
 
@@ -139,10 +182,11 @@ export function useGenerationStream() {
 
       setStageStatus(phase, "completed", stageData);
 
-      // Activate the next stage in the pipeline.
-      const nextIdx = STAGE_ORDER.indexOf(phase) + 1;
-      if (nextIdx < STAGE_ORDER.length) {
-        setStageStatus(STAGE_ORDER[nextIdx], "active");
+      // Activate the next stage in the pipeline (order depends on output mode).
+      const order   = stageOrderRef.current;
+      const nextIdx = order.indexOf(phase) + 1;
+      if (nextIdx > 0 && nextIdx < order.length) {
+        setStageStatus(order[nextIdx], "active");
       }
     },
     [setStageStatus]
@@ -166,20 +210,26 @@ export function useGenerationStream() {
   );
 
   const startGeneration = useCallback(
-    (concept: string, figmaUrl: string, useDs: boolean = false) => {
+    (concept: string, figmaUrl: string, useDs: boolean = false, mode: OutputMode = "figma") => {
       if (eventSourceRef.current) eventSourceRef.current.close();
 
       setError(null);
       expectingCloseRef.current = false;
       setIsGenerating(true);
-      setStages(INITIAL_STAGES);
+      setOutputMode(mode);
+      setHtmlScreens([]);
+
+      // Build the stage set for the chosen branch and record its order.
+      const freshStages = stagesForMode(mode);
+      stageOrderRef.current = freshStages.map(s => s.id);
+      setStages(freshStages);
 
       // Activate the first stage immediately so the UI shows progress right away.
-      setStageStatus(STAGE_ORDER[0], "active");
+      setStageStatus(stageOrderRef.current[0], "active");
 
       const sessionId = `session_${Date.now()}`;
       sessionIdRef.current = sessionId;
-      const url = `${BACKEND_URL}/api/generate?concept=${encodeURIComponent(concept)}&figma_url=${encodeURIComponent(figmaUrl)}&session_id=${sessionId}&use_ds=${useDs}`;
+      const url = `${BACKEND_URL}/api/generate?concept=${encodeURIComponent(concept)}&figma_url=${encodeURIComponent(figmaUrl)}&session_id=${sessionId}&use_ds=${useDs}&output_mode=${mode}`;
       const es = new EventSource(url);
       eventSourceRef.current = es;
       attachHandlers(es);
@@ -229,5 +279,5 @@ export function useGenerationStream() {
     attachHandlers(es);
   }, [attachHandlers, setStageStatus]);
 
-  return { isGenerating, stages, error, startGeneration, submitReviewFeedback };
+  return { isGenerating, stages, htmlScreens, outputMode, error, startGeneration, submitReviewFeedback };
 }

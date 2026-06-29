@@ -8,12 +8,14 @@ class GraphState(TypedDict):
     concept: str
     figma_url: str
     use_ds: bool                     # toggle: compile against the POP Design System vs generic primitives
+    output_mode: str                 # "figma" (default) | "html" — chooses the final render branch
     prd_data: Dict[str, Any]
     ia_data: Dict[str, Any]
     user_flow_data: Dict[str, Any]
     ux_layout_data: Dict[str, Any]
     wireframe_payload: Dict[str, Any]
     render_data: Dict[str, Any]
+    html_screens: List[Dict[str, Any]]   # HTML-mode output: one self-contained HTML doc per screen
     logs: Annotated[List[str], operator.add]
     errors: List[str]
 

@@ -8,6 +8,14 @@ from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage, SystemMessage
 from .state import GraphState
 from .design_head import run_prd_evaluator, apply_prd_feedback
+from . import html_templates as ht
+
+try:
+    # Injected into a node by name/annotation; lets a sync node emit incremental
+    # events (one per screen) to the SSE layer via stream_mode="custom".
+    from langgraph.types import StreamWriter
+except Exception:  # pragma: no cover — older langgraph
+    StreamWriter = None  # type: ignore
 
 load_dotenv(override=True)
 
@@ -1184,4 +1192,253 @@ def prd_apply_feedback_node(state: GraphState):
             },
             "errors": [f"Apply feedback error: {str(e)}"],
             "logs":   [f"[ERR] Feedback apply failed — returning to review: {str(e)}"],
+        }
+
+
+# ── HTML Compiler schemas ─────────────────────────────────────────────────────
+
+class ThemeSpec(BaseModel):
+    """A cohesive, app-wide visual theme the LLM designs once (non-DS mode)."""
+    font_family: str = Field(
+        description="Primary Google Font family name, e.g. 'Quicksand' or 'Inter'."
+    )
+    google_fonts_url: str = Field(
+        description="Full https://fonts.googleapis.com/css2?... URL importing the font, "
+                    "weights 300..800, with &display=swap."
+    )
+    tailwind_extend: str = Field(
+        description=(
+            "A VALID JavaScript object literal (NOT JSON, keys may be unquoted) for "
+            "tailwind.config theme.extend. MUST define `colors` (M3-style semantic names "
+            "like 'primary','surface','surface-alt','on-surface','muted','border', plus "
+            "any accents), `fontFamily` (with a `sans` entry using the chosen font), "
+            "`borderRadius`, and may add `fontSize`/`spacing`. Example: "
+            "{ colors: { \"primary\": \"#9b4500\", \"surface\": \"#fdf9f0\" }, "
+            "fontFamily: { sans: [\"Quicksand\",\"sans-serif\"] }, "
+            "borderRadius: { \"DEFAULT\": \"1rem\", \"lg\": \"2rem\", \"full\": \"9999px\" } }"
+        )
+    )
+    base_css: str = Field(
+        description=(
+            "Raw CSS for a <style> block. MUST set the body background-color and "
+            "font-family. Define any custom utility classes the screens will use "
+            "(e.g. .ambient-shadow, .squishy, .scrollbar-hide) and the "
+            ".material-symbols-outlined font-variation-settings rule."
+        )
+    )
+    body_bg: str = Field(description="Hex background colour for the body/iframe, e.g. '#fdf9f0'.")
+    design_language: str = Field(
+        description=(
+            "2-4 sentences describing the visual vibe AND naming the exact token "
+            "class names available (e.g. 'use bg-surface, text-on-surface, "
+            "bg-primary, rounded-lg') so every screen stays consistent."
+        )
+    )
+
+
+class HtmlScreenSpec(BaseModel):
+    screen_id: str = Field(description="Must match the page id from the IA")
+    screen_name: str = Field(description="Human-readable screen name")
+    viewport_width: int = Field(default=390, description="390 for mobile, 1440 for desktop layouts")
+    viewport_height: int = Field(default=844, description="Suggested viewport height in px")
+    body_html: str = Field(
+        description=(
+            "The INNER HTML of <body> — everything between <body> and </body>, and "
+            "nothing else. No <html>, <head>, <body>, <script src> or <style> config "
+            "tags. Use ONLY the theme's Tailwind token classes + standard Tailwind "
+            "utilities + Material Symbols (<span class=\"material-symbols-outlined\">icon</span>). "
+            "Every image is an <img> with a descriptive data-img-prompt attribute and a "
+            "neutral bg-* placeholder. A small <script> for local interactions is allowed."
+        )
+    )
+
+
+class HtmlScreenCollection(BaseModel):
+    screens: List[HtmlScreenSpec] = Field(description="One HtmlScreenSpec per requested screen")
+
+
+_HTML_SYSTEM_BASE = """You are a senior product designer-engineer. You translate a screen's
+UX layout blueprint into a polished, production-grade mobile UI as a single block of
+HTML using Tailwind CSS utility classes.
+
+NON-NEGOTIABLE OUTPUT RULES:
+- Output ONLY the inner HTML of <body> for each screen — no <!DOCTYPE>, <html>, <head>,
+  <body>, no tailwind config <script>, no font <link>. Those are injected for you.
+- Mobile-first: design for a 390px-wide viewport (h≈844). Use a sticky top app bar and,
+  when the app has multiple top-level destinations, a fixed bottom nav bar.
+- Use the provided THEME token classes for all colour/typography — never hardcode hex
+  values in `style=` and never invent token names that aren't in the theme.
+- Icons: Material Symbols, e.g. <span class="material-symbols-outlined">search</span>.
+  Add the `icon-fill`/FILL variation for active states where it reads better.
+- Images: every <img> MUST have (a) a vivid, specific `data-img-prompt="..."` describing
+  ideal studio/lifestyle photography for that slot, (b) a sensible aspect/size via Tailwind
+  classes, and (c) object-cover. Use a real placeholder src of
+  "https://placehold.co/600x600" sized appropriately.
+- Content realism: write believable, domain-specific copy, names, prices, and numbers —
+  never lorem ipsum or "Title"/"Label" placeholders.
+- Fidelity: rounded cards, real spacing, hover/active states, subtle shadows/glows. Aim for
+  the quality of a top-tier dribbble shot, not a wireframe. 8-16 meaningful elements/zones.
+- Respect the screen's spatial zones and rendering_sequence: the P1_Dominant zone is the
+  visual focal point; render components in the given order top-to-bottom.
+
+Return a HtmlScreenCollection with one entry per requested screen."""
+
+
+def _theme_for_html(prd_data: dict, concept: str, is_ds_mode: bool):
+    """
+    Resolve the app-wide theme. DS mode → deterministic POP theme head.
+    Otherwise → ask the LLM to design one ThemeSpec for the whole app.
+    Returns (head_inner_html, design_language, body_bg).
+    """
+    if is_ds_mode:
+        return ht.pop_theme_head(), ht.POP_DESIGN_LANGUAGE, "#0D0D0D"
+
+    directives = prd_data.get("ux_anchor_directives", {})
+    summary    = prd_data.get("executive_summary", {})
+    sys = (
+        "You are an award-winning brand & UI designer. Design ONE cohesive Tailwind theme "
+        "for the whole app — a bespoke palette and type system that matches the product's "
+        "tone. Think Material 3 semantic tokens (surface, on-surface, primary, etc.). The "
+        "theme must feel intentional and premium, like a real design system, not generic."
+    )
+    usr = (
+        f"Product summary:\n{json.dumps(summary, indent=2)}\n\n"
+        f"UX anchor directives (visual posture / tone / layout):\n{json.dumps(directives, indent=2)}\n\n"
+        f"Concept:\n{concept[:1200]}\n\n"
+        "Return a ThemeSpec. Pick a Google Font that fits the tone. Define semantic color "
+        "tokens (surface, surface-alt/container, on-surface, primary, on-primary, muted, "
+        "border, plus accents). Include custom utility classes in base_css for shadows and "
+        "micro-interactions you reference (e.g. .ambient-shadow, .squishy)."
+    )
+    try:
+        llm = get_llm(max_tokens=4096).with_structured_output(ThemeSpec)
+        spec: ThemeSpec = llm.invoke([SystemMessage(content=sys), HumanMessage(content=usr)])
+        spec_dict = spec.model_dump()
+        print(f"    [HTML] Theme designed — font={spec_dict.get('font_family')}, bg={spec_dict.get('body_bg')}")
+        return ht.build_theme_head_from_spec(spec_dict), spec.design_language, spec.body_bg
+    except Exception as e:
+        print(f"    [HTML] Theme generation failed ({e}); using fallback theme.")
+        head = ht.build_theme_head_from_spec({})
+        return head, "Clean neutral theme: indigo primary, light surfaces, rounded cards.", "#F4F4F5"
+
+
+def html_compiler_node(state: GraphState, writer: "StreamWriter" = None):
+    """
+    HTML render branch — produces one self-contained HTML document per screen and
+    streams each to the frontend (which renders them as floating frames on a
+    tldraw canvas). Mirrors the wireframe compiler's batching (2 screens/call).
+
+    Phase 1: resolve ONE app-wide theme (POP if DS mode, else LLM-designed).
+    Phase 2: per batch, generate each screen's <body> inner HTML using that theme;
+             wrap in the shared document shell and emit via the custom stream writer.
+    """
+    print("--- Executing HTML Compiler Node ---")
+
+    ia_data        = state["ia_data"]
+    ux_layout_data = state["ux_layout_data"]
+    prd_data       = state["prd_data"]
+    concept        = state.get("concept", "")
+    user_flow_data = state.get("user_flow_data", {})
+
+    pages          = ia_data.get("pages", [])
+    screen_layouts = ux_layout_data.get("screen_layouts", [])
+    use_ds         = bool(state.get("use_ds", False))
+    is_ds_mode     = use_ds and bool(DS_REGISTRY)
+
+    # ── Phase 1: theme ────────────────────────────────────────────────────────
+    head_inner, design_language, body_bg = _theme_for_html(prd_data, concept, is_ds_mode)
+
+    layout_by_id = {sl.get("page_id"): sl for sl in screen_layouts}
+    total        = len(pages)
+    BATCH_SIZE   = 2
+    total_batches = (total + BATCH_SIZE - 1) // BATCH_SIZE
+    print(f"    Screens to build: {total} | ds_mode={is_ds_mode} | batches={total_batches}")
+
+    system_prompt = (
+        f"{_HTML_SYSTEM_BASE}\n\nTHEME — design language and available token classes:\n"
+        f"{design_language}"
+    )
+
+    html_screens: List[dict] = []
+    emitted = 0
+
+    try:
+        structured_llm = get_llm(max_tokens=16000).with_structured_output(HtmlScreenCollection)
+
+        for i in range(0, total, BATCH_SIZE):
+            batch_pages = pages[i:i + BATCH_SIZE]
+            batch_ids   = [p["id"] for p in batch_pages]
+            batch_num   = i // BATCH_SIZE + 1
+
+            batch_layouts = []
+            for pid in batch_ids:
+                sl = layout_by_id.get(pid, {})
+                batch_layouts.append({
+                    "page_id":       pid,
+                    "grid_system":   sl.get("grid_system"),
+                    "scroll_behavior": sl.get("scroll_behavior"),
+                    "spatial_zones": [
+                        {
+                            "zone_id":            z.get("zone_id"),
+                            "visual_weight":      z.get("visual_weight"),
+                            "rendering_sequence": z.get("rendering_sequence", []),
+                        }
+                        for z in sl.get("spatial_zones", [])
+                    ],
+                    "empty_state_guidance": sl.get("empty_state_guidance", ""),
+                })
+
+            batch_prompt = f"""Build the <body> inner HTML for each of these screens (batch {batch_num}/{total_batches}):
+{json.dumps(batch_ids)}
+
+IA pages (names + component_inventory):
+{json.dumps(batch_pages, indent=2)}
+
+UX layout zones (focal point + rendering order per screen):
+{json.dumps(batch_layouts, indent=2)}
+
+Brand / UX directives (tone, posture):
+{json.dumps(prd_data.get("ux_anchor_directives", {}), indent=2)}
+
+User flows (for cross-screen navigation cues):
+{json.dumps(user_flow_data, indent=2)}"""
+
+            print(f"    HTML batch {batch_num}/{total_batches}: {batch_ids}")
+            collection: HtmlScreenCollection = structured_llm.invoke([
+                SystemMessage(content=system_prompt),
+                HumanMessage(content=batch_prompt),
+            ])
+
+            for spec in collection.screens:
+                document = ht.build_document(
+                    title=spec.screen_name,
+                    head_inner=head_inner,
+                    body_inner=spec.body_html,
+                    body_class="",
+                )
+                screen_obj = {
+                    "screen_id":       spec.screen_id,
+                    "screen_name":     spec.screen_name,
+                    "viewport_width":  spec.viewport_width or 390,
+                    "viewport_height": spec.viewport_height or 844,
+                    "html":            document,
+                }
+                html_screens.append(screen_obj)
+                emitted += 1
+                # Stream this screen to the frontend immediately (one-by-one).
+                if writer:
+                    writer({"html_screen": {**screen_obj, "index": emitted - 1, "total": total}})
+                print(f"    [HTML] Screen ready ({emitted}/{total}): {spec.screen_id}")
+
+        print(f"    HTML Compiler complete — {len(html_screens)} screens.")
+        return {
+            "html_screens": html_screens,
+            "logs": [f"[SYS] HTML Compiler complete — {len(html_screens)} screen(s) generated."],
+        }
+    except Exception as e:
+        print(f"    [ERR] HTML Compiler failed: {e}")
+        return {
+            "html_screens": html_screens,   # whatever was built before the failure
+            "errors": [f"Error in HTML Compiler node: {str(e)}"],
+            "logs":   [f"[ERR] HTML compilation failed: {str(e)}"],
         }

@@ -10,6 +10,8 @@ import { UXLayoutStage } from "./ux-layout-stage";
 import { WireframeCompilerStage } from "./wireframe-compiler-stage";
 import { RenderStage } from "./render-stage";
 import { ReviewPanel } from "./review-panel";
+import { HtmlCanvasStage } from "./html-canvas-stage";
+import type { HtmlScreen } from "@/hooks/use-generation-stream";
 import { cn } from "@/lib/utils";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -17,6 +19,7 @@ import { cn } from "@/lib/utils";
 interface PipelineWorkspaceProps {
   stages: PipelineStage[];
   isGenerating: boolean;
+  htmlScreens?: HtmlScreen[];
   error?: string | null;
   onSubmitReviewFeedback: (feedback: {
     answered_questions: Record<string, string>;
@@ -100,7 +103,7 @@ function StageOutput({ stage, allStages }: { stage: PipelineStage; allStages: Pi
 
 // ─── Main workspace ───────────────────────────────────────────────────────────
 
-export function PipelineWorkspace({ stages, isGenerating, error, onSubmitReviewFeedback }: PipelineWorkspaceProps) {
+export function PipelineWorkspace({ stages, isGenerating, htmlScreens = [], error, onSubmitReviewFeedback }: PipelineWorkspaceProps) {
   const [activeIdx, setActiveIdx]       = useState(0);
   const [leftPct, setLeftPct]           = useState(55); // left column width %
   const isDragging                       = useRef(false);
@@ -111,6 +114,9 @@ export function PipelineWorkspace({ stages, isGenerating, error, onSubmitReviewF
 
   const activeStage = visibleStages[activeIdx];
   const hasReview   = activeStage?.data?.awaiting_human === true && activeStage?.data?.review;
+  // HTML canvas stage takes over the whole body (no split / Design Head panel).
+  const isCanvas    = activeStage?.id === "html_compiler_node";
+  const userFlowData = stages.find(s => s.id === "user_flow_node")?.data ?? null;
 
   // ── Auto-advance to newly active stage ────────────────────────────────────
   useEffect(() => {
@@ -212,7 +218,17 @@ export function PipelineWorkspace({ stages, isGenerating, error, onSubmitReviewF
         </div>
       )}
 
-      {/* ── Split pane body ──────────────────────────────────────────────── */}
+      {/* ── HTML canvas takes over the full body when active ─────────────── */}
+      {isCanvas ? (
+        <div className="flex-1 overflow-hidden">
+          <HtmlCanvasStage
+            screens={htmlScreens}
+            isGenerating={isGenerating}
+            userFlowData={userFlowData}
+          />
+        </div>
+      ) : (
+      /* ── Split pane body ──────────────────────────────────────────────── */
       <div ref={containerRef} className="flex flex-1 overflow-hidden">
 
         {/* Left — stage output */}
@@ -283,6 +299,7 @@ export function PipelineWorkspace({ stages, isGenerating, error, onSubmitReviewF
 
         </div>
       </div>
+      )}
     </div>
   );
 }

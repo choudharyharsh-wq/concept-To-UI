@@ -90,7 +90,19 @@ async def _run_graph(config: dict, input_val):
     Yields SSE strings. Emits 'awaiting_human' if graph pauses at an interrupt,
     or 'done' if the graph completes.
     """
-    async for chunk in langgraph_app.astream(input_val, config, stream_mode="updates"):
+    # stream_mode is a list → astream yields (mode, chunk) tuples.
+    #   "updates" → {node_name: node_output} once a node finishes.
+    #   "custom"  → whatever a node emits via get_stream_writer() (used by the
+    #               HTML compiler to push screens one-by-one as they're built).
+    async for mode, chunk in langgraph_app.astream(
+        input_val, config, stream_mode=["updates", "custom"]
+    ):
+        if mode == "custom":
+            screen = chunk.get("html_screen") if isinstance(chunk, dict) else None
+            if screen:
+                yield _sse("html_compiler_node", "screen_ready", screen)
+            continue
+        # mode == "updates"
         for node_name, output in chunk.items():
             yield _sse(node_name, "completed", output)
 
@@ -105,17 +117,20 @@ async def _run_graph(config: dict, input_val):
 
 @server.get("/api/generate")
 async def generate(
-    concept:    str = Query(...),
-    figma_url:  str = Query(...),
-    session_id: str = Query(default="default"),
-    use_ds:     bool = Query(default=False),
+    concept:     str = Query(...),
+    figma_url:   str = Query(...),
+    session_id:  str = Query(default="default"),
+    use_ds:      bool = Query(default=False),
+    output_mode: str = Query(default="figma"),
 ):
     config = {"configurable": {"thread_id": session_id}}
 
     initial_state = {
         "concept": concept, "figma_url": figma_url, "use_ds": use_ds,
+        "output_mode": output_mode,
         "prd_data": {}, "ia_data": {}, "user_flow_data": {},
         "ux_layout_data": {}, "wireframe_payload": {}, "render_data": {},
+        "html_screens": [],
         "review_data": {}, "human_feedback": {"round_number": 1},
         "review_status": "", "logs": [], "errors": [],
     }

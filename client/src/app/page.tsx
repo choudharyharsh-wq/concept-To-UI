@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Sparkles, Send, Loader2, Lightbulb, IndianRupee } from "lucide-react";
+import { Sparkles, Send, Loader2, Lightbulb, IndianRupee, Figma, LayoutTemplate } from "lucide-react";
+import type { OutputMode } from "@/hooks/use-generation-stream";
 import { useGenerationStream } from "@/hooks/use-generation-stream";
 import { PipelineWorkspace } from "@/components/pipeline/pipeline-workspace";
 import { cn } from "@/lib/utils";
@@ -139,7 +140,8 @@ export default function Dashboard() {
   const [concept, setConcept]   = useState("");
   const [figmaUrl, setFigmaUrl] = useState("https://www.figma.com/file/123456789/Concept-To-UI-Test");
   const [useDs, setUseDs]       = useState(false);
-  const { isGenerating, stages, error, startGeneration, submitReviewFeedback } = useGenerationStream();
+  const [outputMode, setOutputMode] = useState<OutputMode>("figma");
+  const { isGenerating, stages, htmlScreens, error, startGeneration, submitReviewFeedback } = useGenerationStream();
   const [hasStarted, setHasStarted] = useState(false);
 
   // ── Navigation guards ─────────────────────────────────────────────────────
@@ -165,7 +167,7 @@ export default function Dashboard() {
     e.preventDefault();
     if (!concept) return;
     setHasStarted(true);
-    startGeneration(concept, figmaUrl, useDs);
+    startGeneration(concept, figmaUrl, useDs, outputMode);
   };
 
   // ── Full-screen workspace ─────────────────────────────────────────────────
@@ -174,6 +176,7 @@ export default function Dashboard() {
       <PipelineWorkspace
         stages={stages}
         isGenerating={isGenerating}
+        htmlScreens={htmlScreens}
         error={error}
         onSubmitReviewFeedback={submitReviewFeedback}
       />
@@ -240,6 +243,38 @@ export default function Dashboard() {
                   className="w-full h-48 bg-zinc-950 border border-zinc-800 rounded-lg p-4 focus:border-zinc-600 outline-none transition-colors resize-none text-zinc-200 placeholder:text-zinc-700 text-sm"
                   required
                 />
+              </div>
+
+              {/* Output target — where the final preview lands */}
+              <div className="space-y-2">
+                <label className="font-mono text-xs uppercase tracking-widest text-zinc-500">Output</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {([
+                    { mode: "figma" as OutputMode, icon: Figma,          title: "Figma Canvas",  sub: "Render frames into your Figma file" },
+                    { mode: "html"  as OutputMode, icon: LayoutTemplate, title: "HTML Canvas",   sub: "Live HTML screens on an infinite canvas" },
+                  ]).map(({ mode, icon: Icon, title, sub }) => {
+                    const active = outputMode === mode;
+                    return (
+                      <button
+                        key={mode}
+                        type="button"
+                        onClick={() => setOutputMode(mode)}
+                        className={cn(
+                          "flex flex-col gap-1 rounded-lg border px-4 py-3 text-left transition-colors",
+                          active
+                            ? "border-violet-500/60 bg-violet-500/10"
+                            : "border-zinc-800 bg-zinc-950 hover:border-zinc-700"
+                        )}
+                      >
+                        <span className="flex items-center gap-2">
+                          <Icon size={15} className={active ? "text-violet-300" : "text-zinc-500"} />
+                          <span className={cn("text-sm font-medium", active ? "text-zinc-100" : "text-zinc-300")}>{title}</span>
+                        </span>
+                        <span className="text-xs text-zinc-500">{sub}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               {/* DS toggle — build with the real POP Design System (best for fintech) */}

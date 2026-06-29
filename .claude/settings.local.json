@@ -67,7 +67,23 @@
       "Read(//tmp/figshots/**)",
       "Read(//tmp/**)",
       "mcp__f39bd90b-ba0c-49f7-bd5c-738929e82549__get_design_context",
-      "Bash(curl -s --max-time 8 http://localhost:5001/payload -o /tmp/figshots/payload2.json)"
+      "Bash(curl -s --max-time 8 http://localhost:5001/payload -o /tmp/figshots/payload2.json)",
+      "Skill(deep-research)",
+      "Skill(deep-research:*)",
+      "Bash(curl -s \"https://www.google.com/search?q=Google+Stitch+withgoogle+architecture+HTML+canvas\")",
+      "Bash(find /Users/choudhary.harsh -name \"*.md\" -o -name \"*.txt\" 2>/dev/null | head -5)",
+      "Bash(python3 -c \"import langgraph; print\\('langgraph', getattr\\(langgraph,'__version__','?'\\)\\)\")",
+      "Bash(python3 -c \"from langgraph.config import get_stream_writer; print\\('stream_writer OK'\\)\")",
+      "Bash(python3 -c \"import langgraph.version as v; print\\(v.__version__\\)\")",
+      "Bash(python3 -c \"from langgraph.config import get_stream_writer; print\\('OK get_stream_writer'\\)\")",
+      "Bash(python3 -c \"import ast; [ast.parse\\(open\\(f\\).read\\(\\)\\) for f in ['src/state.py','src/graph.py','src/nodes.py','src/html_templates.py','server.py']]; print\\('AST OK'\\)\")",
+      "Bash(python3 -c \"from src import graph; print\\('graph imports OK; nodes:', list\\(graph.app.get_graph\\(\\).nodes.keys\\(\\)\\)\\)\")",
+      "Bash(node -e \"console.log\\('tldraw', require\\('tldraw/package.json'\\).version\\)\")",
+      "Bash(node -e \"const t=require\\('tldraw'\\); ['Tldraw','BaseBoxShapeUtil','HTMLContainer','createShapeId'].forEach\\(k=>console.log\\(k, typeof t[k]\\)\\)\")",
+      "Bash(node -e \"const p=require\\('tldraw/package.json'\\); console.log\\('name',p.name,'ver',p.version,'home',p.homepage,'desc',\\(p.description||''\\).slice\\(0,80\\)\\)\")",
+      "Bash(npm view *)",
+      "Bash(python3 -c \"from langgraph.types import StreamWriter; print\\('StreamWriter OK'\\)\")",
+      "Bash(python3 -c \"from src import nodes; import inspect; print\\('sig:', list\\(inspect.signature\\(nodes.html_compiler_node\\).parameters\\)\\)\")"
     ]
   }
 }
