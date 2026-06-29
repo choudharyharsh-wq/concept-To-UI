@@ -14,6 +14,11 @@ Two theme sources:
                à la a fresh M3 theme), assembled via build_theme_head_from_spec.
 """
 
+from __future__ import annotations  # PEP 604 unions (X | None) on Python 3.9
+
+import json
+from pathlib import Path
+
 # Shared CDN / font tags injected into every document head.
 _TAILWIND_CDN = (
     '<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>'
@@ -117,11 +122,212 @@ primary CTAs, `font-sans` (Figtree) everywhere, and Material Symbols icons. Succ
 
 
 def pop_theme_head() -> str:
-    """Return the full <head> inner markup for POP (DS) mode."""
+    """Return the full <head> inner markup for POP (DS) mode (hardcoded fallback)."""
     return (
         f'{_TAILWIND_CDN}\n{_POP_FONT_LINK}\n{_MATERIAL_SYMBOLS}\n'
         f'{_POP_TAILWIND_CONFIG}\n{_POP_BASE_CSS}'
     )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# DS theme from design.md (single source of truth for DS mode)
+#
+# server/design.md holds a Stitch-style spec: YAML frontmatter (name, colors,
+# typography, rounded, spacing, strokes) + prose design language. When the user
+# enables DS mode, the HTML compiler builds its Tailwind theme + design-language
+# brief from THIS file instead of the hardcoded POP block above.
+# ─────────────────────────────────────────────────────────────────────────────
+
+_DESIGN_MD_PATH = Path(__file__).parent.parent / "design.md"
+_design_cache: dict | None = None
+
+# Google-Fonts-available substitutes. design.md may name a non-Google or
+# commercial face (e.g. "Awesome Serif Italic"); we load a close web font and
+# map it onto the same Tailwind family key so classes still resolve.
+_FONT_FALLBACK = {
+    "awesome serif italic": ("Playfair Display", "ital,wght@1,600;1,700"),
+    "awesome serif":        ("Playfair Display", "wght@600;700"),
+}
+_DEFAULT_WEIGHTS = "wght@300;400;500;600;700;800"
+
+
+def _google_font_link(family: str, axis: str | None = None) -> str:
+    fam = family.strip()
+    key = fam.lower()
+    if key in _FONT_FALLBACK:
+        fam, axis = _FONT_FALLBACK[key]
+    spec = axis or _DEFAULT_WEIGHTS
+    fam_q = fam.replace(" ", "+")
+    return (f'<link rel="stylesheet" '
+            f'href="https://fonts.googleapis.com/css2?family={fam_q}:{spec}&display=swap"/>')
+
+
+def _resolve_font(family: str) -> str:
+    """Return the actual (Google-available) family name for a spec'd font."""
+    return _FONT_FALLBACK.get(family.strip().lower(), (family, None))[0]
+
+
+def load_design_md() -> dict | None:
+    """
+    Parse server/design.md → {"meta": <frontmatter dict>, "body": <prose str>}.
+    Cached. Returns None if the file is missing or has no valid frontmatter.
+    """
+    global _design_cache
+    if _design_cache is not None:
+        return _design_cache or None
+    if not _DESIGN_MD_PATH.exists():
+        print(f"[DS] {_DESIGN_MD_PATH.name} not found — falling back to hardcoded POP theme.")
+        _design_cache = {}
+        return None
+    try:
+        import yaml
+        raw = _DESIGN_MD_PATH.read_text()
+        if not raw.lstrip().startswith("---"):
+            raise ValueError("no frontmatter delimiter")
+        _, fm, body = raw.split("---", 2)
+        meta = yaml.safe_load(fm) or {}
+        _design_cache = {"meta": meta, "body": body.strip()}
+        print(f"[DS] Loaded design.md theme '{meta.get('name','?')}' "
+              f"({len(meta.get('colors',{}))} colors, "
+              f"{len(meta.get('typography',{}))} type styles).")
+        return _design_cache
+    except Exception as e:  # noqa: BLE001
+        print(f"[DS] Failed to parse design.md ({e}); falling back to hardcoded POP theme.")
+        _design_cache = {}
+        return None
+
+
+def _build_tailwind_extend(meta: dict) -> str:
+    """Turn design.md frontmatter into a tailwind.config theme.extend JS object."""
+    colors = meta.get("colors", {}) or {}
+
+    # fontSize map: { "display-lg": ["36px", { lineHeight, fontWeight, letterSpacing }], ... }
+    typ = meta.get("typography", {}) or {}
+    font_size: dict = {}
+    primary_font = "Figtree"
+    serif_font = None
+    for name, t in typ.items():
+        if not isinstance(t, dict):
+            continue
+        opts = {}
+        if t.get("lineHeight"):    opts["lineHeight"] = str(t["lineHeight"])
+        if t.get("fontWeight"):    opts["fontWeight"] = str(t["fontWeight"])
+        if t.get("letterSpacing"): opts["letterSpacing"] = str(t["letterSpacing"])
+        font_size[name] = [str(t.get("fontSize", "16px")), opts]
+        fam = (t.get("fontFamily") or "").strip()
+        if fam:
+            if "serif" in fam.lower() or "italic" in fam.lower():
+                serif_font = serif_font or _resolve_font(fam)
+            elif name in ("body-md", "body-lg") or primary_font == "Figtree":
+                primary_font = _resolve_font(fam)
+
+    font_family = {"sans": [primary_font, "sans-serif"]}
+    if serif_font:
+        font_family["serif"] = [serif_font, "serif"]
+
+    extend = {
+        "colors": colors,
+        "fontFamily": font_family,
+        "fontSize": font_size,
+        "borderRadius": meta.get("rounded", {}) or {},
+        "spacing": meta.get("spacing", {}) or {},
+    }
+    # JSON is a valid JS-object subset; Tailwind config accepts it verbatim.
+    return json.dumps(extend, indent=2)
+
+
+def _build_base_css(meta: dict) -> str:
+    colors = meta.get("colors", {}) or {}
+    bg   = colors.get("background") or colors.get("surface") or "#0d0d0d"
+    text = colors.get("on-background") or colors.get("on-surface") or "#e6e6e6"
+    primary_font = "Figtree"
+    for name in ("body-md", "body-lg"):
+        t = (meta.get("typography", {}) or {}).get(name)
+        if isinstance(t, dict) and t.get("fontFamily"):
+            primary_font = _resolve_font(t["fontFamily"]); break
+    return f"""<style>
+  body {{
+    font-family: '{primary_font}', sans-serif;
+    background-color: {bg};
+    color: {text};
+    min-height: max(844px, 100dvh);
+  }}
+  .material-symbols-outlined {{ font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }}
+  .icon-fill {{ font-variation-settings: 'FILL' 1; }}
+  .glow-brand {{ box-shadow: 0 8px 32px -4px rgba(217, 65, 0, 0.30); }}
+  .glow-success {{ box-shadow: 0 8px 32px -4px rgba(33, 195, 33, 0.25); }}
+  .squishy:active {{ transform: scale(0.96); }}
+  .scrollbar-hide::-webkit-scrollbar {{ display: none; }}
+  .scrollbar-hide {{ -ms-overflow-style: none; scrollbar-width: none; }}
+</style>"""
+
+
+def design_md_theme_head() -> str:
+    """<head> inner markup for DS mode, built from design.md (falls back to POP)."""
+    data = load_design_md()
+    if not data:
+        return pop_theme_head()
+    meta = data["meta"]
+    typ  = meta.get("typography", {}) or {}
+
+    # Collect the fonts we need: the primary sans + any serif/expressive face.
+    font_links, seen = [], set()
+    def add_font(fam: str, axis: str | None = None):
+        resolved = _resolve_font(fam)
+        if resolved.lower() in seen:
+            return
+        seen.add(resolved.lower())
+        font_links.append(_google_font_link(fam, axis))
+    primary = "Figtree"
+    for name in ("body-md", "body-lg", "display-lg"):
+        t = typ.get(name)
+        if isinstance(t, dict) and t.get("fontFamily"):
+            primary = t["fontFamily"]; break
+    add_font(primary)
+    for t in typ.values():
+        if isinstance(t, dict) and t.get("fontFamily"):
+            fam = t["fontFamily"]
+            if "serif" in fam.lower() or "italic" in fam.lower():
+                add_font(fam, "ital,wght@1,600;1,700")
+
+    config_block = (
+        '<script id="tailwind-config">\n'
+        '  tailwind.config = { darkMode: "class", theme: { extend: '
+        f'{_build_tailwind_extend(meta)}'
+        ' } };\n'
+        '</script>'
+    )
+    return (
+        f'{_TAILWIND_CDN}\n' + "\n".join(font_links) + f'\n{_MATERIAL_SYMBOLS}\n'
+        f'{config_block}\n{_build_base_css(meta)}'
+    )
+
+
+def design_md_design_language() -> str:
+    """Design-language brief for the screen builder, from design.md prose + tokens."""
+    data = load_design_md()
+    if not data:
+        return POP_DESIGN_LANGUAGE
+    meta   = data["meta"]
+    colors = list((meta.get("colors", {}) or {}).keys())
+    sizes  = list((meta.get("typography", {}) or {}).keys())
+    radii  = list((meta.get("rounded", {}) or {}).keys())
+    token_hint = (
+        "\n\nAVAILABLE TOKEN CLASSES (use these exact names, never raw hex):\n"
+        f"- Colors → bg-/text-/border-: {', '.join(colors)}\n"
+        f"- Type   → text-: {', '.join(sizes)} (plus font-sans / font-serif)\n"
+        f"- Radius → rounded-: {', '.join(radii)}\n"
+        "Use the Material Symbols icon font for icons; never use raw white page backgrounds."
+    )
+    return f"{meta.get('name','Design System')} — design language:\n\n{data['body']}{token_hint}"
+
+
+def design_md_body_bg() -> str:
+    data = load_design_md()
+    if not data:
+        return "#0D0D0D"
+    colors = data["meta"].get("colors", {}) or {}
+    return colors.get("background") or colors.get("surface") or "#0D0D0D"
 
 
 # ─────────────────────────────────────────────────────────────────────────────

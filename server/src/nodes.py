@@ -1322,12 +1322,17 @@ Return a HtmlScreenCollection with one entry per requested screen."""
 
 async def _theme_for_html(prd_data: dict, concept: str, is_ds_mode: bool):
     """
-    Resolve the app-wide theme. DS mode → deterministic POP theme head.
+    Resolve the app-wide theme. DS mode → built from server/design.md (single
+    source of truth; falls back to hardcoded POP only if that file is missing).
     Otherwise → ask the LLM to design one ThemeSpec for the whole app.
     Returns (head_inner_html, design_language, body_bg).
     """
     if is_ds_mode:
-        return ht.pop_theme_head(), ht.POP_DESIGN_LANGUAGE, "#0D0D0D"
+        return (
+            ht.design_md_theme_head(),
+            ht.design_md_design_language(),
+            ht.design_md_body_bg(),
+        )
 
     directives = prd_data.get("ux_anchor_directives", {})
     summary    = prd_data.get("executive_summary", {})
