@@ -141,6 +141,7 @@ export default function Dashboard() {
   const [figmaUrl, setFigmaUrl] = useState("https://www.figma.com/file/123456789/Concept-To-UI-Test");
   const [useDs, setUseDs]       = useState(false);
   const [outputMode, setOutputMode] = useState<OutputMode>("figma");
+  const [maxScreens, setMaxScreens] = useState<number>(0); // 0 = all (dev cap for fast tests)
   const { isGenerating, stages, htmlScreens, error, startGeneration, submitReviewFeedback } = useGenerationStream();
   const [hasStarted, setHasStarted] = useState(false);
 
@@ -167,7 +168,7 @@ export default function Dashboard() {
     e.preventDefault();
     if (!concept) return;
     setHasStarted(true);
-    startGeneration(concept, figmaUrl, useDs, outputMode);
+    startGeneration(concept, figmaUrl, useDs, outputMode, maxScreens);
   };
 
   // ── Full-screen workspace ─────────────────────────────────────────────────
@@ -271,6 +272,38 @@ export default function Dashboard() {
                           <span className={cn("text-sm font-medium", active ? "text-zinc-100" : "text-zinc-300")}>{title}</span>
                         </span>
                         <span className="text-xs text-zinc-500">{sub}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Dev cap — limit screens for fast test runs */}
+              <div className="space-y-2">
+                <label className="font-mono text-xs uppercase tracking-widest text-zinc-500">
+                  Screen limit <span className="text-zinc-600 normal-case tracking-normal">(dev — fast tests)</span>
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { val: 2,  label: "2" },
+                    { val: 4,  label: "4" },
+                    { val: 6,  label: "6" },
+                    { val: 0,  label: "All" },
+                  ].map(({ val, label }) => {
+                    const active = maxScreens === val;
+                    return (
+                      <button
+                        key={label}
+                        type="button"
+                        onClick={() => setMaxScreens(val)}
+                        className={cn(
+                          "px-4 py-1.5 rounded-full border text-xs font-mono transition-all active:scale-[0.98]",
+                          active
+                            ? "border-amber-500/60 bg-amber-500/10 text-amber-200"
+                            : "border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-700"
+                        )}
+                      >
+                        {label}
                       </button>
                     );
                   })}

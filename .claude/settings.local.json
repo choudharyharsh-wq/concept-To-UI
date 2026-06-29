@@ -83,7 +83,9 @@
       "Bash(node -e \"const p=require\\('tldraw/package.json'\\); console.log\\('name',p.name,'ver',p.version,'home',p.homepage,'desc',\\(p.description||''\\).slice\\(0,80\\)\\)\")",
       "Bash(npm view *)",
       "Bash(python3 -c \"from langgraph.types import StreamWriter; print\\('StreamWriter OK'\\)\")",
-      "Bash(python3 -c \"from src import nodes; import inspect; print\\('sig:', list\\(inspect.signature\\(nodes.html_compiler_node\\).parameters\\)\\)\")"
+      "Bash(python3 -c \"from src import nodes; import inspect; print\\('sig:', list\\(inspect.signature\\(nodes.html_compiler_node\\).parameters\\)\\)\")",
+      "Bash(python3 -c \"from src import nodes; import inspect; print\\('async:', inspect.iscoroutinefunction\\(nodes.html_compiler_node\\)\\)\")",
+      "Bash(python3 -c \"from src import nodes, graph; print\\('import OK'\\)\")"
     ]
   }
 }

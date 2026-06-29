@@ -122,6 +122,22 @@ export function useGenerationStream() {
         return;
       }
 
+      // Final completed event for the HTML node — bulk fallback in case the
+      // per-screen stream was unavailable (merge any screens we don't have yet).
+      if (phase === "html_compiler_node" && status === "completed") {
+        const all = (data["html_screens"] as HtmlScreen[]) ?? [];
+        if (all.length) {
+          setHtmlScreens(prev => {
+            const have = new Set(prev.map(s => s.screen_id));
+            const merged = [...prev];
+            all.forEach(s => { if (!have.has(s.screen_id)) merged.push(s); });
+            return merged;
+          });
+        }
+        setStageStatus("html_compiler_node", "completed", { logs: data.logs });
+        return;
+      }
+
       if (phase === "prd_review_node") {
         const reviewPayload = data["review_data"] || data;
         // The node's "completed" event already carries review_status in its payload;
@@ -210,7 +226,7 @@ export function useGenerationStream() {
   );
 
   const startGeneration = useCallback(
-    (concept: string, figmaUrl: string, useDs: boolean = false, mode: OutputMode = "figma") => {
+    (concept: string, figmaUrl: string, useDs: boolean = false, mode: OutputMode = "figma", maxScreens: number = 0) => {
       if (eventSourceRef.current) eventSourceRef.current.close();
 
       setError(null);
@@ -229,7 +245,7 @@ export function useGenerationStream() {
 
       const sessionId = `session_${Date.now()}`;
       sessionIdRef.current = sessionId;
-      const url = `${BACKEND_URL}/api/generate?concept=${encodeURIComponent(concept)}&figma_url=${encodeURIComponent(figmaUrl)}&session_id=${sessionId}&use_ds=${useDs}&output_mode=${mode}`;
+      const url = `${BACKEND_URL}/api/generate?concept=${encodeURIComponent(concept)}&figma_url=${encodeURIComponent(figmaUrl)}&session_id=${sessionId}&use_ds=${useDs}&output_mode=${mode}&max_screens=${maxScreens}`;
       const es = new EventSource(url);
       eventSourceRef.current = es;
       attachHandlers(es);

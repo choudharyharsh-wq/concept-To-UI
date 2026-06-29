@@ -11,11 +11,17 @@ from .design_head import run_prd_evaluator, apply_prd_feedback
 from . import html_templates as ht
 
 try:
-    # Injected into a node by name/annotation; lets a sync node emit incremental
+    # Injected into a node by name/annotation; lets a node emit incremental
     # events (one per screen) to the SSE layer via stream_mode="custom".
     from langgraph.types import StreamWriter
 except Exception:  # pragma: no cover — older langgraph
     StreamWriter = None  # type: ignore
+
+try:
+    # Fallback path for incremental emit when the injected writer isn't usable.
+    from langgraph.config import get_stream_writer
+except Exception:  # pragma: no cover
+    get_stream_writer = None  # type: ignore
 
 load_dotenv(override=True)
 
@@ -352,13 +358,32 @@ PRD (JSON):
         ])
 
         ia_data = blueprint.model_dump()
-        page_names = [p.name for p in blueprint.pages]
-        print(f"    IA complete — {len(blueprint.pages)} screens: {page_names}")
+
+        # ── Dev cap: shrink the IA for fast test runs ─────────────────────────
+        # max_screens > 0 truncates to the first N pages so every downstream
+        # stage (flows, layout, compiler/render) only processes N screens.
+        # Keeps exactly one root and re-points any orphaned parent_id at it.
+        max_screens = int(state.get("max_screens", 0) or 0)
+        all_pages   = ia_data.get("pages", [])
+        if max_screens > 0 and len(all_pages) > max_screens:
+            root = next((p for p in all_pages if not p.get("parent_id")), all_pages[0])
+            kept = [root] + [p for p in all_pages if p is not root][: max_screens - 1]
+            kept_ids = {p["id"] for p in kept}
+            for p in kept:
+                if p is root:
+                    p["parent_id"] = None
+                elif p.get("parent_id") not in kept_ids:
+                    p["parent_id"] = root["id"]          # repair dangling parent
+            ia_data["pages"] = kept
+            print(f"    [DEV CAP] Truncated IA {len(all_pages)} → {len(kept)} screens (max_screens={max_screens}).")
+
+        page_names = [p["name"] for p in ia_data.get("pages", [])]
+        print(f"    IA complete — {len(ia_data.get('pages', []))} screens: {page_names}")
         return {
             "ia_data": ia_data,
             "logs": [
-                f"[SYS] IA Blueprint generated — {len(blueprint.pages)} screens, "
-                f"{sum(1 for p in blueprint.pages if p.parent_id is None)} root node(s)."
+                f"[SYS] IA Blueprint generated — {len(ia_data.get('pages', []))} screens, "
+                f"{sum(1 for p in ia_data.get('pages', []) if p.get('parent_id') is None)} root node(s)."
             ]
         }
     except Exception as e:
@@ -1284,7 +1309,7 @@ NON-NEGOTIABLE OUTPUT RULES:
 Return a HtmlScreenCollection with one entry per requested screen."""
 
 
-def _theme_for_html(prd_data: dict, concept: str, is_ds_mode: bool):
+async def _theme_for_html(prd_data: dict, concept: str, is_ds_mode: bool):
     """
     Resolve the app-wide theme. DS mode → deterministic POP theme head.
     Otherwise → ask the LLM to design one ThemeSpec for the whole app.
@@ -1312,7 +1337,7 @@ def _theme_for_html(prd_data: dict, concept: str, is_ds_mode: bool):
     )
     try:
         llm = get_llm(max_tokens=4096).with_structured_output(ThemeSpec)
-        spec: ThemeSpec = llm.invoke([SystemMessage(content=sys), HumanMessage(content=usr)])
+        spec: ThemeSpec = await llm.ainvoke([SystemMessage(content=sys), HumanMessage(content=usr)])
         spec_dict = spec.model_dump()
         print(f"    [HTML] Theme designed — font={spec_dict.get('font_family')}, bg={spec_dict.get('body_bg')}")
         return ht.build_theme_head_from_spec(spec_dict), spec.design_language, spec.body_bg
@@ -1322,7 +1347,7 @@ def _theme_for_html(prd_data: dict, concept: str, is_ds_mode: bool):
         return head, "Clean neutral theme: indigo primary, light surfaces, rounded cards.", "#F4F4F5"
 
 
-def html_compiler_node(state: GraphState, writer: "StreamWriter" = None):
+async def html_compiler_node(state: GraphState, writer: "StreamWriter" = None):
     """
     HTML render branch — produces one self-contained HTML document per screen and
     streams each to the frontend (which renders them as floating frames on a
@@ -1346,7 +1371,7 @@ def html_compiler_node(state: GraphState, writer: "StreamWriter" = None):
     is_ds_mode     = use_ds and bool(DS_REGISTRY)
 
     # ── Phase 1: theme ────────────────────────────────────────────────────────
-    head_inner, design_language, body_bg = _theme_for_html(prd_data, concept, is_ds_mode)
+    head_inner, design_language, body_bg = await _theme_for_html(prd_data, concept, is_ds_mode)
 
     layout_by_id = {sl.get("page_id"): sl for sl in screen_layouts}
     total        = len(pages)
@@ -1359,17 +1384,51 @@ def html_compiler_node(state: GraphState, writer: "StreamWriter" = None):
         f"{design_language}"
     )
 
+    def hlog(msg: str):
+        print(f"    [HTML] {msg}", flush=True)
+
+    # Resolve a usable stream writer: prefer the injected one, fall back to
+    # get_stream_writer() (works inside async nodes on langgraph ≥0.2).
+    active_writer = writer
+    if active_writer is None and get_stream_writer is not None:
+        try:
+            active_writer = get_stream_writer()
+            hlog("acquired writer via get_stream_writer() fallback")
+        except Exception as gwe:  # noqa: BLE001
+            hlog(f"get_stream_writer() unavailable: {type(gwe).__name__}: {gwe}")
+
+    hlog(f"theme ready (bg={body_bg}); design_language {len(design_language)} chars")
+    hlog(f"writer resolved: {active_writer is not None} "
+         f"(injected={writer is not None}, type={type(active_writer).__name__})")
+
+    # Defensive, NON-FATAL emit. Per-screen streaming is a nice-to-have; if the
+    # stream writer is unavailable or raises (e.g. context issues), we log and
+    # keep going — the screens are still returned in bulk at the end as a fallback.
+    emit_disabled = {"flag": False}
+    def emit(screen_obj: dict, idx: int):
+        if active_writer is None or emit_disabled["flag"]:
+            return
+        try:
+            active_writer({"html_screen": {**screen_obj, "index": idx, "total": total}})
+            hlog(f"  → streamed screen idx={idx} via writer")
+        except Exception as we:  # noqa: BLE001
+            emit_disabled["flag"] = True  # stop trying after the first failure
+            hlog(f"  ! writer emit failed (non-fatal, will bulk-return): "
+                 f"{type(we).__name__}: {we}")
+
     html_screens: List[dict] = []
+    batch_errors: List[str] = []
     emitted = 0
 
-    try:
-        structured_llm = get_llm(max_tokens=16000).with_structured_output(HtmlScreenCollection)
+    structured_llm = get_llm(max_tokens=16000).with_structured_output(HtmlScreenCollection)
+    hlog(f"structured LLM ready; starting {total_batches} batch(es)")
 
-        for i in range(0, total, BATCH_SIZE):
-            batch_pages = pages[i:i + BATCH_SIZE]
-            batch_ids   = [p["id"] for p in batch_pages]
-            batch_num   = i // BATCH_SIZE + 1
+    for i in range(0, total, BATCH_SIZE):
+        batch_pages = pages[i:i + BATCH_SIZE]
+        batch_ids   = [p["id"] for p in batch_pages]
+        batch_num   = i // BATCH_SIZE + 1
 
+        try:
             batch_layouts = []
             for pid in batch_ids:
                 sl = layout_by_id.get(pid, {})
@@ -1403,13 +1462,19 @@ Brand / UX directives (tone, posture):
 User flows (for cross-screen navigation cues):
 {json.dumps(user_flow_data, indent=2)}"""
 
-            print(f"    HTML batch {batch_num}/{total_batches}: {batch_ids}")
-            collection: HtmlScreenCollection = structured_llm.invoke([
+            hlog(f"batch {batch_num}/{total_batches} {batch_ids} — invoking LLM "
+                 f"(prompt {len(batch_prompt)} chars)…")
+            collection: HtmlScreenCollection = await structured_llm.ainvoke([
                 SystemMessage(content=system_prompt),
                 HumanMessage(content=batch_prompt),
             ])
+            hlog(f"batch {batch_num} LLM returned {len(collection.screens)} screen(s): "
+                 f"{[s.screen_id for s in collection.screens]}")
 
             for spec in collection.screens:
+                hlog(f"  building doc for '{spec.screen_id}' "
+                     f"(body {len(spec.body_html or '')} chars, "
+                     f"{spec.viewport_width}x{spec.viewport_height})")
                 document = ht.build_document(
                     title=spec.screen_name,
                     head_inner=head_inner,
@@ -1424,21 +1489,24 @@ User flows (for cross-screen navigation cues):
                     "html":            document,
                 }
                 html_screens.append(screen_obj)
+                emit(screen_obj, emitted)
                 emitted += 1
-                # Stream this screen to the frontend immediately (one-by-one).
-                if writer:
-                    writer({"html_screen": {**screen_obj, "index": emitted - 1, "total": total}})
-                print(f"    [HTML] Screen ready ({emitted}/{total}): {spec.screen_id}")
+                hlog(f"screen ready ({emitted}/{total}): {spec.screen_id} "
+                     f"(doc {len(document)} chars)")
 
-        print(f"    HTML Compiler complete — {len(html_screens)} screens.")
-        return {
-            "html_screens": html_screens,
-            "logs": [f"[SYS] HTML Compiler complete — {len(html_screens)} screen(s) generated."],
-        }
-    except Exception as e:
-        print(f"    [ERR] HTML Compiler failed: {e}")
-        return {
-            "html_screens": html_screens,   # whatever was built before the failure
-            "errors": [f"Error in HTML Compiler node: {str(e)}"],
-            "logs":   [f"[ERR] HTML compilation failed: {str(e)}"],
-        }
+        except Exception as be:  # noqa: BLE001 — one bad batch must not kill the rest
+            import traceback
+            hlog(f"! batch {batch_num} FAILED: {type(be).__name__}: {be}")
+            traceback.print_exc()
+            batch_errors.append(f"batch {batch_num} ({batch_ids}): {type(be).__name__}: {be}")
+            continue
+
+    hlog(f"HTML Compiler complete — {len(html_screens)}/{total} screen(s), "
+         f"{len(batch_errors)} batch error(s).")
+    logs = [f"[SYS] HTML Compiler complete — {len(html_screens)}/{total} screen(s) generated."]
+    if batch_errors:
+        logs += [f"[WARN] {e}" for e in batch_errors]
+    out = {"html_screens": html_screens, "logs": logs}
+    if batch_errors:
+        out["errors"] = [f"HTML Compiler batch errors: {'; '.join(batch_errors)}"]
+    return out

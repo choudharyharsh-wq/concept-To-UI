@@ -9,6 +9,7 @@ class GraphState(TypedDict):
     figma_url: str
     use_ds: bool                     # toggle: compile against the POP Design System vs generic primitives
     output_mode: str                 # "figma" (default) | "html" — chooses the final render branch
+    max_screens: int                 # dev cap: 0 = no limit; >0 truncates the IA to N screens for fast test runs
     prd_data: Dict[str, Any]
     ia_data: Dict[str, Any]
     user_flow_data: Dict[str, Any]

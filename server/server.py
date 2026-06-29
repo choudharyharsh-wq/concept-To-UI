@@ -122,12 +122,13 @@ async def generate(
     session_id:  str = Query(default="default"),
     use_ds:      bool = Query(default=False),
     output_mode: str = Query(default="figma"),
+    max_screens: int = Query(default=0),
 ):
     config = {"configurable": {"thread_id": session_id}}
 
     initial_state = {
         "concept": concept, "figma_url": figma_url, "use_ds": use_ds,
-        "output_mode": output_mode,
+        "output_mode": output_mode, "max_screens": max_screens,
         "prd_data": {}, "ia_data": {}, "user_flow_data": {},
         "ux_layout_data": {}, "wireframe_payload": {}, "render_data": {},
         "html_screens": [],
