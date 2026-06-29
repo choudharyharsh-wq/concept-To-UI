@@ -189,7 +189,8 @@ export function HtmlCanvasStage({ screens, isGenerating }: HtmlCanvasStageProps)
   const handleMount = useCallback(
     (editor: Editor) => {
       editorRef.current = editor;
-      editor.user.updateUserPreferences({ colorScheme: "dark" });
+      // Light chrome so the UI matches the white canvas background.
+      editor.user.updateUserPreferences({ colorScheme: "light" });
       syncShapes(editor);
     },
     [syncShapes]
@@ -201,10 +202,15 @@ export function HtmlCanvasStage({ screens, isGenerating }: HtmlCanvasStageProps)
   }, [screens, syncShapes]);
 
   return (
-    <div className="relative w-full h-full">
+    // Force a pure-white canvas background (tldraw reads --color-background;
+    // the var cascades into its container).
+    <div
+      className="relative w-full h-full [&_.tl-background]:!bg-white"
+      style={{ ["--color-background" as any]: "#ffffff" }}
+    >
       {/* Empty / loading state before the first screen lands */}
       {screens.length === 0 && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-zinc-950 text-zinc-500">
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-white text-zinc-400">
           {isGenerating ? (
             <>
               <Loader2 size={22} className="animate-spin" />
