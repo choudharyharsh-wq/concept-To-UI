@@ -190,9 +190,20 @@ def get_llm(max_tokens: int = 8192):
     Lazily build the LLM so it reads ANTHROPIC_API_KEY after load_dotenv() has run.
     max_tokens is explicit — Claude Haiku's default is too low for large JSON outputs.
     """
+    # ── TODO: revert to Haiku ────────────────────────────────────────────────
+    # This is the original Haiku implementation. To switch back: comment out the
+    # Opus block below and uncomment this one.
+    # return ChatAnthropic(
+    #     model="claude-haiku-4-5",
+    #     temperature=0.2,                      # Haiku supports temperature
+    #     max_tokens=max_tokens,
+    #     anthropic_api_key=os.environ["ANTHROPIC_API_KEY"],
+    # )
+
+    # ── EXPERIMENT: Opus 4.8 (output-quality comparison) ─────────────────────
+    # NOTE: Opus 4.8 deprecated `temperature` — must NOT be passed or the API 400s.
     return ChatAnthropic(
-        model="claude-haiku-4-5",
-        temperature=0.2,
+        model="claude-opus-4-8",
         max_tokens=max_tokens,
         anthropic_api_key=os.environ["ANTHROPIC_API_KEY"],
     )
