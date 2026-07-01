@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Tldraw,
   ShapeUtil,
@@ -11,10 +11,13 @@ import {
   type Editor,
   type TLBaseShape,
   type RecordProps,
+  type TLComponents,
 } from "tldraw";
 import "tldraw/tldraw.css";
-import { Loader2, LayoutTemplate } from "lucide-react";
+import { Loader2, LayoutTemplate, Figma, Check, AlertCircle } from "lucide-react";
 import type { HtmlScreen } from "@/hooks/use-generation-stream";
+import { prepareFigmaClipboard, writeToClipboard } from "@/lib/to-design";
+import { cn } from "@/lib/utils";
 
 // ─── Custom tldraw shape: one rendered HTML screen ────────────────────────────
 
@@ -116,6 +119,26 @@ class ScreenShapeUtil extends ShapeUtil<ScreenShape> {
 
 const SHAPE_UTILS = [ScreenShapeUtil];
 
+// Hide all of tldraw's editing chrome — this is a read-only preview canvas, not a
+// drawing app. Leaves just the dotted canvas + screens (Stitch-style). Pan (drag)
+// and zoom (wheel/pinch) still work since those are interactions, not UI.
+const HIDDEN_UI: TLComponents = {
+  Toolbar: null,
+  StylePanel: null,
+  PageMenu: null,
+  MainMenu: null,
+  ActionsMenu: null,
+  QuickActions: null,
+  HelpMenu: null,
+  ZoomMenu: null,
+  NavigationPanel: null,
+  MenuPanel: null,
+  DebugMenu: null,
+  DebugPanel: null,
+  SharePanel: null,
+  KeyboardShortcutsDialog: null,
+};
+
 // Horizontal gap between screen frames on the canvas.
 const GAP = 90;
 
@@ -148,10 +171,66 @@ interface HtmlCanvasStageProps {
   userFlowData?: any;
 }
 
+type FigmaExportState = "idle" | "preparing" | "ready" | "copied" | "error";
+
 export function HtmlCanvasStage({ screens, isGenerating }: HtmlCanvasStageProps) {
   const editorRef = useRef<Editor | null>(null);
   const screensRef = useRef<HtmlScreen[]>(screens);
   screensRef.current = screens;
+
+  // ── Figma export (code.to.design clipboard mode) ──────────────────────────
+  const [figmaState, setFigmaState] = useState<FigmaExportState>("idle");
+  const [figmaErr, setFigmaErr]     = useState<string | null>(null);
+  const clipboardRef    = useRef<string | null>(null);  // prepared text/html blob
+  const preparedCountRef = useRef<number>(0);           // #screens the blob covers
+
+  // Build the clipboard blob for ALL current screens (the slow network step).
+  const prepareExport = useCallback(async () => {
+    const list = screensRef.current;
+    if (!list.length) return;
+    setFigmaState("preparing");
+    setFigmaErr(null);
+    try {
+      const blob = await prepareFigmaClipboard(list);
+      clipboardRef.current = blob;
+      preparedCountRef.current = list.length;
+      setFigmaState("ready");
+    } catch (e: any) {
+      setFigmaErr(e?.message || "Export failed");
+      setFigmaState("error");
+    }
+  }, []);
+
+  // IMPORTANT: never call the (paid) to.design API automatically — it must only
+  // ever run on an explicit user click. Auto-preparing here previously fired on
+  // simply *viewing* a past generation and, on failure, retried in a loop,
+  // burning API credits. So: reset to idle whenever the screen set changes
+  // (new run or opening a different past generation) and wait for a click.
+  const screenSig = screens.map((s) => s.screen_id).join("|");
+  useEffect(() => {
+    clipboardRef.current = null;
+    preparedCountRef.current = 0;
+    setFigmaState("idle");
+    setFigmaErr(null);
+  }, [screenSig]);
+
+  // Single button, two clicks: 1st click prepares (one API call), 2nd copies.
+  const onSendToFigma = useCallback(async () => {
+    if (figmaState === "preparing") return;            // in flight — ignore
+    if (figmaState === "ready" && clipboardRef.current) {
+      try {
+        await writeToClipboard(clipboardRef.current);  // 2nd click → copy
+        setFigmaState("copied");
+        setTimeout(() => setFigmaState("ready"), 3000);
+      } catch (e: any) {
+        setFigmaErr(e?.message || "Clipboard write blocked");
+        setFigmaState("error");
+      }
+      return;
+    }
+    // idle or error → prepare exactly once (no auto-retry loop).
+    await prepareExport();
+  }, [figmaState, prepareExport]);
 
   // Create/update a tldraw shape for every screen we have. Idempotent — keyed by
   // a deterministic shape id, so re-runs only add missing frames.
@@ -189,8 +268,12 @@ export function HtmlCanvasStage({ screens, isGenerating }: HtmlCanvasStageProps)
   const handleMount = useCallback(
     (editor: Editor) => {
       editorRef.current = editor;
-      // Light chrome so the UI matches the white canvas background.
-      editor.user.updateUserPreferences({ colorScheme: "light" });
+      // Dark gray theme + dotted grid (Stitch-style). NOTE: do NOT use
+      // isReadonly — tldraw blocks programmatic createShape in readonly mode, so
+      // the screens would never appear. The clean look comes from hiding all the
+      // editing chrome (HIDDEN_UI) instead; that already removes drawing tools.
+      editor.user.updateUserPreferences({ colorScheme: "dark" });
+      editor.updateInstanceState({ isGridMode: true });
       syncShapes(editor);
     },
     [syncShapes]
@@ -202,15 +285,10 @@ export function HtmlCanvasStage({ screens, isGenerating }: HtmlCanvasStageProps)
   }, [screens, syncShapes]);
 
   return (
-    // Force a pure-white canvas background (tldraw reads --color-background;
-    // the var cascades into its container).
-    <div
-      className="relative w-full h-full [&_.tl-background]:!bg-white"
-      style={{ ["--color-background" as any]: "#ffffff" }}
-    >
+    <div className="relative w-full h-full">
       {/* Empty / loading state before the first screen lands */}
       {screens.length === 0 && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-white text-zinc-400">
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-zinc-900 text-zinc-500">
           {isGenerating ? (
             <>
               <Loader2 size={22} className="animate-spin" />
@@ -234,7 +312,50 @@ export function HtmlCanvasStage({ screens, isGenerating }: HtmlCanvasStageProps)
         </div>
       )}
 
-      <Tldraw shapeUtils={SHAPE_UTILS} onMount={handleMount} />
+      {/* Send all to Figma (code.to.design clipboard mode) */}
+      {screens.length > 0 && (
+        <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-1.5">
+          <button
+            onClick={onSendToFigma}
+            disabled={figmaState === "preparing"}
+            title="Copy all screens, then paste (⌘V) into Figma"
+            className={cn(
+              "flex items-center gap-2 rounded-lg border px-3 py-1.5 font-mono text-[11px] uppercase tracking-widest transition-all active:scale-[0.98] backdrop-blur",
+              figmaState === "copied"
+                ? "border-emerald-700 bg-emerald-950/70 text-emerald-300"
+                : figmaState === "error"
+                  ? "border-red-800 bg-red-950/60 text-red-300 hover:bg-red-950/80"
+                  : figmaState === "preparing"
+                    ? "border-zinc-700 bg-zinc-900/90 text-zinc-500 cursor-wait"
+                    : "border-zinc-600 bg-zinc-900/90 text-zinc-200 hover:bg-zinc-800"
+            )}
+          >
+            {figmaState === "preparing" ? (
+              <><Loader2 size={12} className="animate-spin" /> Preparing…</>
+            ) : figmaState === "copied" ? (
+              <><Check size={12} /> Copied — ⌘V in Figma</>
+            ) : figmaState === "error" ? (
+              <><AlertCircle size={12} /> Retry export</>
+            ) : figmaState === "ready" ? (
+              <><Figma size={12} /> Copy to clipboard (⌘V)</>
+            ) : (
+              <><Figma size={12} /> Send all to Figma</>
+            )}
+          </button>
+          {figmaState === "copied" && (
+            <span className="rounded-md bg-zinc-900/90 px-2 py-1 font-mono text-[10px] text-zinc-400 backdrop-blur">
+              Switch to Figma and paste — no time limit
+            </span>
+          )}
+          {figmaState === "error" && figmaErr && (
+            <span className="max-w-[260px] rounded-md bg-red-950/70 px-2 py-1 text-right font-mono text-[10px] text-red-300 backdrop-blur">
+              {figmaErr}
+            </span>
+          )}
+        </div>
+      )}
+
+      <Tldraw shapeUtils={SHAPE_UTILS} components={HIDDEN_UI} onMount={handleMount} />
     </div>
   );
 }

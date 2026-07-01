@@ -1,1 +1,4 @@
 .env
+
+# Local SQLite history store
+generations.db

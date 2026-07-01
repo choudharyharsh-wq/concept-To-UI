@@ -295,5 +295,36 @@ export function useGenerationStream() {
     attachHandlers(es);
   }, [attachHandlers, setStageStatus]);
 
-  return { isGenerating, stages, htmlScreens, outputMode, error, startGeneration, submitReviewFeedback };
+  // ── Rehydrate a stored run (history) — no SSE, all stages pre-filled ───────
+  const loadGeneration = useCallback((rec: any) => {
+    if (eventSourceRef.current) eventSourceRef.current.close();
+    const mode: OutputMode = rec?.output_mode === "html" ? "html" : "figma";
+
+    setError(null);
+    setIsGenerating(false);
+    setOutputMode(mode);
+    sessionIdRef.current = rec?.id ?? "default";
+
+    const byId: Record<string, any> = {
+      prd_node:                rec?.prd_data ?? null,
+      prd_review_node:         { review: rec?.review?.review_data ?? null, awaiting_human: false, approved: true },
+      ia_node:                 rec?.ia_data ?? null,
+      user_flow_node:          rec?.user_flow_data ?? null,
+      ux_layout_node:          rec?.ux_layout_data ?? null,
+      wireframe_compiler_node: rec?.wireframe_payload ?? null,
+      render_node:             rec?.render_data ?? null,
+      html_compiler_node:      { count: (rec?.html_screens ?? []).length },
+    };
+
+    const filled = stagesForMode(mode).map((s) => ({
+      ...s,
+      status: "completed" as PipelineStageStatus,
+      data: byId[s.id] ?? null,
+    }));
+    stageOrderRef.current = filled.map((s) => s.id);
+    setStages(filled);
+    setHtmlScreens(mode === "html" ? (rec?.html_screens ?? []) : []);
+  }, []);
+
+  return { isGenerating, stages, htmlScreens, outputMode, error, startGeneration, submitReviewFeedback, loadGeneration };
 }

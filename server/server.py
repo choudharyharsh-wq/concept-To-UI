@@ -19,11 +19,15 @@ load_dotenv(override=True)
 
 from fastapi import FastAPI, Query
 from fastapi.requests import Request
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi.responses import StreamingResponse, JSONResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
 from src.graph import app as langgraph_app
+from src import db
 
 server = FastAPI()
+
+# Create the generations table if DATABASE_URL is configured (no-op otherwise).
+db.init_db()
 
 # Comma-separated exact origins, e.g. "http://localhost:3000,https://my-app.vercel.app"
 _origins = [o.strip() for o in os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",") if o.strip()]
@@ -112,6 +116,14 @@ async def _run_graph(config: dict, input_val):
         review_data = graph_state.values.get("review_data", {})
         yield _sse("prd_review_node", "awaiting_human", {"review_data": review_data})
     else:
+        # Run finished → persist the full record for "past generations" history.
+        session_id = (config.get("configurable") or {}).get("thread_id", "")
+        try:
+            await asyncio.to_thread(
+                db.save_generation, session_id, dict(graph_state.values), "completed"
+            )
+        except Exception as e:  # noqa: BLE001 — persistence must never break the stream
+            print(f"[DB] save_generation failed (non-fatal): {e}")
         yield _sse("done", "done", {})
 
 
@@ -192,6 +204,78 @@ async def generate_resume(session_id: str = Query(default="default")):
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
+
+
+@server.post("/api/to-design")
+async def to_design(request: Request):
+    """
+    Server-side proxy for code.to.design clipboard mode. Keeps TO_DESIGN_API_KEY
+    off the client and avoids browser CORS. Body: { html, clip? }. Returns the
+    Figma clipboard blob (text/html) verbatim for the browser to place on the
+    clipboard.
+    """
+    key = os.getenv("TO_DESIGN_API_KEY", "").strip()
+    if not key:
+        return JSONResponse(
+            {"error": "TO_DESIGN_API_KEY is not set in server/.env"}, status_code=500
+        )
+
+    body = await request.json()
+    html = body.get("html", "")
+    clip = bool(body.get("clip", True))
+    if not html:
+        return JSONResponse({"error": "missing 'html'"}, status_code=400)
+
+    def _call():
+        import requests as req
+        return req.post(
+            "https://api.to.design/html",
+            json={"html": html, "clip": clip},
+            headers={"Content-Type": "application/json", "Authorization": f"Bearer {key}"},
+            timeout=180,
+        )
+
+    try:
+        resp = await asyncio.to_thread(_call)
+    except Exception as e:  # noqa: BLE001
+        return JSONResponse({"error": f"to.design unreachable: {e}"}, status_code=502)
+
+    if resp.status_code != 200:
+        return JSONResponse(
+            {"error": f"to.design returned {resp.status_code}: {resp.text[:500]}"},
+            status_code=502,
+        )
+
+    # clip=true → text/html clipboard blob. Return it raw.
+    return Response(content=resp.text, media_type="text/plain")
+
+
+@server.get("/api/generations")
+async def list_generations():
+    """Lightweight list for the history sidebar."""
+    items = await asyncio.to_thread(db.list_generations)
+    return {"generations": items, "enabled": db.ENABLED}
+
+
+@server.get("/api/generations/{gen_id}")
+async def get_generation(gen_id: str):
+    """Full record to rehydrate the workspace."""
+    rec = await asyncio.to_thread(db.get_generation, gen_id)
+    if rec is None:
+        return JSONResponse({"error": "not found"}, status_code=404)
+    return rec
+
+
+@server.delete("/api/generations/{gen_id}")
+async def delete_generation(gen_id: str):
+    ok = await asyncio.to_thread(db.delete_generation, gen_id)
+    return JSONResponse({"deleted": ok}, status_code=200 if ok else 404)
+
+
+@server.get("/api/db-health")
+async def db_health():
+    """Verify the database connection from the browser."""
+    return await asyncio.to_thread(db.health)
 
 
 @server.get("/health")

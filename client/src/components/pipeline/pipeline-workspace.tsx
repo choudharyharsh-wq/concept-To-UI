@@ -21,6 +21,7 @@ interface PipelineWorkspaceProps {
   isGenerating: boolean;
   htmlScreens?: HtmlScreen[];
   error?: string | null;
+  onHome?: () => void;
   onSubmitReviewFeedback: (feedback: {
     answered_questions: Record<string, string>;
     accepted_suggestion_ids: string[];
@@ -103,7 +104,7 @@ function StageOutput({ stage, allStages }: { stage: PipelineStage; allStages: Pi
 
 // ─── Main workspace ───────────────────────────────────────────────────────────
 
-export function PipelineWorkspace({ stages, isGenerating, htmlScreens = [], error, onSubmitReviewFeedback }: PipelineWorkspaceProps) {
+export function PipelineWorkspace({ stages, isGenerating, htmlScreens = [], error, onHome, onSubmitReviewFeedback }: PipelineWorkspaceProps) {
   const [activeIdx, setActiveIdx]       = useState(0);
   const [leftPct, setLeftPct]           = useState(55); // left column width %
   const isDragging                       = useRef(false);
@@ -161,10 +162,18 @@ export function PipelineWorkspace({ stages, isGenerating, htmlScreens = [], erro
       {/* ── Top bar ─────────────────────────────────────────────────────── */}
       <div className="shrink-0 flex items-center gap-2 px-4 py-2 border-b border-zinc-800 bg-zinc-950">
 
-        {/* Logo */}
-        <span className="font-mono text-[11px] uppercase tracking-widest text-zinc-600 mr-3 shrink-0">
+        {/* Logo / home */}
+        <button
+          onClick={onHome}
+          disabled={!onHome}
+          className={cn(
+            "font-mono text-[11px] uppercase tracking-widest mr-3 shrink-0 transition-colors",
+            onHome ? "text-zinc-500 hover:text-zinc-200 cursor-pointer" : "text-zinc-600 cursor-default"
+          )}
+          title={onHome ? "Back to home" : undefined}
+        >
           Concept → UI
-        </span>
+        </button>
 
         {/* Stage nav */}
         <div className="flex items-center gap-1 flex-1 overflow-x-auto no-scrollbar">

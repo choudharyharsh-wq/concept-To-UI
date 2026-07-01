@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Sparkles, Send, Loader2, Lightbulb, IndianRupee, Figma, LayoutTemplate } from "lucide-react";
+import { Sparkles, Send, Loader2, Lightbulb, IndianRupee, Figma, LayoutTemplate, History } from "lucide-react";
 import type { OutputMode } from "@/hooks/use-generation-stream";
 import { useGenerationStream } from "@/hooks/use-generation-stream";
 import { PipelineWorkspace } from "@/components/pipeline/pipeline-workspace";
@@ -142,8 +142,43 @@ export default function Dashboard() {
   const [useDs, setUseDs]       = useState(false);
   const [outputMode, setOutputMode] = useState<OutputMode>("figma");
   const [maxScreens, setMaxScreens] = useState<number>(0); // 0 = all (dev cap for fast tests)
-  const { isGenerating, stages, htmlScreens, error, startGeneration, submitReviewFeedback } = useGenerationStream();
+  const { isGenerating, stages, htmlScreens, error, startGeneration, submitReviewFeedback, loadGeneration } = useGenerationStream();
   const [hasStarted, setHasStarted] = useState(false);
+
+  // ── Past generations (history sidebar) ──────────────────────────────────────
+  const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000";
+  const [pastGens, setPastGens] = useState<any[]>([]);
+  const [historyEnabled, setHistoryEnabled] = useState(true);
+  const [openingId, setOpeningId] = useState<string | null>(null);
+
+  const refreshHistory = useCallback(async () => {
+    try {
+      const res = await fetch(`${BACKEND}/api/generations`);
+      if (!res.ok) return;
+      const data = await res.json();
+      setPastGens(data.generations ?? []);
+      setHistoryEnabled(data.enabled !== false);
+    } catch {
+      setHistoryEnabled(false);
+    }
+  }, [BACKEND]);
+
+  useEffect(() => { refreshHistory(); }, [refreshHistory]);
+
+  const openGeneration = useCallback(async (id: string) => {
+    setOpeningId(id);
+    try {
+      const res = await fetch(`${BACKEND}/api/generations/${id}`);
+      if (!res.ok) return;
+      const rec = await res.json();
+      loadGeneration(rec);
+      setHasStarted(true);
+    } finally {
+      setOpeningId(null);
+    }
+  }, [BACKEND, loadGeneration]);
+
+  const goHome = useCallback(() => { setHasStarted(false); refreshHistory(); }, [refreshHistory]);
 
   // ── Navigation guards ─────────────────────────────────────────────────────
   useEffect(() => {
@@ -179,6 +214,7 @@ export default function Dashboard() {
         isGenerating={isGenerating}
         htmlScreens={htmlScreens}
         error={error}
+        onHome={goHome}
         onSubmitReviewFeedback={submitReviewFeedback}
       />
     );
@@ -186,7 +222,52 @@ export default function Dashboard() {
 
   // ── Landing page ─────────────────────────────────────────────────────────
   return (
-    <main className="min-h-screen bg-zinc-950 text-zinc-100 selection:bg-zinc-700/50">
+    <main className="min-h-screen bg-zinc-950 text-zinc-100 selection:bg-zinc-700/50 flex">
+
+      {/* ── Past generations sidebar ──────────────────────────────────────── */}
+      <aside className="hidden md:flex w-72 shrink-0 flex-col border-r border-zinc-800 bg-zinc-900/30 h-screen sticky top-0">
+        <div className="flex items-center gap-2 px-4 py-4 border-b border-zinc-800">
+          <History size={14} className="text-zinc-500" />
+          <span className="font-mono text-[11px] uppercase tracking-widest text-zinc-400">Past Generations</span>
+        </div>
+        <div className="flex-1 overflow-y-auto no-scrollbar p-2 space-y-1">
+          {!historyEnabled ? (
+            <p className="px-3 py-4 text-[11px] text-zinc-600 leading-relaxed">
+              History is off. Set <code className="text-zinc-500">DATABASE_URL</code> in <code className="text-zinc-500">server/.env</code> to save runs.
+            </p>
+          ) : pastGens.length === 0 ? (
+            <p className="px-3 py-4 text-[11px] text-zinc-600">No past generations yet. Generate one to see it here.</p>
+          ) : (
+            pastGens.map((g) => (
+              <button
+                key={g.id}
+                onClick={() => openGeneration(g.id)}
+                disabled={openingId !== null}
+                className="w-full text-left rounded-lg border border-transparent hover:border-zinc-700 hover:bg-zinc-800/50 px-3 py-2.5 transition-colors group"
+              >
+                <div className="flex items-center gap-1.5 mb-1">
+                  {g.output_mode === "html"
+                    ? <LayoutTemplate size={11} className="text-violet-400 shrink-0" />
+                    : <Figma size={11} className="text-zinc-400 shrink-0" />}
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-600">
+                    {g.output_mode} · {g.screen_count} scr
+                  </span>
+                  {openingId === g.id && <Loader2 size={10} className="animate-spin text-zinc-500 ml-auto" />}
+                </div>
+                <p className="text-xs text-zinc-300 line-clamp-2 leading-snug group-hover:text-zinc-100">
+                  {g.title || "Untitled"}
+                </p>
+                <p className="text-[10px] text-zinc-600 mt-1">
+                  {new Date(g.created_at).toLocaleDateString()} · {new Date(g.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                </p>
+              </button>
+            ))
+          )}
+        </div>
+      </aside>
+
+      {/* ── Main content ──────────────────────────────────────────────────── */}
+      <div className="flex-1 overflow-y-auto h-screen">
       <div className="container mx-auto px-6 pt-24 pb-16">
 
         <div className="text-center mb-20">
@@ -356,6 +437,7 @@ export default function Dashboard() {
           </div>
         </div>
 
+      </div>
       </div>
     </main>
   );
