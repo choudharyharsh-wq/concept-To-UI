@@ -16,7 +16,7 @@ import {
 import "tldraw/tldraw.css";
 import { Loader2, LayoutTemplate, Figma, Check, AlertCircle } from "lucide-react";
 import type { HtmlScreen } from "@/hooks/use-generation-stream";
-import { prepareFigmaClipboard, writeToClipboard, fetchBalance } from "@/lib/to-design";
+import { prepareFigmaClipboard, writeToClipboard, fetchBalance, measureScreenHeight } from "@/lib/to-design";
 import { cn } from "@/lib/utils";
 
 // ─── Custom tldraw shape: one rendered HTML screen ────────────────────────────
@@ -177,6 +177,8 @@ export function HtmlCanvasStage({ screens, isGenerating }: HtmlCanvasStageProps)
   const editorRef = useRef<Editor | null>(null);
   const screensRef = useRef<HtmlScreen[]>(screens);
   screensRef.current = screens;
+  // Measured natural height per screen_id → tall screens keep full length.
+  const heightsRef = useRef<Record<string, number>>({});
 
   // ── Figma export (code.to.design clipboard mode) ──────────────────────────
   const [figmaState, setFigmaState] = useState<FigmaExportState>("idle");
@@ -217,6 +219,7 @@ export function HtmlCanvasStage({ screens, isGenerating }: HtmlCanvasStageProps)
   useEffect(() => {
     clipboardRef.current = null;
     preparedCountRef.current = 0;
+    heightsRef.current = {};   // stale heights (screen ids repeat across runs)
     setFigmaState("idle");
     setFigmaErr(null);
   }, [screenSig]);
@@ -250,10 +253,10 @@ export function HtmlCanvasStage({ screens, isGenerating }: HtmlCanvasStageProps)
     list.forEach((s) => {
       const id = shapeIdFor(s.screen_id);
       const w = s.viewport_width || 390;
-      const h = s.viewport_height || 844;
+      const h = heightsRef.current[s.screen_id] || s.viewport_height || 844;
       const existing = editor.getShape(id);
       if (existing) {
-        editor.updateShape({ id, type: "screen", x: xCursor, props: { html: s.html } } as any);
+        editor.updateShape({ id, type: "screen", x: xCursor, props: { html: s.html, h } } as any);
       } else {
         editor.createShape({
           id,
@@ -290,6 +293,22 @@ export function HtmlCanvasStage({ screens, isGenerating }: HtmlCanvasStageProps)
   useEffect(() => {
     if (editorRef.current) syncShapes(editorRef.current);
   }, [screens, syncShapes]);
+
+  // Measure each screen's natural height, then re-sync so tall screens grow to
+  // full length instead of being clamped to the base mobile viewport.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      for (const s of screensRef.current) {
+        if (heightsRef.current[s.screen_id]) continue;
+        const hgt = await measureScreenHeight(s.html, s.viewport_width || 390, s.viewport_height || 844);
+        if (cancelled) return;
+        heightsRef.current[s.screen_id] = hgt;
+        if (editorRef.current) syncShapes(editorRef.current);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [screenSig, syncShapes]);
 
   return (
     <div className="relative w-full h-full">

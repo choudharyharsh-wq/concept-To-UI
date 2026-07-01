@@ -42,12 +42,17 @@ async function waitForStyles(doc: Document, timeoutMs = 2500): Promise<void> {
 }
 
 /**
- * Render one screen's HTML in a hidden iframe sized to its viewport so the
- * Tailwind CDN materializes real CSS (and viewport-relative units like 100vh,
- * sticky/fixed positioning all resolve correctly), then return the serialized
- * document with scripts stripped (static CSS baked in).
+ * Render one screen's HTML in a hidden iframe sized to its viewport (width fixed
+ * at the mobile width, height = the base viewport) so the Tailwind CDN
+ * materializes real CSS and viewport units resolve. Returns the serialized
+ * static HTML AND the screen's NATURAL content height — tall screens keep their
+ * full length instead of being clamped to 844.
  */
-async function renderToStaticHtml(html: string, w: number, h: number): Promise<string> {
+async function renderScreen(
+  html: string,
+  w: number,
+  h: number
+): Promise<{ html: string; height: number }> {
   const iframe = document.createElement("iframe");
   iframe.setAttribute(
     "style",
@@ -63,11 +68,29 @@ async function renderToStaticHtml(html: string, w: number, h: number): Promise<s
     if (!doc) throw new Error("offscreen iframe document unavailable");
     await waitForStyles(doc);
 
+    // Natural height = tallest of the base viewport and the actual scroll height,
+    // so long screens are exported/rendered at full length (not cropped to 844).
+    const scroll = Math.max(
+      doc.documentElement?.scrollHeight || 0,
+      doc.body?.scrollHeight || 0
+    );
+    const height = Math.max(h, Math.round(scroll));
+
     const clone = doc.documentElement.cloneNode(true) as HTMLElement;
     clone.querySelectorAll("script").forEach((s) => s.remove()); // drop CDN/config scripts
-    return "<!DOCTYPE html>" + clone.outerHTML;
+    return { html: "<!DOCTYPE html>" + clone.outerHTML, height };
   } finally {
     iframe.remove();
+  }
+}
+
+/** Measure a screen's natural rendered height (used by the canvas). */
+export async function measureScreenHeight(html: string, w = 390, baseH = 844): Promise<number> {
+  try {
+    const { height } = await renderScreen(html, w, baseH);
+    return height;
+  } catch {
+    return baseH;
   }
 }
 
@@ -84,9 +107,10 @@ export async function prepareFigmaClipboard(screens: HtmlScreen[]): Promise<stri
   const entries: { html: string; width: number; height: number; name: string }[] = [];
   for (const s of screens) {
     const w = s.viewport_width || 390;
-    const h = s.viewport_height || 844;
-    const staticHtml = await renderToStaticHtml(s.html, w, h);
-    entries.push({ html: staticHtml, width: w, height: h, name: s.screen_name });
+    const baseH = s.viewport_height || 844;
+    const { html: staticHtml, height } = await renderScreen(s.html, w, baseH);
+    // height = natural content height → long screens stay full length.
+    entries.push({ html: staticHtml, width: w, height, name: s.screen_name });
   }
 
   const res = await fetch(`${BACKEND_URL}/api/to-design`, {
