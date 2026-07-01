@@ -98,7 +98,8 @@
       "Bash(python3 -c \"from src import db; print\\('db import OK, ENABLED=', db.ENABLED\\)\")",
       "Bash(python3 -c \"import server; print\\('server import OK'\\); print\\('routes:', sorted\\([r.path for r in server.server.routes if r.path.startswith\\('/api'\\)]\\)\\)\")",
       "Bash(python3 -c \"import ast; ast.parse\\(open\\('src/db.py'\\).read\\(\\)\\); ast.parse\\(open\\('server.py'\\).read\\(\\)\\); print\\('AST OK'\\)\")",
-      "Bash(python3 -c \"import ast; ast.parse\\(open\\('src/db.py'\\).read\\(\\)\\); print\\('db.py AST OK'\\)\")"
+      "Bash(python3 -c \"import ast; ast.parse\\(open\\('src/db.py'\\).read\\(\\)\\); print\\('db.py AST OK'\\)\")",
+      "WebFetch(domain:code.to.design)"
     ]
   }
 }

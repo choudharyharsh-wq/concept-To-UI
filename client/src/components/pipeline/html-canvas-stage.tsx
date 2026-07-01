@@ -16,7 +16,7 @@ import {
 import "tldraw/tldraw.css";
 import { Loader2, LayoutTemplate, Figma, Check, AlertCircle } from "lucide-react";
 import type { HtmlScreen } from "@/hooks/use-generation-stream";
-import { prepareFigmaClipboard, writeToClipboard } from "@/lib/to-design";
+import { prepareFigmaClipboard, writeToClipboard, fetchBalance } from "@/lib/to-design";
 import { cn } from "@/lib/utils";
 
 // ─── Custom tldraw shape: one rendered HTML screen ────────────────────────────
@@ -181,8 +181,13 @@ export function HtmlCanvasStage({ screens, isGenerating }: HtmlCanvasStageProps)
   // ── Figma export (code.to.design clipboard mode) ──────────────────────────
   const [figmaState, setFigmaState] = useState<FigmaExportState>("idle");
   const [figmaErr, setFigmaErr]     = useState<string | null>(null);
+  const [balance, setBalance]       = useState<number | null>(null);
   const clipboardRef    = useRef<string | null>(null);  // prepared text/html blob
   const preparedCountRef = useRef<number>(0);           // #screens the blob covers
+
+  // Show remaining to.design credits (refreshed on mount + after each export).
+  const refreshBalance = useCallback(() => { fetchBalance().then(setBalance); }, []);
+  useEffect(() => { refreshBalance(); }, [refreshBalance]);
 
   // Build the clipboard blob for ALL current screens (the slow network step).
   const prepareExport = useCallback(async () => {
@@ -198,8 +203,10 @@ export function HtmlCanvasStage({ screens, isGenerating }: HtmlCanvasStageProps)
     } catch (e: any) {
       setFigmaErr(e?.message || "Export failed");
       setFigmaState("error");
+    } finally {
+      refreshBalance();  // credits were just consumed (or attempted)
     }
-  }, []);
+  }, [refreshBalance]);
 
   // IMPORTANT: never call the (paid) to.design API automatically — it must only
   // ever run on an explicit user click. Auto-preparing here previously fired on
@@ -342,6 +349,11 @@ export function HtmlCanvasStage({ screens, isGenerating }: HtmlCanvasStageProps)
               <><Figma size={12} /> Send all to Figma</>
             )}
           </button>
+          {/* Credit balance + estimated cost (1 credit per 4 screens) */}
+          <span className="rounded-md bg-zinc-900/90 px-2 py-0.5 font-mono text-[10px] text-zinc-500 backdrop-blur">
+            {balance === null ? "credits: —" : `${balance} credits`}
+            {screens.length > 0 && ` · ~${Math.ceil(screens.length / 4)} to export`}
+          </span>
           {figmaState === "copied" && (
             <span className="rounded-md bg-zinc-900/90 px-2 py-1 font-mono text-[10px] text-zinc-400 backdrop-blur">
               Switch to Figma and paste — no time limit

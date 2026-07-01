@@ -221,18 +221,23 @@ async def to_design(request: Request):
         )
 
     body = await request.json()
-    html = body.get("html", "")
-    clip = bool(body.get("clip", True))
-    if not html:
+    # endpoint selects /html (single) or /html-multi (array of screens). The rest
+    # of the body is forwarded verbatim so the client controls the payload shape.
+    endpoint = (body.pop("endpoint", "html") or "html").strip().lstrip("/")
+    if endpoint not in {"html", "html-multi", "html-component", "html-multi-components"}:
+        return JSONResponse({"error": f"unsupported endpoint '{endpoint}'"}, status_code=400)
+    if endpoint == "html" and not body.get("html"):
         return JSONResponse({"error": "missing 'html'"}, status_code=400)
+    if endpoint == "html-multi" and not body.get("screens"):
+        return JSONResponse({"error": "missing 'screens'"}, status_code=400)
 
     def _call():
         import requests as req
         return req.post(
-            "https://api.to.design/html",
-            json={"html": html, "clip": clip},
+            f"https://api.to.design/{endpoint}",
+            json=body,
             headers={"Content-Type": "application/json", "Authorization": f"Bearer {key}"},
-            timeout=180,
+            timeout=300,
         )
 
     try:
@@ -248,6 +253,31 @@ async def to_design(request: Request):
 
     # clip=true → text/html clipboard blob. Return it raw.
     return Response(content=resp.text, media_type="text/plain")
+
+
+@server.get("/api/to-design/balance")
+async def to_design_balance():
+    """Proxy code.to.design's /balance so the UI can show remaining credits."""
+    key = os.getenv("TO_DESIGN_API_KEY", "").strip()
+    if not key:
+        return JSONResponse({"error": "TO_DESIGN_API_KEY not set"}, status_code=500)
+
+    def _call():
+        import requests as req
+        return req.get(
+            "https://api.to.design/balance",
+            headers={"Authorization": f"Bearer {key}"},
+            timeout=30,
+        )
+
+    try:
+        resp = await asyncio.to_thread(_call)
+    except Exception as e:  # noqa: BLE001
+        return JSONResponse({"error": f"balance unreachable: {e}"}, status_code=502)
+    try:
+        return JSONResponse(resp.json(), status_code=resp.status_code)
+    except Exception:  # noqa: BLE001
+        return JSONResponse({"raw": resp.text}, status_code=resp.status_code)
 
 
 @server.get("/api/generations")
