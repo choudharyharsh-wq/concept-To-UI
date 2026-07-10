@@ -4,12 +4,14 @@ import React, { useState, useRef, useCallback, useEffect } from "react";
 import { ChevronLeft, ChevronRight, GripVertical, CheckCircle2, Loader2, Circle } from "lucide-react";
 import { PipelineStage } from "@/hooks/use-generation-stream";
 import { PRDStage } from "./prd-stage";
-import { IAStage } from "./ia-stage";
-import { UserFlowStage } from "./user-flow-stage";
+import { IACanvasStage } from "./ia-canvas-stage";
+import { UserFlowCanvasStage } from "./user-flow-canvas-stage";
 import { UXLayoutStage } from "./ux-layout-stage";
 import { WireframeCompilerStage } from "./wireframe-compiler-stage";
 import { RenderStage } from "./render-stage";
 import { ReviewPanel } from "./review-panel";
+import { HtmlCanvasStage } from "./html-canvas-stage";
+import type { HtmlScreen } from "@/hooks/use-generation-stream";
 import { cn } from "@/lib/utils";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -17,7 +19,9 @@ import { cn } from "@/lib/utils";
 interface PipelineWorkspaceProps {
   stages: PipelineStage[];
   isGenerating: boolean;
+  htmlScreens?: HtmlScreen[];
   error?: string | null;
+  onHome?: () => void;
   onSubmitReviewFeedback: (feedback: {
     answered_questions: Record<string, string>;
     accepted_suggestion_ids: string[];
@@ -89,8 +93,8 @@ function StageOutput({ stage, allStages }: { stage: PipelineStage; allStages: Pi
       const prdStage = allStages.find(s => s.id === "prd_node");
       return prdStage ? <PRDStage stage={prdStage} /> : null;
     }
-    case "ia_node":                 return <IAStage stage={stage} />;
-    case "user_flow_node":          return <UserFlowStage stage={stage} />;
+    case "ia_node":                 return <IACanvasStage stage={stage} />;
+    case "user_flow_node":          return <UserFlowCanvasStage stage={stage} allStages={allStages} />;
     case "ux_layout_node":          return <UXLayoutStage stage={stage} />;
     case "wireframe_compiler_node": return <WireframeCompilerStage stage={stage} />;
     case "render_node":             return <RenderStage stage={stage} allStages={allStages} />;
@@ -100,7 +104,7 @@ function StageOutput({ stage, allStages }: { stage: PipelineStage; allStages: Pi
 
 // ─── Main workspace ───────────────────────────────────────────────────────────
 
-export function PipelineWorkspace({ stages, isGenerating, error, onSubmitReviewFeedback }: PipelineWorkspaceProps) {
+export function PipelineWorkspace({ stages, isGenerating, htmlScreens = [], error, onHome, onSubmitReviewFeedback }: PipelineWorkspaceProps) {
   const [activeIdx, setActiveIdx]       = useState(0);
   const [leftPct, setLeftPct]           = useState(55); // left column width %
   const isDragging                       = useRef(false);
@@ -111,6 +115,9 @@ export function PipelineWorkspace({ stages, isGenerating, error, onSubmitReviewF
 
   const activeStage = visibleStages[activeIdx];
   const hasReview   = activeStage?.data?.awaiting_human === true && activeStage?.data?.review;
+  // HTML canvas stage takes over the whole body (no split / Design Head panel).
+  const isCanvas    = activeStage?.id === "html_compiler_node";
+  const userFlowData = stages.find(s => s.id === "user_flow_node")?.data ?? null;
 
   // ── Auto-advance to newly active stage ────────────────────────────────────
   useEffect(() => {
@@ -155,10 +162,18 @@ export function PipelineWorkspace({ stages, isGenerating, error, onSubmitReviewF
       {/* ── Top bar ─────────────────────────────────────────────────────── */}
       <div className="shrink-0 flex items-center gap-2 px-4 py-2 border-b border-zinc-800 bg-zinc-950">
 
-        {/* Logo */}
-        <span className="font-mono text-[11px] uppercase tracking-widest text-zinc-600 mr-3 shrink-0">
+        {/* Logo / home */}
+        <button
+          onClick={onHome}
+          disabled={!onHome}
+          className={cn(
+            "font-mono text-[11px] uppercase tracking-widest mr-3 shrink-0 transition-colors",
+            onHome ? "text-zinc-500 hover:text-zinc-200 cursor-pointer" : "text-zinc-600 cursor-default"
+          )}
+          title={onHome ? "Back to home" : undefined}
+        >
           Concept → UI
-        </span>
+        </button>
 
         {/* Stage nav */}
         <div className="flex items-center gap-1 flex-1 overflow-x-auto no-scrollbar">
@@ -212,7 +227,17 @@ export function PipelineWorkspace({ stages, isGenerating, error, onSubmitReviewF
         </div>
       )}
 
-      {/* ── Split pane body ──────────────────────────────────────────────── */}
+      {/* ── HTML canvas takes over the full body when active ─────────────── */}
+      {isCanvas ? (
+        <div className="flex-1 overflow-hidden">
+          <HtmlCanvasStage
+            screens={htmlScreens}
+            isGenerating={isGenerating}
+            userFlowData={userFlowData}
+          />
+        </div>
+      ) : (
+      /* ── Split pane body ──────────────────────────────────────────────── */
       <div ref={containerRef} className="flex flex-1 overflow-hidden">
 
         {/* Left — stage output */}
@@ -241,8 +266,13 @@ export function PipelineWorkspace({ stages, isGenerating, error, onSubmitReviewF
             )}
           </div>
 
-          {/* Left content */}
-          <div className="flex-1 overflow-y-auto px-6 py-6 no-scrollbar">
+          {/* Left content — IA & User Flow render full-bleed tldraw canvases; the rest scroll */}
+          <div className={cn(
+            "flex-1 min-h-0",
+            activeStage?.id === "ia_node" || activeStage?.id === "user_flow_node"
+              ? "overflow-hidden"
+              : "overflow-y-auto px-6 py-6 no-scrollbar"
+          )}>
             {activeStage && (
               <StageOutput stage={activeStage} allStages={stages} />
             )}
@@ -283,6 +313,7 @@ export function PipelineWorkspace({ stages, isGenerating, error, onSubmitReviewF
 
         </div>
       </div>
+      )}
     </div>
   );
 }

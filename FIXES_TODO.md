@@ -28,6 +28,42 @@ is craft, not generation — template it or hand-finish.
 
 ---
 
+## 🔴🔴 P0 — HTML Canvas: true per-screen live streaming
+
+- [ ] **0. Replace LangGraph `custom` stream with a per-session `asyncio.Queue`.**
+  **Status:** HTML canvas works, but only via the **bulk fallback** — all screens
+  appear together when `html_compiler_node` finishes, not one-by-one as built.
+
+  **Why the live path fails:** the node pushes each screen with LangGraph's injected
+  stream `writer(...)` (`stream_mode="custom"`). That writer needs LangGraph's
+  per-run config, stored in a **context variable** that is only valid while LangGraph
+  is actively driving the node. We call the writer *right after* `await ...ainvoke()`
+  on the LLM — control left our function for LangChain's call, and on resume the
+  context var is gone, so `get_config()` raises
+  `RuntimeError: Called get_config outside of a runnable context`.
+  (Sync-node variant fails for the sibling reason: the context var isn't copied to
+  the executor thread.)
+
+  **What's in place now (do NOT remove until the fix lands):**
+  - Fallback A: try injected `writer`, else `get_stream_writer()`.
+  - Fallback B (the one actually working): node returns the full `html_screens`
+    list on the normal `updates` channel; the frontend merges them onto the canvas
+    on the node's `completed` event.
+  - The `writer(...)` emit is wrapped non-fatal (disables after first failure, logs,
+    keeps building) so a broken writer can never crash the run.
+
+  **The fix:** own the channel instead of borrowing LangGraph's.
+  - `server.py`: a module-level `dict[session_id] → asyncio.Queue`. In `_run_graph`,
+    drain this queue concurrently with `astream` and emit each item as a
+    `screen_ready` SSE event (same shape the frontend already handles).
+  - `html_compiler_node`: instead of `writer(...)`, `queue.put_nowait(screen_obj)`
+    keyed by `session_id` (thread `session_id` into state). No context var needed →
+    works in sync or async, before or after awaits.
+  - Keep bulk return as the final reconciliation (idempotent merge already exists
+    frontend-side).
+  - ~30–40 lines. Removes the only reason screens don't trickle in live; matters most
+    at full scale (24+ screens) where bulk = one long wait vs. progressive reveal.
+
 ## 🔴 Layer 1 — Correctness (table stakes: components show real content)
 
 - [ ] **1. Hide unfilled optional secondary text.** Components have optional text

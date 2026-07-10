@@ -8,6 +8,20 @@ from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage, SystemMessage
 from .state import GraphState
 from .design_head import run_prd_evaluator, apply_prd_feedback
+from . import html_templates as ht
+
+try:
+    # Injected into a node by name/annotation; lets a node emit incremental
+    # events (one per screen) to the SSE layer via stream_mode="custom".
+    from langgraph.types import StreamWriter
+except Exception:  # pragma: no cover — older langgraph
+    StreamWriter = None  # type: ignore
+
+try:
+    # Fallback path for incremental emit when the injected writer isn't usable.
+    from langgraph.config import get_stream_writer
+except Exception:  # pragma: no cover
+    get_stream_writer = None  # type: ignore
 
 load_dotenv(override=True)
 
@@ -176,9 +190,20 @@ def get_llm(max_tokens: int = 8192):
     Lazily build the LLM so it reads ANTHROPIC_API_KEY after load_dotenv() has run.
     max_tokens is explicit — Claude Haiku's default is too low for large JSON outputs.
     """
+    # ── TODO: revert to Haiku ────────────────────────────────────────────────
+    # This is the original Haiku implementation. To switch back: comment out the
+    # Opus block below and uncomment this one.
+    # return ChatAnthropic(
+    #     model="claude-haiku-4-5",
+    #     temperature=0.2,                      # Haiku supports temperature
+    #     max_tokens=max_tokens,
+    #     anthropic_api_key=os.environ["ANTHROPIC_API_KEY"],
+    # )
+
+    # ── EXPERIMENT: Opus 4.8 (output-quality comparison) ─────────────────────
+    # NOTE: Opus 4.8 deprecated `temperature` — must NOT be passed or the API 400s.
     return ChatAnthropic(
-        model="claude-haiku-4-5",
-        temperature=0.2,
+        model="claude-opus-4-8",
         max_tokens=max_tokens,
         anthropic_api_key=os.environ["ANTHROPIC_API_KEY"],
     )
@@ -344,13 +369,32 @@ PRD (JSON):
         ])
 
         ia_data = blueprint.model_dump()
-        page_names = [p.name for p in blueprint.pages]
-        print(f"    IA complete — {len(blueprint.pages)} screens: {page_names}")
+
+        # ── Dev cap: shrink the IA for fast test runs ─────────────────────────
+        # max_screens > 0 truncates to the first N pages so every downstream
+        # stage (flows, layout, compiler/render) only processes N screens.
+        # Keeps exactly one root and re-points any orphaned parent_id at it.
+        max_screens = int(state.get("max_screens", 0) or 0)
+        all_pages   = ia_data.get("pages", [])
+        if max_screens > 0 and len(all_pages) > max_screens:
+            root = next((p for p in all_pages if not p.get("parent_id")), all_pages[0])
+            kept = [root] + [p for p in all_pages if p is not root][: max_screens - 1]
+            kept_ids = {p["id"] for p in kept}
+            for p in kept:
+                if p is root:
+                    p["parent_id"] = None
+                elif p.get("parent_id") not in kept_ids:
+                    p["parent_id"] = root["id"]          # repair dangling parent
+            ia_data["pages"] = kept
+            print(f"    [DEV CAP] Truncated IA {len(all_pages)} → {len(kept)} screens (max_screens={max_screens}).")
+
+        page_names = [p["name"] for p in ia_data.get("pages", [])]
+        print(f"    IA complete — {len(ia_data.get('pages', []))} screens: {page_names}")
         return {
             "ia_data": ia_data,
             "logs": [
-                f"[SYS] IA Blueprint generated — {len(blueprint.pages)} screens, "
-                f"{sum(1 for p in blueprint.pages if p.parent_id is None)} root node(s)."
+                f"[SYS] IA Blueprint generated — {len(ia_data.get('pages', []))} screens, "
+                f"{sum(1 for p in ia_data.get('pages', []) if p.get('parent_id') is None)} root node(s)."
             ]
         }
     except Exception as e:
@@ -1185,3 +1229,321 @@ def prd_apply_feedback_node(state: GraphState):
             "errors": [f"Apply feedback error: {str(e)}"],
             "logs":   [f"[ERR] Feedback apply failed — returning to review: {str(e)}"],
         }
+
+
+# ── HTML Compiler schemas ─────────────────────────────────────────────────────
+
+class ThemeSpec(BaseModel):
+    """A cohesive, app-wide visual theme the LLM designs once (non-DS mode)."""
+    font_family: str = Field(
+        description="Primary Google Font family name, e.g. 'Quicksand' or 'Inter'."
+    )
+    google_fonts_url: str = Field(
+        description="Full https://fonts.googleapis.com/css2?... URL importing the font, "
+                    "weights 300..800, with &display=swap."
+    )
+    tailwind_extend: str = Field(
+        description=(
+            "A VALID JavaScript object literal (NOT JSON, keys may be unquoted) for "
+            "tailwind.config theme.extend. MUST define `colors` (M3-style semantic names "
+            "like 'primary','surface','surface-alt','on-surface','muted','border', plus "
+            "any accents), `fontFamily` (with a `sans` entry using the chosen font), "
+            "`borderRadius`, and may add `fontSize`/`spacing`. Example: "
+            "{ colors: { \"primary\": \"#9b4500\", \"surface\": \"#fdf9f0\" }, "
+            "fontFamily: { sans: [\"Quicksand\",\"sans-serif\"] }, "
+            "borderRadius: { \"DEFAULT\": \"1rem\", \"lg\": \"2rem\", \"full\": \"9999px\" } }"
+        )
+    )
+    base_css: str = Field(
+        description=(
+            "Raw CSS for a <style> block. MUST set the body background-color and "
+            "font-family. Define any custom utility classes the screens will use "
+            "(e.g. .ambient-shadow, .squishy, .scrollbar-hide) and the "
+            ".material-symbols-outlined font-variation-settings rule."
+        )
+    )
+    body_bg: str = Field(description="Hex background colour for the body/iframe, e.g. '#fdf9f0'.")
+    design_language: str = Field(
+        description=(
+            "2-4 sentences describing the visual vibe AND naming the exact token "
+            "class names available (e.g. 'use bg-surface, text-on-surface, "
+            "bg-primary, rounded-lg') so every screen stays consistent."
+        )
+    )
+
+
+class HtmlScreenSpec(BaseModel):
+    screen_id: str = Field(description="Must match the page id from the IA")
+    screen_name: str = Field(description="Human-readable screen name")
+    viewport_width: int = Field(default=390, description="390 for mobile, 1440 for desktop layouts")
+    viewport_height: int = Field(default=844, description="Suggested viewport height in px")
+    body_html: str = Field(
+        description=(
+            "The INNER HTML of <body> — everything between <body> and </body>, and "
+            "nothing else. No <html>, <head>, <body>, <script src> or <style> config "
+            "tags. Use ONLY the theme's Tailwind token classes + standard Tailwind "
+            "utilities + Material Symbols (<span class=\"material-symbols-outlined\">icon</span>). "
+            "For images use the elegant `img-ph` placeholder div (icon + UPPERCASE label + "
+            "data-img-prompt) — never an <img> tag or external placeholder URL. A small "
+            "<script> for local interactions is allowed."
+        )
+    )
+
+
+class HtmlScreenCollection(BaseModel):
+    screens: List[HtmlScreenSpec] = Field(description="One HtmlScreenSpec per requested screen")
+
+
+_HTML_SYSTEM_BASE = """You are a senior product designer-engineer. You translate a screen's
+UX layout blueprint into a polished, production-grade mobile UI as a single block of
+HTML using Tailwind CSS utility classes.
+
+NON-NEGOTIABLE OUTPUT RULES:
+- Output ONLY the inner HTML of <body> for each screen — no <!DOCTYPE>, <html>, <head>,
+  <body>, no tailwind config <script>, no font <link>. Those are injected for you.
+- Mobile-first: design for a 390px-wide viewport (h≈844). Use a sticky top app bar and,
+  when the app has multiple top-level destinations, a fixed bottom nav bar.
+- Use the provided THEME token classes for all colour/typography — never hardcode hex
+  values in `style=` and never invent token names that aren't in the theme.
+- Icons: Material Symbols, e.g. <span class="material-symbols-outlined">search</span>.
+  Add the `icon-fill`/FILL variation for active states where it reads better.
+- Images: DO NOT use <img> tags or external placeholder services (no placehold.co, no
+  gray boxes). Instead render an ELEGANT inline placeholder — a <div> with class "img-ph"
+  PLUS theme classes for a surface bg, muted text, rounded corners, and a size/aspect —
+  containing a Material Symbols "image" icon and a short UPPERCASE label of what the image
+  is, plus a vivid `data-img-prompt="..."` describing ideal photography (for later swap).
+  This renders as a subtly striped, on-theme placeholder that looks intentional. Example:
+    <div class="img-ph bg-surface-container text-on-surface-variant rounded-xl aspect-[4/3]"
+         data-img-prompt="warm overhead shot of a gourmet burger on a slate board">
+      <span class="material-symbols-outlined">image</span>
+      <span class="img-ph__label">Hero food shot</span>
+    </div>
+  Size it to the slot (full-width hero, square thumb, avatar circle via rounded-full, etc.).
+  For avatars/logos use a small img-ph with just the icon (no label).
+- Content realism: write believable, domain-specific copy, names, prices, and numbers —
+  never lorem ipsum or "Title"/"Label" placeholders.
+- Fidelity: rounded cards, real spacing, hover/active states, subtle shadows/glows. Aim for
+  the quality of a top-tier dribbble shot, not a wireframe. 8-16 meaningful elements/zones.
+- Respect the screen's spatial zones and rendering_sequence: the P1_Dominant zone is the
+  visual focal point; render components in the given order top-to-bottom.
+
+Return a HtmlScreenCollection with one entry per requested screen."""
+
+
+async def _theme_for_html(prd_data: dict, concept: str, is_ds_mode: bool):
+    """
+    Resolve the app-wide theme. DS mode → built from server/design.md (single
+    source of truth; falls back to hardcoded POP only if that file is missing).
+    Otherwise → ask the LLM to design one ThemeSpec for the whole app.
+    Returns (head_inner_html, design_language, body_bg).
+    """
+    if is_ds_mode:
+        return (
+            ht.design_md_theme_head(),
+            ht.design_md_design_language(),
+            ht.design_md_body_bg(),
+        )
+
+    # Non-DS (POP toggle OFF) → theme from server/design-blade.md (Blade DS).
+    # Deterministic, no LLM. Falls through to the bespoke theme below only if the
+    # md file is missing.
+    if ht.load_design_blade() is not None:
+        print("    [HTML] Non-DS mode → Blade design system (design-blade.md)")
+        return (
+            ht.blade_theme_head(),
+            ht.blade_design_language(),
+            ht.blade_body_bg(),
+        )
+
+    directives = prd_data.get("ux_anchor_directives", {})
+    summary    = prd_data.get("executive_summary", {})
+    sys = (
+        "You are an award-winning brand & UI designer. Design ONE cohesive Tailwind theme "
+        "for the whole app — a bespoke palette and type system that matches the product's "
+        "tone. Think Material 3 semantic tokens (surface, on-surface, primary, etc.). The "
+        "theme must feel intentional and premium, like a real design system, not generic."
+    )
+    usr = (
+        f"Product summary:\n{json.dumps(summary, indent=2)}\n\n"
+        f"UX anchor directives (visual posture / tone / layout):\n{json.dumps(directives, indent=2)}\n\n"
+        f"Concept:\n{concept[:1200]}\n\n"
+        "Return a ThemeSpec. Pick a Google Font that fits the tone. Define semantic color "
+        "tokens (surface, surface-alt/container, on-surface, primary, on-primary, muted, "
+        "border, plus accents). Include custom utility classes in base_css for shadows and "
+        "micro-interactions you reference (e.g. .ambient-shadow, .squishy)."
+    )
+    try:
+        llm = get_llm(max_tokens=4096).with_structured_output(ThemeSpec)
+        spec: ThemeSpec = await llm.ainvoke([SystemMessage(content=sys), HumanMessage(content=usr)])
+        spec_dict = spec.model_dump()
+        print(f"    [HTML] Theme designed — font={spec_dict.get('font_family')}, bg={spec_dict.get('body_bg')}")
+        return ht.build_theme_head_from_spec(spec_dict), spec.design_language, spec.body_bg
+    except Exception as e:
+        print(f"    [HTML] Theme generation failed ({e}); using fallback theme.")
+        head = ht.build_theme_head_from_spec({})
+        return head, "Clean neutral theme: indigo primary, light surfaces, rounded cards.", "#F4F4F5"
+
+
+async def html_compiler_node(state: GraphState, writer: "StreamWriter" = None):
+    """
+    HTML render branch — produces one self-contained HTML document per screen and
+    streams each to the frontend (which renders them as floating frames on a
+    tldraw canvas). Mirrors the wireframe compiler's batching (2 screens/call).
+
+    Phase 1: resolve ONE app-wide theme (POP if DS mode, else LLM-designed).
+    Phase 2: per batch, generate each screen's <body> inner HTML using that theme;
+             wrap in the shared document shell and emit via the custom stream writer.
+    """
+    print("--- Executing HTML Compiler Node ---")
+
+    ia_data        = state["ia_data"]
+    ux_layout_data = state["ux_layout_data"]
+    prd_data       = state["prd_data"]
+    concept        = state.get("concept", "")
+    user_flow_data = state.get("user_flow_data", {})
+
+    pages          = ia_data.get("pages", [])
+    screen_layouts = ux_layout_data.get("screen_layouts", [])
+    use_ds         = bool(state.get("use_ds", False))
+    is_ds_mode     = use_ds and bool(DS_REGISTRY)
+
+    # ── Phase 1: theme ────────────────────────────────────────────────────────
+    head_inner, design_language, body_bg = await _theme_for_html(prd_data, concept, is_ds_mode)
+
+    layout_by_id = {sl.get("page_id"): sl for sl in screen_layouts}
+    total        = len(pages)
+    BATCH_SIZE   = 2
+    total_batches = (total + BATCH_SIZE - 1) // BATCH_SIZE
+    print(f"    Screens to build: {total} | ds_mode={is_ds_mode} | batches={total_batches}")
+
+    system_prompt = (
+        f"{_HTML_SYSTEM_BASE}\n\nTHEME — design language and available token classes:\n"
+        f"{design_language}"
+    )
+
+    def hlog(msg: str):
+        print(f"    [HTML] {msg}", flush=True)
+
+    # Resolve a usable stream writer: prefer the injected one, fall back to
+    # get_stream_writer() (works inside async nodes on langgraph ≥0.2).
+    active_writer = writer
+    if active_writer is None and get_stream_writer is not None:
+        try:
+            active_writer = get_stream_writer()
+            hlog("acquired writer via get_stream_writer() fallback")
+        except Exception as gwe:  # noqa: BLE001
+            hlog(f"get_stream_writer() unavailable: {type(gwe).__name__}: {gwe}")
+
+    hlog(f"theme ready (bg={body_bg}); design_language {len(design_language)} chars")
+    hlog(f"writer resolved: {active_writer is not None} "
+         f"(injected={writer is not None}, type={type(active_writer).__name__})")
+
+    # Defensive, NON-FATAL emit. Per-screen streaming is a nice-to-have; if the
+    # stream writer is unavailable or raises (e.g. context issues), we log and
+    # keep going — the screens are still returned in bulk at the end as a fallback.
+    emit_disabled = {"flag": False}
+    def emit(screen_obj: dict, idx: int):
+        if active_writer is None or emit_disabled["flag"]:
+            return
+        try:
+            active_writer({"html_screen": {**screen_obj, "index": idx, "total": total}})
+            hlog(f"  → streamed screen idx={idx} via writer")
+        except Exception as we:  # noqa: BLE001
+            emit_disabled["flag"] = True  # stop trying after the first failure
+            hlog(f"  ! writer emit failed (non-fatal, will bulk-return): "
+                 f"{type(we).__name__}: {we}")
+
+    html_screens: List[dict] = []
+    batch_errors: List[str] = []
+    emitted = 0
+
+    structured_llm = get_llm(max_tokens=16000).with_structured_output(HtmlScreenCollection)
+    hlog(f"structured LLM ready; starting {total_batches} batch(es)")
+
+    for i in range(0, total, BATCH_SIZE):
+        batch_pages = pages[i:i + BATCH_SIZE]
+        batch_ids   = [p["id"] for p in batch_pages]
+        batch_num   = i // BATCH_SIZE + 1
+
+        try:
+            batch_layouts = []
+            for pid in batch_ids:
+                sl = layout_by_id.get(pid, {})
+                batch_layouts.append({
+                    "page_id":       pid,
+                    "grid_system":   sl.get("grid_system"),
+                    "scroll_behavior": sl.get("scroll_behavior"),
+                    "spatial_zones": [
+                        {
+                            "zone_id":            z.get("zone_id"),
+                            "visual_weight":      z.get("visual_weight"),
+                            "rendering_sequence": z.get("rendering_sequence", []),
+                        }
+                        for z in sl.get("spatial_zones", [])
+                    ],
+                    "empty_state_guidance": sl.get("empty_state_guidance", ""),
+                })
+
+            batch_prompt = f"""Build the <body> inner HTML for each of these screens (batch {batch_num}/{total_batches}):
+{json.dumps(batch_ids)}
+
+IA pages (names + component_inventory):
+{json.dumps(batch_pages, indent=2)}
+
+UX layout zones (focal point + rendering order per screen):
+{json.dumps(batch_layouts, indent=2)}
+
+Brand / UX directives (tone, posture):
+{json.dumps(prd_data.get("ux_anchor_directives", {}), indent=2)}
+
+User flows (for cross-screen navigation cues):
+{json.dumps(user_flow_data, indent=2)}"""
+
+            hlog(f"batch {batch_num}/{total_batches} {batch_ids} — invoking LLM "
+                 f"(prompt {len(batch_prompt)} chars)…")
+            collection: HtmlScreenCollection = await structured_llm.ainvoke([
+                SystemMessage(content=system_prompt),
+                HumanMessage(content=batch_prompt),
+            ])
+            hlog(f"batch {batch_num} LLM returned {len(collection.screens)} screen(s): "
+                 f"{[s.screen_id for s in collection.screens]}")
+
+            for spec in collection.screens:
+                hlog(f"  building doc for '{spec.screen_id}' "
+                     f"(body {len(spec.body_html or '')} chars, "
+                     f"{spec.viewport_width}x{spec.viewport_height})")
+                document = ht.build_document(
+                    title=spec.screen_name,
+                    head_inner=head_inner,
+                    body_inner=spec.body_html,
+                    body_class="",
+                )
+                screen_obj = {
+                    "screen_id":       spec.screen_id,
+                    "screen_name":     spec.screen_name,
+                    "viewport_width":  spec.viewport_width or 390,
+                    "viewport_height": spec.viewport_height or 844,
+                    "html":            document,
+                }
+                html_screens.append(screen_obj)
+                emit(screen_obj, emitted)
+                emitted += 1
+                hlog(f"screen ready ({emitted}/{total}): {spec.screen_id} "
+                     f"(doc {len(document)} chars)")
+
+        except Exception as be:  # noqa: BLE001 — one bad batch must not kill the rest
+            import traceback
+            hlog(f"! batch {batch_num} FAILED: {type(be).__name__}: {be}")
+            traceback.print_exc()
+            batch_errors.append(f"batch {batch_num} ({batch_ids}): {type(be).__name__}: {be}")
+            continue
+
+    hlog(f"HTML Compiler complete — {len(html_screens)}/{total} screen(s), "
+         f"{len(batch_errors)} batch error(s).")
+    logs = [f"[SYS] HTML Compiler complete — {len(html_screens)}/{total} screen(s) generated."]
+    if batch_errors:
+        logs += [f"[WARN] {e}" for e in batch_errors]
+    out = {"html_screens": html_screens, "logs": logs}
+    if batch_errors:
+        out["errors"] = [f"HTML Compiler batch errors: {'; '.join(batch_errors)}"]
+    return out

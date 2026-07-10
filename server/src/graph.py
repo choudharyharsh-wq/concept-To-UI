@@ -4,7 +4,7 @@ from .state import GraphState
 from .nodes import (
     prd_node, prd_review_node, prd_apply_feedback_node,
     ia_node, user_flow_node, ux_layout_node,
-    wireframe_compiler_node, render_node,
+    wireframe_compiler_node, render_node, html_compiler_node,
 )
 
 
@@ -34,6 +34,18 @@ def _after_prd_apply(state: GraphState) -> str:
     return "prd_review_node"
 
 
+def _after_ux_layout(state: GraphState) -> str:
+    """
+    Fork the pipeline at the final render abstraction based on the user's
+    output_mode toggle:
+      - "html"  → html_compiler_node (self-contained HTML docs → tldraw canvas)
+      - else    → wireframe_compiler_node → render_node (Figma plugin bridge)
+    """
+    if state.get("output_mode", "figma") == "html":
+        return "html_compiler_node"
+    return "wireframe_compiler_node"
+
+
 # ── Graph factory ─────────────────────────────────────────────────────────────
 
 def create_graph():
@@ -47,6 +59,7 @@ def create_graph():
     workflow.add_node("ux_layout_node",            ux_layout_node)
     workflow.add_node("wireframe_compiler_node",   wireframe_compiler_node)
     workflow.add_node("render_node",               render_node)
+    workflow.add_node("html_compiler_node",        html_compiler_node)
 
     workflow.set_entry_point("prd_node")
 
@@ -66,9 +79,16 @@ def create_graph():
 
     workflow.add_edge("ia_node",             "user_flow_node")
     workflow.add_edge("user_flow_node",          "ux_layout_node")
-    workflow.add_edge("ux_layout_node",          "wireframe_compiler_node")
+
+    # After ux_layout: fork on output_mode (Figma plugin path vs HTML canvas path)
+    workflow.add_conditional_edges("ux_layout_node", _after_ux_layout, {
+        "wireframe_compiler_node": "wireframe_compiler_node",
+        "html_compiler_node":      "html_compiler_node",
+    })
+
     workflow.add_edge("wireframe_compiler_node", "render_node")
     workflow.add_edge("render_node",             END)
+    workflow.add_edge("html_compiler_node",      END)
 
     checkpointer = MemorySaver()
 

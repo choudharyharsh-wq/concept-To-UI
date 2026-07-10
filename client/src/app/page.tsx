@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Sparkles, Send, Loader2, Lightbulb, IndianRupee } from "lucide-react";
+import { Sparkles, Send, Loader2, Lightbulb, IndianRupee, Figma, LayoutTemplate, History } from "lucide-react";
+import type { OutputMode } from "@/hooks/use-generation-stream";
 import { useGenerationStream } from "@/hooks/use-generation-stream";
 import { PipelineWorkspace } from "@/components/pipeline/pipeline-workspace";
 import { cn } from "@/lib/utils";
@@ -139,8 +140,45 @@ export default function Dashboard() {
   const [concept, setConcept]   = useState("");
   const [figmaUrl, setFigmaUrl] = useState("https://www.figma.com/file/123456789/Concept-To-UI-Test");
   const [useDs, setUseDs]       = useState(false);
-  const { isGenerating, stages, error, startGeneration, submitReviewFeedback } = useGenerationStream();
+  const [outputMode, setOutputMode] = useState<OutputMode>("figma");
+  const [maxScreens, setMaxScreens] = useState<number>(0); // 0 = all (dev cap for fast tests)
+  const { isGenerating, stages, htmlScreens, error, startGeneration, submitReviewFeedback, loadGeneration } = useGenerationStream();
   const [hasStarted, setHasStarted] = useState(false);
+
+  // ── Past generations (history sidebar) ──────────────────────────────────────
+  const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8000";
+  const [pastGens, setPastGens] = useState<any[]>([]);
+  const [historyEnabled, setHistoryEnabled] = useState(true);
+  const [openingId, setOpeningId] = useState<string | null>(null);
+
+  const refreshHistory = useCallback(async () => {
+    try {
+      const res = await fetch(`${BACKEND}/api/generations`);
+      if (!res.ok) return;
+      const data = await res.json();
+      setPastGens(data.generations ?? []);
+      setHistoryEnabled(data.enabled !== false);
+    } catch {
+      setHistoryEnabled(false);
+    }
+  }, [BACKEND]);
+
+  useEffect(() => { refreshHistory(); }, [refreshHistory]);
+
+  const openGeneration = useCallback(async (id: string) => {
+    setOpeningId(id);
+    try {
+      const res = await fetch(`${BACKEND}/api/generations/${id}`);
+      if (!res.ok) return;
+      const rec = await res.json();
+      loadGeneration(rec);
+      setHasStarted(true);
+    } finally {
+      setOpeningId(null);
+    }
+  }, [BACKEND, loadGeneration]);
+
+  const goHome = useCallback(() => { setHasStarted(false); refreshHistory(); }, [refreshHistory]);
 
   // ── Navigation guards ─────────────────────────────────────────────────────
   useEffect(() => {
@@ -165,7 +203,7 @@ export default function Dashboard() {
     e.preventDefault();
     if (!concept) return;
     setHasStarted(true);
-    startGeneration(concept, figmaUrl, useDs);
+    startGeneration(concept, figmaUrl, useDs, outputMode, maxScreens);
   };
 
   // ── Full-screen workspace ─────────────────────────────────────────────────
@@ -174,7 +212,9 @@ export default function Dashboard() {
       <PipelineWorkspace
         stages={stages}
         isGenerating={isGenerating}
+        htmlScreens={htmlScreens}
         error={error}
+        onHome={goHome}
         onSubmitReviewFeedback={submitReviewFeedback}
       />
     );
@@ -182,7 +222,52 @@ export default function Dashboard() {
 
   // ── Landing page ─────────────────────────────────────────────────────────
   return (
-    <main className="min-h-screen bg-zinc-950 text-zinc-100 selection:bg-zinc-700/50">
+    <main className="min-h-screen bg-zinc-950 text-zinc-100 selection:bg-zinc-700/50 flex">
+
+      {/* ── Past generations sidebar ──────────────────────────────────────── */}
+      <aside className="hidden md:flex w-72 shrink-0 flex-col border-r border-zinc-800 bg-zinc-900/30 h-screen sticky top-0">
+        <div className="flex items-center gap-2 px-4 py-4 border-b border-zinc-800">
+          <History size={14} className="text-zinc-500" />
+          <span className="font-mono text-[11px] uppercase tracking-widest text-zinc-400">Past Generations</span>
+        </div>
+        <div className="flex-1 overflow-y-auto no-scrollbar p-2 space-y-1">
+          {!historyEnabled ? (
+            <p className="px-3 py-4 text-[11px] text-zinc-600 leading-relaxed">
+              History is off. Set <code className="text-zinc-500">DATABASE_URL</code> in <code className="text-zinc-500">server/.env</code> to save runs.
+            </p>
+          ) : pastGens.length === 0 ? (
+            <p className="px-3 py-4 text-[11px] text-zinc-600">No past generations yet. Generate one to see it here.</p>
+          ) : (
+            pastGens.map((g) => (
+              <button
+                key={g.id}
+                onClick={() => openGeneration(g.id)}
+                disabled={openingId !== null}
+                className="w-full text-left rounded-lg border border-transparent hover:border-zinc-700 hover:bg-zinc-800/50 px-3 py-2.5 transition-colors group"
+              >
+                <div className="flex items-center gap-1.5 mb-1">
+                  {g.output_mode === "html"
+                    ? <LayoutTemplate size={11} className="text-violet-400 shrink-0" />
+                    : <Figma size={11} className="text-zinc-400 shrink-0" />}
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-600">
+                    {g.output_mode} · {g.screen_count} scr
+                  </span>
+                  {openingId === g.id && <Loader2 size={10} className="animate-spin text-zinc-500 ml-auto" />}
+                </div>
+                <p className="text-xs text-zinc-300 line-clamp-2 leading-snug group-hover:text-zinc-100">
+                  {g.title || "Untitled"}
+                </p>
+                <p className="text-[10px] text-zinc-600 mt-1">
+                  {new Date(g.created_at).toLocaleDateString()} · {new Date(g.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                </p>
+              </button>
+            ))
+          )}
+        </div>
+      </aside>
+
+      {/* ── Main content ──────────────────────────────────────────────────── */}
+      <div className="flex-1 overflow-y-auto h-screen">
       <div className="container mx-auto px-6 pt-24 pb-16">
 
         <div className="text-center mb-20">
@@ -242,6 +327,70 @@ export default function Dashboard() {
                 />
               </div>
 
+              {/* Output target — where the final preview lands */}
+              <div className="space-y-2">
+                <label className="font-mono text-xs uppercase tracking-widest text-zinc-500">Output</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {([
+                    { mode: "figma" as OutputMode, icon: Figma,          title: "Figma Canvas",  sub: "Render frames into your Figma file" },
+                    { mode: "html"  as OutputMode, icon: LayoutTemplate, title: "HTML Canvas",   sub: "Live HTML screens on an infinite canvas" },
+                  ]).map(({ mode, icon: Icon, title, sub }) => {
+                    const active = outputMode === mode;
+                    return (
+                      <button
+                        key={mode}
+                        type="button"
+                        onClick={() => setOutputMode(mode)}
+                        className={cn(
+                          "flex flex-col gap-1 rounded-lg border px-4 py-3 text-left transition-colors",
+                          active
+                            ? "border-violet-500/60 bg-violet-500/10"
+                            : "border-zinc-800 bg-zinc-950 hover:border-zinc-700"
+                        )}
+                      >
+                        <span className="flex items-center gap-2">
+                          <Icon size={15} className={active ? "text-violet-300" : "text-zinc-500"} />
+                          <span className={cn("text-sm font-medium", active ? "text-zinc-100" : "text-zinc-300")}>{title}</span>
+                        </span>
+                        <span className="text-xs text-zinc-500">{sub}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Dev cap — limit screens for fast test runs */}
+              <div className="space-y-2">
+                <label className="font-mono text-xs uppercase tracking-widest text-zinc-500">
+                  Screen limit <span className="text-zinc-600 normal-case tracking-normal">(dev — fast tests)</span>
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { val: 2,  label: "2" },
+                    { val: 4,  label: "4" },
+                    { val: 6,  label: "6" },
+                    { val: 0,  label: "All" },
+                  ].map(({ val, label }) => {
+                    const active = maxScreens === val;
+                    return (
+                      <button
+                        key={label}
+                        type="button"
+                        onClick={() => setMaxScreens(val)}
+                        className={cn(
+                          "px-4 py-1.5 rounded-full border text-xs font-mono transition-all active:scale-[0.98]",
+                          active
+                            ? "border-amber-500/60 bg-amber-500/10 text-amber-200"
+                            : "border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-700"
+                        )}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               {/* DS toggle — build with the real POP Design System (best for fintech) */}
               <button
                 type="button"
@@ -288,6 +437,7 @@ export default function Dashboard() {
           </div>
         </div>
 
+      </div>
       </div>
     </main>
   );

@@ -5,3 +5,5 @@ langchain-core
 langsmith
 fastapi
 uvicorn[standard]
+sqlalchemy
+# psycopg2-binary  # only needed if you point DATABASE_URL at Postgres instead of SQLite
