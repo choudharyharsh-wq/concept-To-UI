@@ -99,7 +99,14 @@
       "Bash(python3 -c \"import server; print\\('server import OK'\\); print\\('routes:', sorted\\([r.path for r in server.server.routes if r.path.startswith\\('/api'\\)]\\)\\)\")",
       "Bash(python3 -c \"import ast; ast.parse\\(open\\('src/db.py'\\).read\\(\\)\\); ast.parse\\(open\\('server.py'\\).read\\(\\)\\); print\\('AST OK'\\)\")",
       "Bash(python3 -c \"import ast; ast.parse\\(open\\('src/db.py'\\).read\\(\\)\\); print\\('db.py AST OK'\\)\")",
-      "WebFetch(domain:code.to.design)"
+      "WebFetch(domain:code.to.design)",
+      "Bash(awk '/^---$/{c++} {print} c==2 && /^---$/{exit}' design.md)",
+      "Bash(awk '{print $5, $NF}')",
+      "Bash(find /Users/choudhary.harry/Desktop/\"concept to UI\"/client -name \"package.json\" -o -name \"tsconfig.json\" | head -5)",
+      "Bash(sed -n '3289,3360p' node_modules/@tldraw/tlschema/dist-cjs/index.d.ts)",
+      "Bash(sed -n '3189,3240p' node_modules/@tldraw/tlschema/dist-cjs/index.d.ts)",
+      "Bash(python3 -m py_compile *.py)",
+      "Bash(echo \"py-exit: $?\")"
     ]
   }
 }

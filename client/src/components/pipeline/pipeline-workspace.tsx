@@ -4,7 +4,7 @@ import React, { useState, useRef, useCallback, useEffect } from "react";
 import { ChevronLeft, ChevronRight, GripVertical, CheckCircle2, Loader2, Circle } from "lucide-react";
 import { PipelineStage } from "@/hooks/use-generation-stream";
 import { PRDStage } from "./prd-stage";
-import { IAStage } from "./ia-stage";
+import { IACanvasStage } from "./ia-canvas-stage";
 import { UserFlowStage } from "./user-flow-stage";
 import { UXLayoutStage } from "./ux-layout-stage";
 import { WireframeCompilerStage } from "./wireframe-compiler-stage";
@@ -93,7 +93,7 @@ function StageOutput({ stage, allStages }: { stage: PipelineStage; allStages: Pi
       const prdStage = allStages.find(s => s.id === "prd_node");
       return prdStage ? <PRDStage stage={prdStage} /> : null;
     }
-    case "ia_node":                 return <IAStage stage={stage} />;
+    case "ia_node":                 return <IACanvasStage stage={stage} />;
     case "user_flow_node":          return <UserFlowStage stage={stage} />;
     case "ux_layout_node":          return <UXLayoutStage stage={stage} />;
     case "wireframe_compiler_node": return <WireframeCompilerStage stage={stage} />;
@@ -266,8 +266,13 @@ export function PipelineWorkspace({ stages, isGenerating, htmlScreens = [], erro
             )}
           </div>
 
-          {/* Left content */}
-          <div className="flex-1 overflow-y-auto px-6 py-6 no-scrollbar">
+          {/* Left content — IA renders a full-bleed tldraw canvas; the rest scroll */}
+          <div className={cn(
+            "flex-1 min-h-0",
+            activeStage?.id === "ia_node"
+              ? "overflow-hidden"
+              : "overflow-y-auto px-6 py-6 no-scrollbar"
+          )}>
             {activeStage && (
               <StageOutput stage={activeStage} allStages={stages} />
             )}

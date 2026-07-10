@@ -14,7 +14,7 @@ import {
   type TLComponents,
 } from "tldraw";
 import "tldraw/tldraw.css";
-import { Loader2, LayoutTemplate, Figma, Check, AlertCircle } from "lucide-react";
+import { Loader2, LayoutTemplate, Figma, Check, AlertCircle, Download } from "lucide-react";
 import type { HtmlScreen } from "@/hooks/use-generation-stream";
 import { prepareFigmaClipboard, writeToClipboard, fetchBalance, measureScreenHeight } from "@/lib/to-design";
 import { cn } from "@/lib/utils";
@@ -144,6 +144,62 @@ const GAP = 90;
 
 function shapeIdFor(screenId: string) {
   return createShapeId(`screen-${screenId}`);
+}
+
+// ─── Standalone HTML download ─────────────────────────────────────────────────
+// Bundles every canvas screen into one self-contained .html gallery. Each screen
+// is embedded as an isolated <iframe srcdoc> so it renders exactly as on the
+// canvas (its own Tailwind CDN + fonts run per frame — no merge artifacts).
+function attrEscape(html: string): string {
+  return html.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+}
+
+function buildGalleryHtml(screens: HtmlScreen[]): string {
+  const frames = screens
+    .map((s) => {
+      const w = s.viewport_width || 390;
+      const h = s.viewport_height || 844;
+      const name = (s.screen_name || s.screen_id).replace(/</g, "&lt;");
+      return (
+        `<figure class="frame">` +
+        `<figcaption>${name}</figcaption>` +
+        `<iframe width="${w}" height="${h}" loading="lazy" ` +
+        `sandbox="allow-scripts" srcdoc="${attrEscape(s.html)}"></iframe>` +
+        `</figure>`
+      );
+    })
+    .join("\n");
+
+  return `<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Generated screens (${screens.length})</title>
+<style>
+  body { margin:0; padding:48px; background:#0d0d0d; font-family: ui-sans-serif, system-ui, sans-serif; }
+  .row { display:flex; gap:56px; align-items:flex-start; flex-wrap:wrap; }
+  .frame { margin:0; }
+  figcaption { color:#a1a1aa; font-size:13px; font-weight:600; margin:0 0 10px 2px; }
+  iframe { border:0; border-radius:24px; background:#fff; box-shadow:0 16px 48px -8px rgba(0,0,0,.55); }
+</style>
+</head><body>
+<div class="row">
+${frames}
+</div>
+</body></html>`;
+}
+
+function downloadScreensHtml(screens: HtmlScreen[]) {
+  if (!screens.length) return;
+  const blob = new Blob([buildGalleryHtml(screens)], { type: "text/html" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `screens-${screens.length}.html`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
 
 // ─── Arrow scaffolding (Phase 2 — user-flow connectors) ───────────────────────
@@ -341,6 +397,14 @@ export function HtmlCanvasStage({ screens, isGenerating }: HtmlCanvasStageProps)
       {/* Send all to Figma (code.to.design clipboard mode) */}
       {screens.length > 0 && (
         <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-1.5">
+          {/* Download all screens as a standalone .html (free, no API) */}
+          <button
+            onClick={() => downloadScreensHtml(screens)}
+            title="Download all screens as one standalone HTML file"
+            className="flex items-center gap-2 rounded-lg border border-zinc-600 bg-zinc-900/90 px-3 py-1.5 font-mono text-[11px] uppercase tracking-widest text-zinc-200 transition-all active:scale-[0.98] backdrop-blur hover:bg-zinc-800"
+          >
+            <Download size={12} /> Download HTML
+          </button>
           <button
             onClick={onSendToFigma}
             disabled={figmaState === "preparing"}

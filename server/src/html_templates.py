@@ -138,7 +138,11 @@ def pop_theme_head() -> str:
 # brief from THIS file instead of the hardcoded POP block above.
 # ─────────────────────────────────────────────────────────────────────────────
 
-_DESIGN_MD_PATH = Path(__file__).parent.parent / "design.md"
+# design1.md = the enriched POP spec (tokens + composition playbook + component/
+# pattern recipe library, mined from ds_index.json). Falls back to design.md.
+_DESIGN_MD_PATH = Path(__file__).parent.parent / "design1.md"
+if not _DESIGN_MD_PATH.exists():
+    _DESIGN_MD_PATH = Path(__file__).parent.parent / "design.md"
 _design_cache: dict | None = None
 
 # Google-Fonts-available substitutes. design.md may name a non-Google or
@@ -187,7 +191,7 @@ def load_design_md() -> dict | None:
         _, fm, body = raw.split("---", 2)
         meta = yaml.safe_load(fm) or {}
         _design_cache = {"meta": meta, "body": body.strip()}
-        print(f"[DS] Loaded design.md theme '{meta.get('name','?')}' "
+        print(f"[DS] Loaded {_DESIGN_MD_PATH.name} theme '{meta.get('name','?')}' "
               f"({len(meta.get('colors',{}))} colors, "
               f"{len(meta.get('typography',{}))} type styles).")
         return _design_cache
@@ -379,6 +383,26 @@ def build_theme_head_from_spec(spec: dict) -> str:
 # Document assembler
 # ─────────────────────────────────────────────────────────────────────────────
 
+# Shipped in every document. `.img-ph` is an elegant, on-theme image placeholder
+# (diagonal-stripe surface + centered icon + label) — used instead of gray boxes
+# / external placeholder services, so mockups read as intentional design, not
+# missing assets. The element also carries theme bg/text classes + a data-img-prompt.
+_SHARED_UTIL_CSS = """<style id="c2d-utils">
+  .img-ph {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    background-image: repeating-linear-gradient(45deg,
+      rgba(150,150,150,0.10) 0, rgba(150,150,150,0.10) 1px,
+      transparent 1px, transparent 13px);
+    overflow: hidden; text-align: center;
+  }
+  .img-ph .material-symbols-outlined { font-size: 22px; opacity: 0.55; }
+  .img-ph__label {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; opacity: 0.6;
+  }
+</style>"""
+
+
 def build_document(title: str, head_inner: str, body_inner: str, body_class: str = "") -> str:
     """
     Wrap an LLM-generated <body> inner HTML in a complete, self-contained
@@ -395,6 +419,7 @@ def build_document(title: str, head_inner: str, body_inner: str, body_class: str
         '<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>\n'
         f'<title>{safe_title}</title>\n'
         f'{head_inner}\n'
+        f'{_SHARED_UTIL_CSS}\n'
         '</head>\n'
         f'<body{cls}>\n{body_inner}\n</body>\n</html>'
     )

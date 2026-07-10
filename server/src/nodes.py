@@ -1283,8 +1283,9 @@ class HtmlScreenSpec(BaseModel):
             "nothing else. No <html>, <head>, <body>, <script src> or <style> config "
             "tags. Use ONLY the theme's Tailwind token classes + standard Tailwind "
             "utilities + Material Symbols (<span class=\"material-symbols-outlined\">icon</span>). "
-            "Every image is an <img> with a descriptive data-img-prompt attribute and a "
-            "neutral bg-* placeholder. A small <script> for local interactions is allowed."
+            "For images use the elegant `img-ph` placeholder div (icon + UPPERCASE label + "
+            "data-img-prompt) — never an <img> tag or external placeholder URL. A small "
+            "<script> for local interactions is allowed."
         )
     )
 
@@ -1306,10 +1307,19 @@ NON-NEGOTIABLE OUTPUT RULES:
   values in `style=` and never invent token names that aren't in the theme.
 - Icons: Material Symbols, e.g. <span class="material-symbols-outlined">search</span>.
   Add the `icon-fill`/FILL variation for active states where it reads better.
-- Images: every <img> MUST have (a) a vivid, specific `data-img-prompt="..."` describing
-  ideal studio/lifestyle photography for that slot, (b) a sensible aspect/size via Tailwind
-  classes, and (c) object-cover. Use a real placeholder src of
-  "https://placehold.co/600x600" sized appropriately.
+- Images: DO NOT use <img> tags or external placeholder services (no placehold.co, no
+  gray boxes). Instead render an ELEGANT inline placeholder — a <div> with class "img-ph"
+  PLUS theme classes for a surface bg, muted text, rounded corners, and a size/aspect —
+  containing a Material Symbols "image" icon and a short UPPERCASE label of what the image
+  is, plus a vivid `data-img-prompt="..."` describing ideal photography (for later swap).
+  This renders as a subtly striped, on-theme placeholder that looks intentional. Example:
+    <div class="img-ph bg-surface-container text-on-surface-variant rounded-xl aspect-[4/3]"
+         data-img-prompt="warm overhead shot of a gourmet burger on a slate board">
+      <span class="material-symbols-outlined">image</span>
+      <span class="img-ph__label">Hero food shot</span>
+    </div>
+  Size it to the slot (full-width hero, square thumb, avatar circle via rounded-full, etc.).
+  For avatars/logos use a small img-ph with just the icon (no label).
 - Content realism: write believable, domain-specific copy, names, prices, and numbers —
   never lorem ipsum or "Title"/"Label" placeholders.
 - Fidelity: rounded cards, real spacing, hover/active states, subtle shadows/glows. Aim for
