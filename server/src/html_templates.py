@@ -17,6 +17,7 @@ Two theme sources:
 from __future__ import annotations  # PEP 604 unions (X | None) on Python 3.9
 
 import json
+import re
 from pathlib import Path
 
 # Shared CDN / font tags injected into every document head.
@@ -332,6 +333,184 @@ def design_md_body_bg() -> str:
         return "#0D0D0D"
     colors = data["meta"].get("colors", {}) or {}
     return colors.get("background") or colors.get("surface") or "#0D0D0D"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Blade design system (non-DS mode default)
+#
+# When the "Use POP Design System" toggle is OFF, screens are themed from
+# server/design-blade.md — the Razorpay Blade spec (light theme, azure brand,
+# Inter). Like POP, the visual head (Tailwind token config + fonts + base CSS) is
+# translated deterministically from Blade's tokens here, while the *design
+# language* brief is read live from the md prose so editing the file changes the
+# output. Falls back to the LLM-designed bespoke theme only if the file is gone.
+# ─────────────────────────────────────────────────────────────────────────────
+
+_DESIGN_BLADE_PATH = Path(__file__).parent.parent / "design-blade.md"
+_blade_cache: str | None = None  # None = not yet loaded; "" = missing/failed
+
+_BLADE_FONT_LINK = (
+    '<link rel="stylesheet" '
+    'href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"/>'
+)
+
+_BLADE_TAILWIND_CONFIG = """
+<script id="tailwind-config">
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          "surface-page":         "hsla(0,0%,97%,1)",
+          "surface-cloud":        "hsla(200,10%,94%,1)",
+          "surface-card":         "hsla(0,0%,100%,1)",
+          "surface-brand-subtle": "hsla(217,100%,98%,1)",
+          "brand":                "hsla(218,89%,51%,1)",
+          "brand-hover":          "hsla(218,87%,43%,1)",
+          "brand-active":         "hsla(218,89%,35%,1)",
+          "text-normal":          "hsla(200,11%,11%,1)",
+          "text-subtle":          "hsla(200,10%,18%,1)",
+          "text-muted":           "hsla(206,9%,34%,1)",
+          "text-placeholder":     "hsla(202,8%,52%,1)",
+          "text-onbrand":         "hsla(0,0%,100%,1)",
+          "text-link":            "hsla(218,87%,43%,1)",
+          "border-subtle":        "hsla(200,10%,94%,1)",
+          "border-muted":         "hsla(204,8%,88%,1)",
+          "border-normal":        "hsla(203,8%,80%,1)",
+          "positive":             "hsla(150,100%,28%,1)",
+          "positive-subtle":      "hsla(150,39%,93%,1)",
+          "positive-text":        "hsla(150,100%,23%,1)",
+          "negative":             "hsla(5,73%,53%,1)",
+          "negative-subtle":      "hsla(5,75%,97%,1)",
+          "negative-text":        "hsla(4,85%,44%,1)",
+          "notice":               "hsla(25,100%,44%,1)",
+          "notice-subtle":        "hsla(23,100%,97%,1)",
+          "notice-text":          "hsla(25,100%,39%,1)",
+          "information":          "hsla(200,100%,41%,1)",
+          "information-subtle":   "hsla(198,85%,95%,1)",
+          "information-text":     "hsla(200,100%,33%,1)"
+        },
+        fontFamily: {
+          sans:    ["Inter", "system-ui", "sans-serif"],
+          heading: ["TASA Orbiter", "Inter", "system-ui", "sans-serif"]
+        },
+        borderRadius: {
+          "none":"0px", "xs":"4px", "sm":"8px", "DEFAULT":"12px", "md":"12px",
+          "lg":"16px", "xl":"20px", "2xl":"24px", "full":"9999px"
+        },
+        fontSize: {
+          "helper":     ["12px", { lineHeight: "16px" }],
+          "body":       ["14px", { lineHeight: "20px" }],
+          "body-lg":    ["16px", { lineHeight: "24px" }],
+          "h3":         ["18px", { lineHeight: "24px", fontWeight: "600" }],
+          "h2":         ["20px", { lineHeight: "26px", fontWeight: "600" }],
+          "h1":         ["24px", { lineHeight: "32px", fontWeight: "600" }],
+          "display":    ["32px", { lineHeight: "38px", fontWeight: "700", letterSpacing: "-0.02em" }],
+          "display-lg": ["40px", { lineHeight: "46px", fontWeight: "700", letterSpacing: "-0.03em" }]
+        }
+      }
+    }
+  };
+</script>
+"""
+
+_BLADE_BASE_CSS = """
+<style>
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background-color: hsla(0,0%,97%,1);
+    color: hsla(200,11%,11%,1);
+    min-height: max(844px, 100dvh);
+  }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .icon-fill { font-variation-settings: 'FILL' 1; }
+  /* Blade elevation — cool, low-spread blue-gray shadows */
+  .elevation-low  { box-shadow: 0px 1px 2px hsla(206,10%,29%,0.09), 0px 0px 1px hsla(206,10%,29%,0.12); }
+  .elevation-mid  { box-shadow: 0px 4px 8px hsla(206,10%,29%,0.09), 0px 0px 1px hsla(206,10%,29%,0.18); }
+  .elevation-high { box-shadow: 0px 6px 32px 4px hsla(205,8%,71%,0.06), 0px 0px 1px hsla(206,10%,29%,0.18); }
+  /* Inputs: brand focus ring */
+  .focus-ring:focus, .focus-ring:focus-visible { outline: none; border-color: hsla(218,89%,51%,1); box-shadow: 0 0 0 3px hsla(217,100%,98%,1); }
+  .squishy:active { transform: scale(0.98); }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
+"""
+
+# Concise fallback used only if design-blade.md is missing.
+BLADE_DESIGN_LANGUAGE = (
+    "Razorpay Blade — a clean, business-like LIGHT design system. Page canvas is a light "
+    "gray (bg-surface-page); cards are pure white (bg-surface-card) with a 1px border-muted "
+    "hairline + `elevation-low` shadow. The single primary action per view is azure "
+    "(bg-brand #1364F1, text-text-onbrand); secondary actions are outlined (border-brand, "
+    "text-brand). Body text is text-text-normal on Inter; headings use font-heading. Sentence "
+    "case everywhere; verb-first CTAs. Feedback colors are fixed: positive=emerald, "
+    "negative=crimson, notice=cider/orange, information=sapphire. Flat surfaces — NO "
+    "gradients, textures, or background images. Never a dark page background."
+)
+
+_BLADE_TOKEN_HINT = (
+    "\n\nAVAILABLE TOKEN CLASSES (use these exact names, never raw hex):\n"
+    "- Surfaces  → bg-: surface-page, surface-cloud, surface-card, surface-brand-subtle\n"
+    "- Brand     → bg-/text-/border-: brand, brand-hover, brand-active\n"
+    "- Text      → text-: text-normal, text-subtle, text-muted, text-placeholder, "
+    "text-onbrand, text-link\n"
+    "- Borders   → border-: border-subtle, border-muted, border-normal\n"
+    "- Feedback  → bg-/text-/border-: positive(+-subtle,-text), negative(+-subtle,-text), "
+    "notice(+-subtle,-text), information(+-subtle,-text)\n"
+    "- Type      → text-: helper, body, body-lg, h3, h2, h1, display, display-lg "
+    "(plus font-sans / font-heading)\n"
+    "- Radius    → rounded-: xs, sm, DEFAULT(12px), md, lg, xl, 2xl, full\n"
+    "- Elevation → elevation-low (cards), elevation-mid (menus), elevation-high (modals); "
+    "focus-ring on inputs.\n"
+    "Use the Material Symbols icon font for icons. This is a LIGHT theme — cards are white on "
+    "a light-gray page; never use a dark/near-black page background."
+)
+
+
+def load_design_blade() -> str | None:
+    """Return the raw design-blade.md text (cached). None if missing/unreadable."""
+    global _blade_cache
+    if _blade_cache is not None:
+        return _blade_cache or None
+    if not _DESIGN_BLADE_PATH.exists():
+        print(f"[Blade] {_DESIGN_BLADE_PATH.name} not found — non-DS mode uses bespoke theme.")
+        _blade_cache = ""
+        return None
+    try:
+        _blade_cache = _DESIGN_BLADE_PATH.read_text()
+        print(f"[Blade] Loaded {_DESIGN_BLADE_PATH.name} ({len(_blade_cache)} chars) "
+              "for non-DS (toggle-off) theme.")
+        return _blade_cache
+    except Exception as e:  # noqa: BLE001
+        print(f"[Blade] Failed to read {_DESIGN_BLADE_PATH.name} ({e}); using bespoke theme.")
+        _blade_cache = ""
+        return None
+
+
+def blade_theme_head() -> str:
+    """<head> inner markup for the Blade (toggle-off) theme."""
+    return (
+        f'{_TAILWIND_CDN}\n{_BLADE_FONT_LINK}\n{_MATERIAL_SYMBOLS}\n'
+        f'{_BLADE_TAILWIND_CONFIG}\n{_BLADE_BASE_CSS}'
+    )
+
+
+def blade_design_language() -> str:
+    """
+    Design-language brief for the screen builder, read live from the md prose.
+    Code fences (the CSS-var/recipe mechanism, which we replace with Tailwind
+    token classes) are stripped so the LLM gets the *guidance*, not conflicting
+    CSS. Appends the concrete Tailwind token-class list.
+    """
+    raw = load_design_blade()
+    if not raw:
+        return BLADE_DESIGN_LANGUAGE + _BLADE_TOKEN_HINT
+    prose = re.sub(r"```.*?```", "", raw, flags=re.DOTALL)   # drop fenced code
+    prose = re.sub(r"\n{3,}", "\n\n", prose).strip()
+    return f"{prose}{_BLADE_TOKEN_HINT}"
+
+
+def blade_body_bg() -> str:
+    return "hsla(0,0%,97%,1)"  # Blade page canvas (gray.50)
 
 
 # ─────────────────────────────────────────────────────────────────────────────

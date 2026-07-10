@@ -1344,6 +1344,17 @@ async def _theme_for_html(prd_data: dict, concept: str, is_ds_mode: bool):
             ht.design_md_body_bg(),
         )
 
+    # Non-DS (POP toggle OFF) → theme from server/design-blade.md (Blade DS).
+    # Deterministic, no LLM. Falls through to the bespoke theme below only if the
+    # md file is missing.
+    if ht.load_design_blade() is not None:
+        print("    [HTML] Non-DS mode → Blade design system (design-blade.md)")
+        return (
+            ht.blade_theme_head(),
+            ht.blade_design_language(),
+            ht.blade_body_bg(),
+        )
+
     directives = prd_data.get("ux_anchor_directives", {})
     summary    = prd_data.get("executive_summary", {})
     sys = (

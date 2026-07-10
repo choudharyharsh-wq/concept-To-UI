@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight, GripVertical, CheckCircle2, Loader2, Circle 
 import { PipelineStage } from "@/hooks/use-generation-stream";
 import { PRDStage } from "./prd-stage";
 import { IACanvasStage } from "./ia-canvas-stage";
-import { UserFlowStage } from "./user-flow-stage";
+import { UserFlowCanvasStage } from "./user-flow-canvas-stage";
 import { UXLayoutStage } from "./ux-layout-stage";
 import { WireframeCompilerStage } from "./wireframe-compiler-stage";
 import { RenderStage } from "./render-stage";
@@ -94,7 +94,7 @@ function StageOutput({ stage, allStages }: { stage: PipelineStage; allStages: Pi
       return prdStage ? <PRDStage stage={prdStage} /> : null;
     }
     case "ia_node":                 return <IACanvasStage stage={stage} />;
-    case "user_flow_node":          return <UserFlowStage stage={stage} />;
+    case "user_flow_node":          return <UserFlowCanvasStage stage={stage} allStages={allStages} />;
     case "ux_layout_node":          return <UXLayoutStage stage={stage} />;
     case "wireframe_compiler_node": return <WireframeCompilerStage stage={stage} />;
     case "render_node":             return <RenderStage stage={stage} allStages={allStages} />;
@@ -266,10 +266,10 @@ export function PipelineWorkspace({ stages, isGenerating, htmlScreens = [], erro
             )}
           </div>
 
-          {/* Left content — IA renders a full-bleed tldraw canvas; the rest scroll */}
+          {/* Left content — IA & User Flow render full-bleed tldraw canvases; the rest scroll */}
           <div className={cn(
             "flex-1 min-h-0",
-            activeStage?.id === "ia_node"
+            activeStage?.id === "ia_node" || activeStage?.id === "user_flow_node"
               ? "overflow-hidden"
               : "overflow-y-auto px-6 py-6 no-scrollbar"
           )}>

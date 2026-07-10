@@ -144,20 +144,6 @@ export function ReviewPanel({ stage, onSubmitFeedback }: ReviewPanelProps) {
   return (
     <div className="flex flex-col gap-5 pb-4">
 
-      {/* Human override — accept the current PRD as-is and move on. Independent of
-          the feedback form below; this is the only way to leave the review loop. */}
-      {isAwaiting && (
-        <button
-          onClick={() => submit(true)}
-          disabled={submitting}
-          className="w-full px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
-        >
-          <CheckCircle2 size={15} />
-          {submitting ? "Proceeding…" : "This PRD is perfect — proceed to IA"}
-          <ChevronRight size={14} />
-        </button>
-      )}
-
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="space-y-1">
@@ -270,6 +256,21 @@ export function ReviewPanel({ stage, onSubmitFeedback }: ReviewPanelProps) {
           className="w-full px-4 py-3 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold transition-colors disabled:opacity-50"
         >
           {submitting ? "Applying…" : "Apply changes & re-do PRD"}
+        </button>
+      )}
+
+      {/* Human override — accept the current PRD as-is and move on. Independent of
+          the feedback form above; this is the only way to leave the review loop.
+          Placed at the bottom, below "Apply changes & re-do PRD". */}
+      {isAwaiting && (
+        <button
+          onClick={() => submit(true)}
+          disabled={submitting}
+          className="w-full px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+        >
+          <CheckCircle2 size={15} />
+          {submitting ? "Proceeding…" : "This PRD is perfect — proceed to IA"}
+          <ChevronRight size={14} />
         </button>
       )}
 
