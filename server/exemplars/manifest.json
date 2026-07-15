@@ -1,0 +1,27 @@
+[
+  {
+    "file": "image.png",
+    "label": "Home / Dashboard",
+    "caption": "A single dominant hero (the glowing 'Tap to Scan' card) anchors the page before any list content appears. The repeating action grid below it uses identical card size, icon treatment, and label placement for every item, and section headers use a plain chevron affordance instead of a heavy 'view all' button. The bottom tab bar stays minimal — icon plus label, one clearly filled active state."
+  },
+  {
+    "file": "image (1).png",
+    "label": "Payment amount entry (verified payee)",
+    "caption": "The amount is the single largest element on the screen with no competing headline. Payee identity (avatar, name, verified badge, UPI handle) sits quietly above it rather than inside a heavy card. The CTA states the exact action and amount ('Pay ₹1,234') instead of a generic 'Continue', and secondary controls (bank selector, check balance) are pushed into a slim row just above the CTA rather than styled as separate cards."
+  },
+  {
+    "file": "image (2).png",
+    "label": "Link bank account (select bank)",
+    "caption": "A full-bleed illustrated header with a short headline sets the tone before any list UI appears. The search field sits directly below it as the primary way in. The 'Popular banks' grid uses identical square logo tiles with consistent label truncation so the layout holds up regardless of how many banks are shown, and the full alphabetical list below reuses the same row treatment for consistency."
+  },
+  {
+    "file": "image (3).png",
+    "label": "OTP verification",
+    "caption": "The brand moment (logo + tagline) shares the screen with the OTP task instead of being a separate splash step. The 6 OTP boxes are evenly sized and spaced with a clear entry state. The resend timer is deliberately de-emphasized (small, muted text) so it never competes with the primary CTA, which stays full-width and visually dominant."
+  },
+  {
+    "file": "image (4).png",
+    "label": "Send money (contact picker)",
+    "caption": "The 'Faves and recents' row uses a distinct badge affordance to separate frequent contacts from the plain list below, giving the most-used destinations top billing without needing a heavy section label. Both zones reuse the same avatar-initial treatment, which keeps the whole screen feeling like one system rather than two bolted-together sections."
+  }
+]

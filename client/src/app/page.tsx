@@ -252,6 +252,16 @@ export default function Dashboard() {
                   <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-600">
                     {g.output_mode} · {g.screen_count} scr
                   </span>
+                  <span
+                    className={cn(
+                      "text-[9px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded-full border shrink-0",
+                      g.use_ds
+                        ? "border-orange-500/40 bg-orange-500/10 text-orange-300"
+                        : "border-zinc-700 bg-zinc-800/60 text-zinc-500"
+                    )}
+                  >
+                    {g.use_ds ? "pop ds" : "non pop"}
+                  </span>
                   {openingId === g.id && <Loader2 size={10} className="animate-spin text-zinc-500 ml-auto" />}
                 </div>
                 <p className="text-xs text-zinc-300 line-clamp-2 leading-snug group-hover:text-zinc-100">

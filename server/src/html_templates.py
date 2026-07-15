@@ -16,6 +16,7 @@ Two theme sources:
 
 from __future__ import annotations  # PEP 604 unions (X | None) on Python 3.9
 
+import base64
 import json
 import re
 from pathlib import Path
@@ -531,6 +532,81 @@ _FALLBACK_THEME = {
     "body_bg": "#F4F4F5",
     "design_language": "Clean neutral theme: indigo primary, light surfaces, rounded cards.",
 }
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Visual exemplars — real, shipped POP screens fed to the LLM as vision input
+# alongside design1.md's written rules. DS mode only.
+# ─────────────────────────────────────────────────────────────────────────────
+
+_EXEMPLARS_DIR = Path(__file__).parent.parent / "exemplars"
+_EXEMPLARS_MANIFEST = _EXEMPLARS_DIR / "manifest.json"
+_exemplars_cache: list[dict] | None = None  # None = not yet loaded; [] = missing/failed
+
+
+def load_pop_exemplars() -> list[dict]:
+    """
+    Load real POP screen screenshots (server/exemplars/*.png + manifest.json) as
+    base64 image payloads with their captions. Cached. Returns [] if the manifest
+    or any listed file is missing/unreadable — callers must treat that as "no
+    exemplars available" rather than an error.
+    """
+    global _exemplars_cache
+    if _exemplars_cache is not None:
+        return _exemplars_cache
+    if not _EXEMPLARS_MANIFEST.exists():
+        print(f"[Exemplars] {_EXEMPLARS_MANIFEST.name} not found — skipping visual exemplars.")
+        _exemplars_cache = []
+        return _exemplars_cache
+    try:
+        entries = json.loads(_EXEMPLARS_MANIFEST.read_text())
+        loaded = []
+        for entry in entries:
+            path = _EXEMPLARS_DIR / entry["file"]
+            data = base64.standard_b64encode(path.read_bytes()).decode("ascii")
+            loaded.append({
+                "label": entry["label"],
+                "caption": entry["caption"],
+                "media_type": "image/png",
+                "data": data,
+            })
+        _exemplars_cache = loaded
+        print(f"[Exemplars] Loaded {len(loaded)} POP reference screen(s) from {_EXEMPLARS_DIR.name}/.")
+        return _exemplars_cache
+    except Exception as e:  # noqa: BLE001
+        print(f"[Exemplars] Failed to load exemplars ({e}); skipping.")
+        _exemplars_cache = []
+        return _exemplars_cache
+
+
+def pop_exemplar_content_blocks() -> list[dict]:
+    """
+    Build Anthropic-native multimodal content blocks for the loaded exemplars:
+    one intro text block, then a caption + image block per screen. The final
+    image block is marked cache_control=ephemeral so repeated batch calls within
+    the same generation run reuse the cached image tokens instead of re-billing
+    them each time.
+    """
+    exemplars = load_pop_exemplars()
+    if not exemplars:
+        return []
+    blocks: list[dict] = [{
+        "type": "text",
+        "text": (
+            "Below are real, shipped POP screens. Match this level of visual polish, "
+            "spacing, and hierarchy — not just the color/token vocabulary."
+        ),
+    }]
+    for i, ex in enumerate(exemplars):
+        blocks.append({"type": "text", "text": f"Reference — {ex['label']}: {ex['caption']}"})
+        image_block: dict = {
+            "type": "image",
+            "source": {"type": "base64", "media_type": ex["media_type"], "data": ex["data"]},
+        }
+        if i == len(exemplars) - 1:
+            image_block["cache_control"] = {"type": "ephemeral"}
+        blocks.append(image_block)
+    return blocks
 
 
 def build_theme_head_from_spec(spec: dict) -> str:

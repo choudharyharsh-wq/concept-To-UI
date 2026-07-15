@@ -106,7 +106,19 @@
       "Bash(sed -n '3289,3360p' node_modules/@tldraw/tlschema/dist-cjs/index.d.ts)",
       "Bash(sed -n '3189,3240p' node_modules/@tldraw/tlschema/dist-cjs/index.d.ts)",
       "Bash(python3 -m py_compile *.py)",
-      "Bash(echo \"py-exit: $?\")"
+      "Bash(echo \"py-exit: $?\")",
+      "Bash(git check-ignore *)",
+      "Bash(git log *)",
+      "Bash(grep -i \"design.md$\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(type\\(d\\), len\\(d\\)\\)\")",
+      "Bash(grep -nE \"^#{1,3} \" design1.md)",
+      "Bash(grep -nE \"^#{1,3} \" design-blade.md)",
+      "Bash(grep -nE '^#{1,4} ' atoms.md)",
+      "Bash(grep -nE '^#{1,4} ' atoms2.md)",
+      "Bash(grep -nE '^#{1,3} ' molecules.md)",
+      "Bash(grep -nE '^#{1,3} ' molecules2.md)",
+      "Bash(grep -nE '^#{1,3} ' organisms.md)",
+      "Bash(grep -nE '^#{1,3} ' patterns.md)"
     ]
   }
 }

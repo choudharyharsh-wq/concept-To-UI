@@ -1410,6 +1410,19 @@ async def html_compiler_node(state: GraphState, writer: "StreamWriter" = None):
     # ── Phase 1: theme ────────────────────────────────────────────────────────
     head_inner, design_language, body_bg = await _theme_for_html(prd_data, concept, is_ds_mode)
 
+    # ── Phase 1b: visual exemplars (real POP screens) — DS mode only ──────────
+    # Built once per run, reused across every batch below (see cache_control on
+    # the image blocks) rather than reloaded/re-encoded per batch.
+    exemplar_blocks: List[dict] = []
+    if is_ds_mode:
+        try:
+            exemplar_blocks = ht.pop_exemplar_content_blocks()
+            if exemplar_blocks:
+                print(f"    [HTML] exemplars loaded ({len(exemplar_blocks)} content block(s))")
+        except Exception as e:  # noqa: BLE001
+            print(f"    [HTML] exemplar loading failed ({e}); continuing without exemplars.")
+            exemplar_blocks = []
+
     layout_by_id = {sl.get("page_id"): sl for sl in screen_layouts}
     total        = len(pages)
     BATCH_SIZE   = 2
@@ -1500,10 +1513,15 @@ User flows (for cross-screen navigation cues):
 {json.dumps(user_flow_data, indent=2)}"""
 
             hlog(f"batch {batch_num}/{total_batches} {batch_ids} — invoking LLM "
-                 f"(prompt {len(batch_prompt)} chars)…")
+                 f"(prompt {len(batch_prompt)} chars"
+                 f"{', +exemplars' if exemplar_blocks else ''})…")
+            human_content = (
+                [*exemplar_blocks, {"type": "text", "text": batch_prompt}]
+                if exemplar_blocks else batch_prompt
+            )
             collection: HtmlScreenCollection = await structured_llm.ainvoke([
                 SystemMessage(content=system_prompt),
-                HumanMessage(content=batch_prompt),
+                HumanMessage(content=human_content),
             ])
             hlog(f"batch {batch_num} LLM returned {len(collection.screens)} screen(s): "
                  f"{[s.screen_id for s in collection.screens]}")
