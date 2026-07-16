@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Improving Visual Quality — A History of What We've Tried</title>
+<style>
+  :root{
+    --bg:#0a0a0a; --fg:#ffffff; --sec:#a0a0a0; --card:#1a1a1a; --border:#2a2a2a; --accent:#3B82F6;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{background:var(--bg); color:var(--fg); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif; overflow:hidden; height:100%;}
+  .deck{position:relative; width:100vw; height:100vh;}
+  .slide{
+    position:absolute; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center;
+    padding:60px 80px; text-align:center;
+  }
+  .slide.active{display:flex;}
+  .inner{max-width:980px; width:100%;}
+  .kicker{color:var(--accent); font-size:16px; letter-spacing:3px; text-transform:uppercase; font-weight:700; margin-bottom:18px;}
+  h1{font-size:58px; font-weight:800; line-height:1.15; letter-spacing:-1px;}
+  h2{font-size:40px; font-weight:800; margin-bottom:14px; letter-spacing:-0.5px;}
+  .subtitle{font-size:24px; color:var(--sec); margin-top:16px; font-weight:400; line-height:1.5;}
+  .caption{font-size:19px; color:var(--sec); margin-top:22px; line-height:1.5; max-width:760px; margin-left:auto; margin-right:auto;}
+  .meta{font-size:16px; color:var(--sec); margin-top:28px; letter-spacing:0.5px;}
+
+  /* Section divider */
+  .divider-num{font-size:140px; font-weight:800; color:var(--accent); opacity:0.18; line-height:1; margin-bottom:-30px;}
+  .divider-title{font-size:52px; font-weight:800;}
+  .divider-sub{font-size:22px; color:var(--sec); margin-top:14px;}
+
+  /* Card grid */
+  .card-grid{display:flex; gap:24px; margin-top:36px; justify-content:center; flex-wrap:wrap;}
+  .card{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:32px 26px; width:260px; text-align:left;}
+  .card .icon{font-size:34px; margin-bottom:14px;}
+  .card .title{font-size:19px; font-weight:700; margin-bottom:8px;}
+  .card .desc{font-size:15px; color:var(--sec); line-height:1.5;}
+
+  /* Comparison panel */
+  .comparison{display:flex; gap:0; margin-top:36px; border-radius:16px; overflow:hidden; border:1px solid var(--border);}
+  .comp-col{flex:1; padding:32px 28px; text-align:left;}
+  .comp-col.left{background:var(--card);}
+  .comp-col.right{background:rgba(59,130,246,0.08);}
+  .comp-label{font-size:13px; letter-spacing:2px; text-transform:uppercase; color:var(--sec); font-weight:700; margin-bottom:14px;}
+  .comp-col.right .comp-label{color:var(--accent);}
+  .comp-text{font-size:18px; line-height:1.55;}
+  .comp-divider{width:1px; background:var(--border);}
+
+  /* Stat callout */
+  .stat-row{display:flex; gap:50px; justify-content:center; margin-top:30px; flex-wrap:wrap;}
+  .stat{display:flex; flex-direction:column; align-items:center;}
+  .stat-num{font-size:80px; font-weight:800; color:var(--accent); line-height:1;}
+  .stat-label{font-size:16px; color:var(--sec); margin-top:10px; max-width:220px;}
+  .stat-arrow{font-size:40px; color:var(--sec); align-self:center; margin-top:20px;}
+
+  /* Step flow */
+  .step-flow{display:flex; align-items:flex-start; justify-content:center; gap:0; margin-top:36px; flex-wrap:wrap;}
+  .step{display:flex; flex-direction:column; align-items:center; width:190px; text-align:center;}
+  .step-num{width:44px; height:44px; border-radius:50%; background:var(--accent); color:#000; font-weight:800; font-size:18px; display:flex; align-items:center; justify-content:center; margin-bottom:14px;}
+  .step-text{font-size:15.5px; color:var(--fg); line-height:1.4;}
+  .step-arrow{font-size:26px; color:var(--sec); align-self:center; margin:22px 6px 0 6px;}
+
+  /* Icon list */
+  .icon-list{display:flex; flex-direction:column; gap:16px; margin-top:32px; text-align:left; max-width:760px; margin-left:auto; margin-right:auto;}
+  .icon-item{display:flex; gap:16px; align-items:flex-start; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px 20px;}
+  .icon-item .ico{font-size:22px; min-width:28px;}
+  .icon-item .txt{font-size:17px; line-height:1.4; color:var(--fg);}
+
+  /* Quote block */
+  .quote-mark{font-size:90px; color:var(--accent); line-height:1; opacity:0.4;}
+  .quote-text{font-size:34px; font-style:italic; font-weight:600; line-height:1.4; margin-top:-10px;}
+  .quote-attr{font-size:16px; color:var(--sec); margin-top:22px; letter-spacing:1px; text-transform:uppercase;}
+
+  /* Timeline */
+  .timeline{display:flex; align-items:center; justify-content:center; margin-top:44px; position:relative;}
+  .timeline::before{content:''; position:absolute; top:9px; left:60px; right:60px; height:2px; background:var(--border);}
+  .tl-point{flex:1; display:flex; flex-direction:column; align-items:center; position:relative;}
+  .tl-dot{width:20px; height:20px; border-radius:50%; background:var(--accent); border:4px solid var(--bg); z-index:1;}
+  .tl-label{margin-top:16px; font-size:16px; font-weight:700;}
+  .tl-sub{font-size:13px; color:var(--sec); margin-top:4px;}
+
+  /* Example slide */
+  .example-box{
+    margin-top:40px; width:100%; max-width:820px; height:420px; border:2px dashed var(--border);
+    border-radius:20px; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:14px;
+  }
+  .example-box .plus{font-size:48px; color:var(--border); font-weight:300;}
+  .example-box .hint{font-size:16px; color:var(--sec);}
+  .example-heading{font-size:20px; color:var(--accent); letter-spacing:3px; text-transform:uppercase; font-weight:700;}
+
+  /* progress + nav */
+  .counter{position:fixed; bottom:26px; right:36px; font-size:14px; color:var(--sec); letter-spacing:1px;}
+  .progress-track{position:fixed; bottom:0; left:0; height:3px; width:100%; background:var(--border); z-index:5;}
+  .progress-fill{height:100%; background:var(--accent); transition:width 0.25s ease;}
+  .nav-hint{position:fixed; bottom:24px; left:36px; font-size:13px; color:var(--sec); letter-spacing:0.5px;}
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+  <!-- 1: Title -->
+  <div class="slide active"><div class="inner">
+    <div class="kicker">Concept-to-UI Pipeline</div>
+    <h1>Improving Visual Quality</h1>
+    <div class="subtitle">A history of what we've tried — closing the gap between generated screens and designer-crafted output</div>
+    <div class="meta">36 commits · June 8 – July 10</div>
+  </div></div>
+
+  <!-- 2: Setup timeline -->
+  <div class="slide"><div class="inner">
+    <h2>Three Phases, One Goal</h2>
+    <div class="subtitle">Each phase was a direct reaction to a specific failure in the one before it</div>
+    <div class="timeline">
+      <div class="tl-point"><div class="tl-dot"></div><div class="tl-label">Phase 1</div><div class="tl-sub">Vocabulary</div></div>
+      <div class="tl-point"><div class="tl-dot"></div><div class="tl-label">Phase 2</div><div class="tl-sub">Grammar</div></div>
+      <div class="tl-point"><div class="tl-dot"></div><div class="tl-label">Phase 3</div><div class="tl-sub">Rendering</div></div>
+    </div>
+  </div></div>
+
+  <!-- 3: Executive summary -->
+  <div class="slide"><div class="inner">
+    <h2>Executive Summary</h2>
+    <div class="card-grid">
+      <div class="card"><div class="icon">🎨</div><div class="title">Teach Vocabulary</div><div class="desc">Right colors, fonts, component names — but not the right way to use them.</div></div>
+      <div class="card"><div class="icon">📐</div><div class="title">Teach Grammar</div><div class="desc">Screen anatomy, hierarchy rules, named pattern recipes.</div></div>
+      <div class="card"><div class="icon">🖥️</div><div class="title">Change Rendering</div><div class="desc">Figma-plugin wireframes → deterministic HTML/CSS.</div></div>
+    </div>
+  </div></div>
+
+  <!-- 4: Phase 1 divider -->
+  <div class="slide"><div class="inner">
+    <div class="divider-num">01</div>
+    <div class="divider-title">Teaching Vocabulary</div>
+    <div class="divider-sub">Getting the model to use our design system's words</div>
+  </div></div>
+
+  <!-- 5: 1.1 -->
+  <div class="slide"><div class="inner">
+    <div class="kicker">1.1</div>
+    <h2>Extracting the Design System from Figma</h2>
+    <div class="stat-row">
+      <div class="stat"><div class="stat-num">4,171</div><div class="stat-label">raw variant entries pulled via API</div></div>
+      <div class="stat-arrow">→</div>
+      <div class="stat"><div class="stat-num">~40</div><div class="stat-label">top-scoring components kept per screen</div></div>
+    </div>
+    <div class="caption">Scored by keyword overlap with the screen's needs, plus a forced "essential set" (button, nav, tab, card, text, input, header) every screen gets regardless.</div>
+  </div></div>
+
+  <!-- 6: Example 1.1 -->
+  <div class="slide"><div class="inner">
+    <div class="example-heading">Example 1.1</div>
+    <div class="example-box"><div class="plus">+</div><div class="hint">Paste your screenshot / output here</div></div>
+  </div></div>
+
+  <!-- 7: 1.2 -->
+  <div class="slide"><div class="inner">
+    <div class="kicker">1.2</div>
+    <h2>From Raw Files to One Structured Reference</h2>
+    <div class="stat-row">
+      <div class="stat"><div class="stat-num">189</div><div class="stat-label">component index built</div></div>
+      <div class="stat"><div class="stat-num">156</div><div class="stat-label">matched to a real Figma key</div></div>
+    </div>
+    <div class="caption">Joined 7,600 lines of hand-broken-down DS docs (meaning, no keys) with the raw Figma list (keys, no meaning) — using the strongest available model, once.</div>
+  </div></div>
+
+  <!-- 8: Example 1.2 -->
+  <div class="slide"><div class="inner">
+    <div class="example-heading">Example 1.2</div>
+    <div class="example-box"><div class="plus">+</div><div class="hint">Paste your screenshot / output here</div></div>
+  </div></div>
+
+  <!-- 9: 1.3 -->
+  <div class="slide"><div class="inner">
+    <div class="kicker">1.3</div>
+    <h2>Testing the DS File on Other Platforms</h2>
+    <div class="quote-mark">"</div>
+    <div class="quote-text">The vocabulary was correct. The language was wrong.</div>
+    <div class="quote-attr">Run across Claude Design, our platform, and Google Stitch</div>
+    <div class="caption">The model knew <em>what</em> a component was called, not <em>how or where</em> to use it — the key insight that shaped everything after.</div>
+  </div></div>
+
+  <!-- 10: Example 1.3 -->
+  <div class="slide"><div class="inner">
+    <div class="example-heading">Example 1.3</div>
+    <div class="example-box"><div class="plus">+</div><div class="hint">Paste your screenshot / output here</div></div>
+  </div></div>
+
+  <!-- 11: Phase 2 divider -->
+  <div class="slide"><div class="inner">
+    <div class="divider-num">02</div>
+    <div class="divider-title">Teaching Grammar</div>
+    <div class="divider-sub">Not just vocabulary — the rules for using it well</div>
+  </div></div>
+
+  <!-- 12: 2.1 -->
+  <div class="slide"><div class="inner">
+    <div class="kicker">2.1</div>
+    <h2>First Single-File Spec: design.md</h2>
+    <div class="comparison">
+      <div class="comp-col left"><div class="comp-label">Token Block</div><div class="comp-text">Colors, type, spacing, radius — parsed deterministically into real CSS/Tailwind. No LLM re-interpretation.</div></div>
+      <div class="comp-divider"></div>
+      <div class="comp-col right"><div class="comp-label">Prose Guidance</div><div class="comp-text">Brand, layout, and composition rules — this is the only part the LLM actually handles.</div></div>
+    </div>
+    <div class="caption">Modeled on how Google Stitch generates its own condensed design spec.</div>
+  </div></div>
+
+  <!-- 13: Example 2.1 -->
+  <div class="slide"><div class="inner">
+    <div class="example-heading">Example 2.1</div>
+    <div class="example-box"><div class="plus">+</div><div class="hint">Paste your screenshot / output here</div></div>
+  </div></div>
+
+  <!-- 14: 2.2 -->
+  <div class="slide"><div class="inner">
+    <div class="kicker">2.2</div>
+    <h2>design1.md — Structure &amp; Rules</h2>
+    <div class="icon-list">
+      <div class="icon-item"><div class="ico">🧭</div><div class="txt">Explicit screen anatomy: top bar → hero/focal → content → one CTA → bottom nav</div></div>
+      <div class="icon-item"><div class="ico">🎯</div><div class="txt">Hierarchy rule: one dominant focal point per screen</div></div>
+      <div class="icon-item"><div class="ico">📚</div><div class="txt">Named pattern recipes: bento grids, carousels, OTP inputs, slide-to-pay, offer cards, zero-states</div></div>
+    </div>
+    <div class="caption">Built with Claude Design's critique of design.md. This is the file the pipeline uses today.</div>
+  </div></div>
+
+  <!-- 15: Example 2.2 -->
+  <div class="slide"><div class="inner">
+    <div class="example-heading">Example 2.2</div>
+    <div class="example-box"><div class="plus">+</div><div class="hint">Paste your screenshot / output here</div></div>
+  </div></div>
+
+  <!-- 16: 2.3 -->
+  <div class="slide"><div class="inner">
+    <div class="kicker">2.3</div>
+    <h2>Trying Razorpay's Blade Design System</h2>
+    <div class="comparison">
+      <div class="comp-col left"><div class="comp-label">Claude Design Auto-DS</div><div class="comp-text">"Create your own DS" from uploaded Blade files — result wasn't good enough to use as-is.</div></div>
+      <div class="comp-divider"></div>
+      <div class="comp-col right"><div class="comp-label">Hand-Authored Blade</div><div class="comp-text">Extracted verbatim from Razorpay's published package. Now the default theme when no DS is specified.</div></div>
+    </div>
+  </div></div>
+
+  <!-- 17: Example 2.3 -->
+  <div class="slide"><div class="inner">
+    <div class="example-heading">Example 2.3</div>
+    <div class="example-box"><div class="plus">+</div><div class="hint">Paste your screenshot / output here</div></div>
+  </div></div>
+
+  <!-- 18: Phase 3 divider -->
+  <div class="slide"><div class="inner">
+    <div class="divider-num">03</div>
+    <div class="divider-title">Changing the Rendering Path</div>
+    <div class="divider-sub">The largest source of visual-quality gains</div>
+  </div></div>
+
+  <!-- 19: 3.1 -->
+  <div class="slide"><div class="inner">
+    <div class="kicker">3.1</div>
+    <h2>Diagnosing the Figma-Plugin Path</h2>
+    <div class="icon-list">
+      <div class="icon-item"><div class="ico">✏️</div><div class="txt">Text written to the wrong field on components</div></div>
+      <div class="icon-item"><div class="ico">✂️</div><div class="txt">Button labels clipped by auto-layout resize fights</div></div>
+      <div class="icon-item"><div class="ico">📍</div><div class="txt">Flat absolute positioning instead of nested auto-layout — the biggest gap</div></div>
+      <div class="icon-item"><div class="ico">🌗</div><div class="txt">Light screens rendered against a dark-by-default system</div></div>
+      <div class="icon-item"><div class="ico">🧩</div><div class="txt">Components composed as isolated atoms, not patterns</div></div>
+    </div>
+    <div class="caption">107 component instances across 21 screens — DS adoption was healthy. The problem was the plumbing, not the model's decisions.</div>
+  </div></div>
+
+  <!-- 20: Example 3.1 -->
+  <div class="slide"><div class="inner">
+    <div class="example-heading">Example 3.1</div>
+    <div class="example-box"><div class="plus">+</div><div class="hint">Paste your screenshot / output here</div></div>
+  </div></div>
+
+  <!-- 21: 3.2 -->
+  <div class="slide"><div class="inner">
+    <div class="kicker">3.2</div>
+    <h2>The Pivot: Deterministic HTML/CSS</h2>
+    <div class="comparison">
+      <div class="comp-col left"><div class="comp-label">Before</div><div class="comp-text">Model → wireframe → plugin translates → Figma properties</div></div>
+      <div class="comp-divider"></div>
+      <div class="comp-col right"><div class="comp-label">After</div><div class="comp-text">Model → HTML + Tailwind tokens → browser renders → exported to Figma</div></div>
+    </div>
+    <div class="caption">Removes property mis-mapping, resize fights, and variant-value rejections entirely. Now the primary rendering path.</div>
+  </div></div>
+
+  <!-- 22: Example 3.2 -->
+  <div class="slide"><div class="inner">
+    <div class="example-heading">Example 3.2</div>
+    <div class="example-box"><div class="plus">+</div><div class="hint">Paste your screenshot / output here</div></div>
+  </div></div>
+
+  <!-- 23: 3.3 -->
+  <div class="slide"><div class="inner">
+    <div class="kicker">3.3</div>
+    <h2>Fidelity Fixes on the New Path</h2>
+    <div class="icon-list">
+      <div class="icon-item"><div class="ico">📏</div><div class="txt">Long screens: real rendered height measured, frame extends instead of cropping</div></div>
+      <div class="icon-item"><div class="ico">💰</div><div class="txt">Exports batched per call — Figma import API bills per batch, not per screen</div></div>
+    </div>
+  </div></div>
+
+  <!-- 24: Example 3.3 -->
+  <div class="slide"><div class="inner">
+    <div class="example-heading">Example 3.3</div>
+    <div class="example-box"><div class="plus">+</div><div class="hint">Paste your screenshot / output here</div></div>
+  </div></div>
+
+  <!-- 25: 3.4 -->
+  <div class="slide"><div class="inner">
+    <div class="kicker">3.4</div>
+    <h2>Model Quality Experiments</h2>
+    <div class="step-flow">
+      <div class="step"><div class="step-num">1</div><div class="step-text">Gemini → Claude<br>less "AI slop"</div></div>
+      <div class="step-arrow">→</div>
+      <div class="step"><div class="step-num">2</div><div class="step-text">Fast tier → top tier<br>current live config</div></div>
+    </div>
+  </div></div>
+
+  <!-- 26: Example 3.4 -->
+  <div class="slide"><div class="inner">
+    <div class="example-heading">Example 3.4</div>
+    <div class="example-box"><div class="plus">+</div><div class="hint">Paste your screenshot / output here</div></div>
+  </div></div>
+
+  <!-- 27: Unfinished review loop -->
+  <div class="slide"><div class="inner">
+    <div class="kicker">Built, But Unfinished</div>
+    <h2>The Review / Critique Loop</h2>
+    <div class="icon-list">
+      <div class="icon-item"><div class="ico">✅</div><div class="txt">"Design Head" PRD reviewer — scores the brief, asks clarifying questions</div></div>
+      <div class="icon-item"><div class="ico">✅</div><div class="txt">Human-in-the-loop pause built into the pipeline graph</div></div>
+      <div class="icon-item"><div class="ico">❌</div><div class="txt">IA, user-flow &amp; layout evaluators — named "coming soon," never built</div></div>
+    </div>
+    <div class="caption">Every screen today is one-shot — no critique pass exists on the actual visual output.</div>
+  </div></div>
+
+  <!-- 28: Other quality levers -->
+  <div class="slide"><div class="inner">
+    <h2>Other Quality Levers</h2>
+    <div class="card-grid">
+      <div class="card"><div class="icon">🚧</div><div class="title">Category-Gating</div><div class="desc">Domain-specific components excluded when the brief doesn't mention that domain.</div></div>
+      <div class="card"><div class="icon">🖼️</div><div class="title">Placeholder Imagery</div><div class="desc">On-theme icon + label instead of broken links or generic stock photos.</div></div>
+      <div class="card"><div class="icon">🗂️</div><div class="title">Structured Output</div><div class="desc">Every stage forced into a validated schema — coordinates are always valid.</div></div>
+      <div class="card"><div class="icon">⚖️</div><div class="title">Primitives + DS</div><div class="desc">Mostly basic elements; DS components only where they genuinely fit.</div></div>
+    </div>
+  </div></div>
+
+  <!-- 29: Known gaps -->
+  <div class="slide"><div class="inner">
+    <h2>Known Gaps, In Our Own Words</h2>
+    <div class="icon-list">
+      <div class="icon-item"><div class="ico">📝</div><div class="txt">Pattern guidance is prose — never real working markup</div></div>
+      <div class="icon-item"><div class="ico">🎯</div><div class="txt">No retrieval or targeting — full spec sent on every batch</div></div>
+      <div class="icon-item"><div class="ico">🔁</div><div class="txt">No critique-and-refine pass — one shot per batch</div></div>
+      <div class="icon-item"><div class="ico">👁️</div><div class="txt">Never shown a real finished screen — only written rules</div></div>
+    </div>
+  </div></div>
+
+  <!-- 30: Suggested next steps -->
+  <div class="slide"><div class="inner">
+    <h2>Suggested Next Steps</h2>
+    <div class="step-flow">
+      <div class="step"><div class="step-num">1</div><div class="step-text">Extend the review loop to the layout/visual stage</div></div>
+      <div class="step-arrow">→</div>
+      <div class="step"><div class="step-num">2</div><div class="step-text">Give the model real component markup, not prose recipes</div></div>
+      <div class="step-arrow">→</div>
+      <div class="step"><div class="step-num">3</div><div class="step-text">Add finished screens as visual exemplars for top screen types</div></div>
+    </div>
+  </div></div>
+
+  <!-- 31: Closing -->
+  <div class="slide"><div class="inner">
+    <div class="kicker">Where We Land</div>
+    <h1>3 Phases. 1 Rendering Pivot.<br>Still One Shot Per Screen.</h1>
+    <div class="subtitle">Vocabulary and grammar are solved. Rendering is solved. Critique is next.</div>
+  </div></div>
+
+</div>
+
+<div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+<div class="counter" id="counter">1 / 31</div>
+<div class="nav-hint">Use ← → arrow keys to navigate</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let idx = 0;
+  const counter = document.getElementById('counter');
+  const fill = document.getElementById('progressFill');
+
+  function render(){
+    slides.forEach((s,i)=> s.classList.toggle('active', i===idx));
+    counter.textContent = (idx+1) + ' / ' + total;
+    fill.style.width = ((idx+1)/total*100) + '%';
+  }
+  function go(delta){
+    idx = Math.min(total-1, Math.max(0, idx+delta));
+    render();
+  }
+  document.addEventListener('keydown', (e)=>{
+    if(e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown'){ go(1); e.preventDefault(); }
+    if(e.key === 'ArrowLeft' || e.key === 'PageUp'){ go(-1); e.preventDefault(); }
+  });
+  document.getElementById('deck').addEventListener('click', (e)=>{
+    const rect = document.body.getBoundingClientRect();
+    if(e.clientX > rect.width/2) go(1); else go(-1);
+  });
+  render();
+</script>
+</body>
+</html>
