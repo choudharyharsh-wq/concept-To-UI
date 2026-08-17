@@ -17,6 +17,7 @@ class GraphState(TypedDict):
     wireframe_payload: Dict[str, Any]
     render_data: Dict[str, Any]
     html_screens: List[Dict[str, Any]]   # HTML-mode output: one self-contained HTML doc per screen
+    critique_data: Dict[str, Any]        # critic_node output: {violations, app_violations} — DS mode only
     logs: Annotated[List[str], operator.add]
     errors: List[str]
 

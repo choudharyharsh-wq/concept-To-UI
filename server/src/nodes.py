@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 from typing import List, Literal, Optional, Dict
 from dotenv import load_dotenv
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, model_validator, field_validator
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage, SystemMessage
 from .state import GraphState
@@ -799,6 +799,73 @@ def _filter_registry_for_batch(batch_pages: list, top_n: int = 40) -> list:
     return filtered
 
 
+# ── recipes.json retrieval (HTML path, DS mode only) ──────────────────────────
+# Real HTML pattern skeletons, selected per batch instead of dumped whole —
+# mirrors _filter_registry_for_batch's retrieval shape but for recipes.json.
+
+_ARCHETYPE_BY_LAYOUT_PATTERN = {
+    "dashboard_grid": "dashboard",
+    "split_form":     "form",
+    "wizard_step":    "form",
+    "list_feed":      "browse",
+    "landing_page":   "browse",
+    "detail_view":    "detail",
+    "modal_popup":    "overlay",
+}
+_RESULT_KEYWORDS = ("result", "success", "confirmation", "confirmed", "failed", "failure", "receipt", "status")
+
+
+def _infer_archetype(page: dict) -> str:
+    """
+    Zero-cost archetype inference for recipe retrieval — maps the IA's
+    layout_pattern onto one of recipes.json's archetypes, with a keyword
+    override for result/status screens (no layout_pattern maps to "result"
+    directly). A dedicated per-screen composition-brief LLM call would be more
+    precise but costs a call per screen; out of scope for this pass.
+    """
+    blob = f"{page.get('id','')} {page.get('name','')}".lower()
+    if any(kw in blob for kw in _RESULT_KEYWORDS):
+        return "result"
+    return _ARCHETYPE_BY_LAYOUT_PATTERN.get(page.get("layout_pattern", ""), "browse")
+
+
+def _resolve_recipe_alias(component_name: str, recipes: dict) -> Optional[str]:
+    """Match a free-text component_inventory item to a recipe id via its id or alias list."""
+    name_l = component_name.lower()
+    for rid, recipe in recipes.get("recipes", {}).items():
+        if rid in name_l or any(alias in name_l for alias in recipe.get("aliases", [])):
+            return rid
+    return None
+
+
+def _select_recipes_for_batch(batch_pages: list, recipes: dict, cap: int = 10) -> dict:
+    """
+    Selects the pattern skeletons relevant to this batch: each page's inferred
+    archetype's `always`/`typical` recipes, unioned with alias-matched hits
+    from its component_inventory. Chrome inclusion (top-bar/bottom-nav vs
+    title-bar/none) is NOT forced here — it comes from each archetype's own
+    `always` list in recipes.json, which already encodes e.g. "no bottom-nav
+    on detail/form/overlay/result" correctly. Capped so the injected tail
+    stays small — real markup for the ~10 patterns that matter, not a dump of
+    all 29.
+    """
+    archetypes  = recipes.get("archetypes", {})
+    all_recipes = recipes.get("recipes", {})
+    ids: set = set()
+
+    for page in batch_pages:
+        a = archetypes.get(_infer_archetype(page), {})
+        ids |= set(a.get("always", []))
+        ids |= set(a.get("typical", []))
+        for comp in page.get("component_inventory", []):
+            rid = _resolve_recipe_alias(comp, recipes)
+            if rid:
+                ids.add(rid)
+
+    ids &= all_recipes.keys()
+    return {rid: all_recipes[rid] for rid in list(ids)[:cap]}
+
+
 def wireframe_compiler_node(state: GraphState):
     """
     Converts ux_layout_data spatial zones into a concrete pixel-positioned
@@ -1423,6 +1490,9 @@ async def html_compiler_node(state: GraphState, writer: "StreamWriter" = None):
             print(f"    [HTML] exemplar loading failed ({e}); continuing without exemplars.")
             exemplar_blocks = []
 
+    # ── Phase 1c: pattern-skeleton retrieval (recipes.json) — DS mode only ────
+    recipes_data = ht.load_recipes() if is_ds_mode else None
+
     layout_by_id = {sl.get("page_id"): sl for sl in screen_layouts}
     total        = len(pages)
     BATCH_SIZE   = 2
@@ -1497,6 +1567,21 @@ async def html_compiler_node(state: GraphState, writer: "StreamWriter" = None):
                     "empty_state_guidance": sl.get("empty_state_guidance", ""),
                 })
 
+            recipe_block = ""
+            if recipes_data:
+                batch_recipes = _select_recipes_for_batch(batch_pages, recipes_data)
+                if batch_recipes:
+                    frozen = [rid for rid, r in batch_recipes.items() if r.get("frozen")]
+                    hlog(f"batch {batch_num} recipes: {list(batch_recipes.keys())}")
+                    recipe_block = (
+                        "\n\nPATTERN SKELETONS — build each zone from these real HTML "
+                        "skeletons; adapt «placeholder text» to real content but keep "
+                        "structure/tokens/spacing. Recipes marked \"frozen\": true must be "
+                        f"emitted BYTE-IDENTICAL (only swap active-state/text as noted)"
+                        f"{': ' + ', '.join(frozen) if frozen else ''}.\n"
+                        + json.dumps(batch_recipes, indent=2)
+                    )
+
             batch_prompt = f"""Build the <body> inner HTML for each of these screens (batch {batch_num}/{total_batches}):
 {json.dumps(batch_ids)}
 
@@ -1510,7 +1595,7 @@ Brand / UX directives (tone, posture):
 {json.dumps(prd_data.get("ux_anchor_directives", {}), indent=2)}
 
 User flows (for cross-screen navigation cues):
-{json.dumps(user_flow_data, indent=2)}"""
+{json.dumps(user_flow_data, indent=2)}{recipe_block}"""
 
             hlog(f"batch {batch_num}/{total_batches} {batch_ids} — invoking LLM "
                  f"(prompt {len(batch_prompt)} chars"
@@ -1565,3 +1650,199 @@ User flows (for cross-screen navigation cues):
     if batch_errors:
         out["errors"] = [f"HTML Compiler batch errors: {'; '.join(batch_errors)}"]
     return out
+
+
+# ── Critic / reviser (critique_rubric.json, DS mode only) ────────────────────
+# Runs once, app-level, after all screens are built. One cycle: critique, then
+# revise only the flagged screens, then stop — no re-critique loop.
+
+def _coerce_list(v):
+    """Shared with design_head.py's validator: Haiku sometimes returns a list
+    field as a JSON-encoded string, or omits it. Coerce gracefully."""
+    if v is None:
+        return []
+    if isinstance(v, str):
+        v = v.strip()
+        if not v:
+            return []
+        try:
+            parsed = json.loads(v)
+            return parsed if isinstance(parsed, list) else []
+        except Exception:
+            return []
+    return v
+
+
+class ScreenViolation(BaseModel):
+    screen_id: str = Field(description="The screen_id this violation was found on")
+    rule_id: str = Field(description="Must match a rule id from the rubric")
+    severity: Literal["blocker", "warn", "info"] = Field(description="Copy from the matched rule")
+    evidence: str = Field(description="One concrete sentence: what you saw that violates the rule")
+    fix: str = Field(description="One concrete instruction for how to fix it on this screen")
+
+
+class AppViolation(BaseModel):
+    rule_id: str = Field(description="Must match an app-scope rule id from the rubric")
+    severity: Literal["blocker", "warn", "info"] = Field(description="Copy from the matched rule")
+    evidence: str = Field(description="One concrete sentence: what you saw across screens that violates the rule")
+    fix: str = Field(description="One concrete instruction for how to fix it")
+    screen_ids: List[str] = Field(default_factory=list, description="Every screen_id involved in this violation")
+
+
+class CritiqueOutput(BaseModel):
+    violations: List[ScreenViolation] = Field(default_factory=list)
+    app_violations: List[AppViolation] = Field(default_factory=list)
+
+    @field_validator("violations", "app_violations", mode="before")
+    @classmethod
+    def _coerce(cls, v):
+        return _coerce_list(v)
+
+
+async def critic_node(state: GraphState, writer: "StreamWriter" = None):
+    """
+    App-level critic + reviser. Only runs meaningfully in DS mode (the rubric
+    is written entirely against POP's own tokens — meaningless for the Blade/
+    bespoke themes). Non-DS runs short-circuit immediately at zero cost.
+    """
+    print("--- Executing Critic Node ---")
+
+    def clog(msg: str):
+        print(f"    [Critic] {msg}", flush=True)
+
+    use_ds     = bool(state.get("use_ds", False))
+    is_ds_mode = use_ds and bool(DS_REGISTRY)
+    html_screens: List[dict] = state.get("html_screens", [])
+
+    if not is_ds_mode or not html_screens:
+        clog(f"skipped (is_ds_mode={is_ds_mode}, screens={len(html_screens)})")
+        return {}
+
+    rubric = ht.load_critique_rubric()
+    if not rubric or not rubric.get("rules"):
+        clog("skipped (no critique_rubric.json)")
+        return {}
+
+    active_writer = writer
+    if active_writer is None and get_stream_writer is not None:
+        try:
+            active_writer = get_stream_writer()
+        except Exception as gwe:  # noqa: BLE001
+            clog(f"get_stream_writer() unavailable: {type(gwe).__name__}: {gwe}")
+
+    # Trim the rubric to what the critic needs — drop $schema_notes/auto_check
+    # (those are hints for a regex pre-filter we're not building this pass).
+    rules_for_prompt = [
+        {"id": r["id"], "scope": r["scope"], "severity": r["severity"],
+         "title": r["title"], "check": r["check"], "fix": r["fix"]}
+        for r in rubric["rules"]
+    ]
+    screens_for_prompt = [
+        {"screen_id": s["screen_id"], "screen_name": s["screen_name"], "html": s["html"]}
+        for s in html_screens
+    ]
+
+    critic_system = (
+        "You are the POP design critic. Grade the generated app's screens against the "
+        "closed rubric below. Only flag REAL, concrete violations you can point to in the "
+        "given HTML — never invent issues. `screen` scope = judge one screen in isolation; "
+        "`app` scope = judge consistency across all screens together (e.g. chrome drift)."
+    )
+    critic_prompt = (
+        f"RUBRIC:\n{json.dumps(rules_for_prompt, indent=2)}\n\n"
+        f"SCREENS:\n{json.dumps(screens_for_prompt, indent=2)}"
+    )
+
+    try:
+        clog(f"grading {len(html_screens)} screen(s) against {len(rules_for_prompt)} rule(s)…")
+        critic_llm = get_llm(max_tokens=8192).with_structured_output(CritiqueOutput)
+        result: CritiqueOutput = await critic_llm.ainvoke([
+            SystemMessage(content=critic_system),
+            HumanMessage(content=critic_prompt),
+        ])
+    except Exception as e:  # noqa: BLE001 — a failed critique must not break the run
+        clog(f"! critique call failed ({type(e).__name__}: {e}); leaving screens as-is.")
+        return {}
+
+    critique_data = {
+        "violations": [v.model_dump() for v in result.violations],
+        "app_violations": [v.model_dump() for v in result.app_violations],
+    }
+    clog(f"{len(result.violations)} screen violation(s), {len(result.app_violations)} app violation(s).")
+
+    # Group every issue (screen-scope + app-scope) by the screen(s) it names.
+    issues_by_screen: Dict[str, list] = {}
+    for v in result.violations:
+        issues_by_screen.setdefault(v.screen_id, []).append(
+            {"rule_id": v.rule_id, "severity": v.severity, "evidence": v.evidence, "fix": v.fix}
+        )
+    for av in result.app_violations:
+        for sid in av.screen_ids:
+            issues_by_screen.setdefault(sid, []).append(
+                {"rule_id": av.rule_id, "severity": av.severity, "evidence": av.evidence, "fix": av.fix}
+            )
+
+    if not issues_by_screen:
+        clog("no violations — nothing to revise.")
+        return {"critique_data": critique_data}
+
+    # Rebuild the same deterministic DS theme used originally (no LLM call —
+    # design_md_theme_head/design_language are pure file reads in DS mode).
+    prd_data = state.get("prd_data", {})
+    concept  = state.get("concept", "")
+    head_inner, design_language, _ = await _theme_for_html(prd_data, concept, True)
+    revise_system = f"{_HTML_SYSTEM_BASE}\n\nTHEME — design language and available token classes:\n{design_language}"
+    revise_llm = get_llm(max_tokens=16000).with_structured_output(HtmlScreenCollection)
+
+    screens_by_id = {s["screen_id"]: dict(s) for s in html_screens}
+    revised_count = 0
+
+    for screen_id, issues in issues_by_screen.items():
+        screen = screens_by_id.get(screen_id)
+        if not screen:
+            continue
+        try:
+            clog(f"revising '{screen_id}' — {len(issues)} issue(s): {[i['rule_id'] for i in issues]}")
+            revise_prompt = (
+                f"Fix ONLY the listed issues in this screen; keep everything else unchanged.\n\n"
+                f"CURRENT DOCUMENT (screen_id={screen_id}):\n{screen['html']}\n\n"
+                f"ISSUES TO FIX:\n{json.dumps(issues, indent=2)}\n\n"
+                "Return a HtmlScreenCollection with exactly one screen (this screen_id)."
+            )
+            collection: HtmlScreenCollection = await revise_llm.ainvoke([
+                SystemMessage(content=revise_system),
+                HumanMessage(content=revise_prompt),
+            ])
+            if not collection.screens:
+                clog(f"! revise for '{screen_id}' returned no screens; keeping original.")
+                continue
+            spec = collection.screens[0]
+            document = ht.build_document(
+                title=spec.screen_name or screen["screen_name"],
+                head_inner=head_inner,
+                body_inner=spec.body_html,
+                body_class="",
+            )
+            revised_screen = {
+                "screen_id":       screen_id,
+                "screen_name":     spec.screen_name or screen["screen_name"],
+                "viewport_width":  spec.viewport_width or screen.get("viewport_width", 390),
+                "viewport_height": spec.viewport_height or screen.get("viewport_height", 844),
+                "html":            document,
+            }
+            screens_by_id[screen_id] = revised_screen
+            revised_count += 1
+            if active_writer is not None:
+                try:
+                    active_writer({"html_screen_revised": revised_screen})
+                except Exception as we:  # noqa: BLE001
+                    clog(f"! writer emit failed for '{screen_id}' (non-fatal): {type(we).__name__}: {we}")
+        except Exception as e:  # noqa: BLE001 — a failed revise must not break the rest
+            clog(f"! revise for '{screen_id}' FAILED ({type(e).__name__}: {e}); keeping original.")
+            continue
+
+    clog(f"revised {revised_count}/{len(issues_by_screen)} flagged screen(s).")
+    # html_screens has no reducer — must return the FULL merged list, in
+    # original order, or untouched screens would be dropped from state.
+    merged = [screens_by_id[s["screen_id"]] for s in html_screens]
+    return {"html_screens": merged, "critique_data": critique_data}

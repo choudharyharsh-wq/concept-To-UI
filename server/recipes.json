@@ -1,0 +1,199 @@
+{
+  "$schema_notes": {
+    "purpose": "Pattern-name → paste-ready HTML skeleton library for POP html_compiler_node. This is the drop-in replacement for prose component descriptions: the model reconstructs components far more reliably from real markup than from 'what/when/rules' prose. Compiled from ds_index.json (189 components) into HTML-mode skeletons.",
+    "retrieval_contract": "Per screen, the compiler selects recipes to inject: (1) always inject every recipe whose `id` (or an alias) appears in that page's component_inventory; (2) always inject the recipes listed in archetypes[screen_archetype].always; (3) always inject the two frozen-chrome constants (top-bar, bottom-nav) verbatim — do NOT let the model regenerate them, that is the #1 source of cross-screen drift. Union, de-dupe, inject only that subset (~2-4k) after system.md. Cap ~10 recipes/screen.",
+    "modes": "Each skeleton is written in inline-style mode using ONLY canonical token values (so it works even if Tailwind classes fail to resolve). In class-mode, the compiler may pass skeletons through as-is or map the inline values to token classes — the structure/spacing/radius are the load-bearing part and must be preserved either way.",
+    "placeholders": "Text in «guillemets» = replace with real screen data. /*comment*/ = adapt. Keep structure, tokens, radii, spacing.",
+    "icon_font": "Material Symbols Rounded via <span class=\"mi\"> (outline) / <span class=\"mi fill\"> (filled/active only).",
+    "frozen": "Recipes with \"frozen\": true must be emitted byte-identical across all screens in an app. Inject as constants; never ask the model to redraw them."
+  },
+
+  "archetypes": {
+    "browse":    { "always": ["top-bar", "search-input", "chip-stack", "section-header", "bottom-nav"], "typical": ["card", "card-stack", "banner", "offer-strip"] },
+    "detail":    { "always": ["title-bar", "section-header"], "typical": ["card", "carousel", "offer-highlight", "transaction-list-row", "button"], "notes": "No bottom-nav (sub-flow). One sticky primary CTA in thumb zone." },
+    "form":      { "always": ["title-bar", "input-field", "button"], "typical": ["amount-input-naked", "note-input", "otp-input", "chip-stack"], "notes": "No bottom-nav. Single dominant CTA; keep to one input variant grouping." },
+    "result":    { "always": ["transaction-result"], "typical": ["button-stack", "amount-with-popcoin"], "notes": "No bottom-nav, no top-bar chrome. Success=green+glow-success, failed=red+glow-danger." },
+    "dashboard": { "always": ["top-bar", "hero-surface", "bento-grid", "section-header", "bottom-nav"], "typical": ["transaction-list-row", "card-stack", "amount-with-popcoin"] },
+    "overlay":   { "always": ["bottom-sheet"], "typical": ["title-bar", "button-stack", "payment-list-row"], "notes": "Scrim behind. top-rounded. No bottom-nav." }
+  },
+
+  "recipes": {
+    "top-bar": {
+      "frozen": true,
+      "aliases": ["topbar", "app-bar", "header", "nav-bar"],
+      "when": "Every top-level screen. Inject verbatim; only swap the location/title text and right-side icons.",
+      "html": "<div style=\"display:flex;align-items:center;justify-content:space-between;padding:14px 24px 4px;font:700 14px Figtree;color:#e6e6e6;\"><span>9:41</span><div style=\"display:flex;gap:6px;align-items:center;\"><span class=\"mi\" style=\"font-size:17px;\">signal_cellular_alt</span><span class=\"mi\" style=\"font-size:17px;\">wifi</span><span class=\"mi fill\" style=\"font-size:19px;\">battery_full</span></div></div>\n<div style=\"position:sticky;top:0;z-index:5;background:#0d0d0d;padding:8px 20px 12px;display:flex;align-items:center;justify-content:space-between;\"><div style=\"display:flex;align-items:center;gap:11px;\"><div style=\"width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#333,#1f1f1f);border:1px solid #333;display:flex;align-items:center;justify-content:center;font:800 15px Figtree;color:#ff8b54;\">«A»</div><div><div style=\"font:600 11px Figtree;letter-spacing:.06em;text-transform:uppercase;color:#8a8a8a;display:flex;align-items:center;gap:4px;\"><span class=\"mi fill\" style=\"font-size:14px;color:#ff5200;\">location_on</span>«Dine-in near you»</div><div style=\"font:800 17px Figtree;display:flex;align-items:center;gap:2px;\">«Indiranagar»<span class=\"mi\" style=\"font-size:20px;color:#b3b3b3;\">expand_more</span></div></div></div><div style=\"position:relative;width:40px;height:40px;border-radius:50%;background:#1f1f1f;display:flex;align-items:center;justify-content:center;\"><span class=\"mi\" style=\"font-size:23px;color:#e6e6e6;\">notifications</span><span style=\"position:absolute;top:9px;right:10px;width:8px;height:8px;border-radius:50%;background:#ff5200;border:2px solid #0d0d0d;\"></span></div></div>"
+    },
+
+    "title-bar": {
+      "aliases": ["sub-page-header", "modal-header", "back-header"],
+      "when": "Modals, sheets, detail sub-pages. Left back/close, centered-left title, optional right action.",
+      "html": "<div style=\"position:sticky;top:0;z-index:5;background:#0d0d0d;padding:8px 20px 12px;display:flex;align-items:center;justify-content:space-between;\"><div style=\"display:flex;align-items:center;gap:12px;\"><div style=\"width:40px;height:40px;border-radius:50%;background:#1f1f1f;display:flex;align-items:center;justify-content:center;\"><span class=\"mi\" style=\"font-size:23px;color:#e6e6e6;\">arrow_back</span></div><h1 style=\"margin:0;font:800 20px Figtree;letter-spacing:-.01em;color:#e6e6e6;\">«Title»</h1></div><div style=\"width:40px;height:40px;border-radius:50%;background:#1f1f1f;display:flex;align-items:center;justify-content:center;\"><span class=\"mi\" style=\"font-size:22px;color:#e6e6e6;\">tune</span></div></div>"
+    },
+
+    "bottom-nav": {
+      "frozen": true,
+      "aliases": ["tab-bar", "nav", "bottom-navigation"],
+      "when": "Top-level destinations only. Inject verbatim; set the active item by moving `mi fill`+#ff5200 and font-weight 700 onto the current tab, everything else outline #8a8a8a weight 600.",
+      "html": "<div style=\"position:sticky;bottom:0;background:rgba(13,13,13,.92);backdrop-filter:blur(12px);border-top:1px solid #262626;padding:10px 20px 22px;display:flex;justify-content:space-between;\"><div style=\"display:flex;flex-direction:column;align-items:center;gap:3px;color:#8a8a8a;\"><span class=\"mi\" style=\"font-size:24px;\">home</span><span style=\"font:600 10px Figtree;\">Home</span></div><div style=\"display:flex;flex-direction:column;align-items:center;gap:3px;color:#ff5200;\"><span class=\"mi fill\" style=\"font-size:24px;\">restaurant</span><span style=\"font:700 10px Figtree;\">Dine</span></div><div style=\"display:flex;flex-direction:column;align-items:center;gap:3px;color:#8a8a8a;\"><span class=\"mi\" style=\"font-size:24px;\">credit_card</span><span style=\"font:600 10px Figtree;\">Card</span></div><div style=\"display:flex;flex-direction:column;align-items:center;gap:3px;color:#8a8a8a;\"><span class=\"mi\" style=\"font-size:24px;\">redeem</span><span style=\"font:600 10px Figtree;\">Rewards</span></div><div style=\"display:flex;flex-direction:column;align-items:center;gap:3px;color:#8a8a8a;\"><span class=\"mi\" style=\"font-size:24px;\">person</span><span style=\"font:600 10px Figtree;\">You</span></div></div>"
+    },
+
+    "section-header": {
+      "aliases": ["section-title", "list-header"],
+      "when": "Above every content group. Bold title left, See-all/CTA right.",
+      "html": "<div style=\"display:flex;align-items:baseline;justify-content:space-between;margin:0 0 14px;\"><h2 style=\"margin:0;font:800 20px Figtree;letter-spacing:-.01em;color:#e6e6e6;\">«Best around you»</h2><span style=\"font:600 13px Figtree;color:#ff8b54;\">See all</span></div>"
+    },
+
+    "search-input": {
+      "aliases": ["search", "search-bar"],
+      "when": "Browse screens, top of content.",
+      "html": "<div style=\"display:flex;align-items:center;gap:10px;background:#1f1f1f;border:1px solid #333;border-radius:16px;padding:13px 16px;\"><span class=\"mi\" style=\"font-size:22px;color:#8a8a8a;\">search</span><span style=\"font:500 15px Figtree;color:#8a8a8a;\">«Search restaurants, dishes…»</span></div>"
+    },
+
+    "chip-stack": {
+      "aliases": ["chips", "filter-chips", "filters"],
+      "when": "Filter/category groups. ALWAYS a horizontal stack. Exactly one active (solid brand + glow-brand-sm); rest outline. First chip may be a `tune` icon-only filter.",
+      "html": "<div style=\"display:flex;gap:9px;overflow-x:auto;margin:0 -20px;padding:0 20px 2px;scrollbar-width:none;\"><div style=\"flex-shrink:0;display:flex;align-items:center;gap:6px;background:#1f1f1f;border:1px solid #333;border-radius:9999px;padding:9px 14px;font:600 13px Figtree;color:#e6e6e6;\"><span class=\"mi\" style=\"font-size:18px;\">tune</span></div><div style=\"flex-shrink:0;display:flex;align-items:center;gap:6px;background:#ff5200;border-radius:9999px;padding:9px 15px;font:700 13px Figtree;color:#fff;box-shadow:0 6px 18px -6px rgba(255,82,0,.70);\"><span class=\"mi fill\" style=\"font-size:17px;\">sell</span>«Pop Discounts»</div><div style=\"flex-shrink:0;display:flex;align-items:center;gap:6px;background:#1f1f1f;border:1px solid #333;border-radius:9999px;padding:9px 15px;font:600 13px Figtree;color:#e6e6e6;\"><span class=\"mi\" style=\"font-size:17px;\">near_me</span>«Nearby»</div><div style=\"flex-shrink:0;background:#1f1f1f;border:1px solid #333;border-radius:9999px;padding:9px 15px;font:600 13px Figtree;color:#e6e6e6;\">«Top Rated»</div></div>"
+    },
+
+    "hero-surface": {
+      "aliases": ["balance-card", "hero-card", "hero-banner", "savings-hero"],
+      "when": "The P1 zone: balance, savings total, primary amount. Brand gradient + the ONE glow-brand-lg. One per screen.",
+      "html": "<div style=\"position:relative;overflow:hidden;border-radius:26px;padding:22px;color:#fff;background:radial-gradient(130% 130% at 0% 0%,#ff8b54 0%,#ff5200 42%,#4b0000 100%);box-shadow:0 22px 50px -18px rgba(255,82,0,.6);\"><div style=\"font:700 13px Figtree;letter-spacing:.05em;text-transform:uppercase;color:#ffe4d5;\">«Total saved dining in»</div><div style=\"font:800 46px Figtree;letter-spacing:-.03em;line-height:1.05;margin-top:6px;\">«₹2,340»</div><div style=\"display:flex;align-items:center;gap:6px;margin-top:8px;font:600 13px Figtree;color:#ffd9c6;\"><span class=\"mi\" style=\"font-size:17px;\">trending_up</span>«Across 18 dine-in visits this year»</div><span class=\"mi fill\" style=\"position:absolute;right:16px;top:20px;font-size:44px;color:rgba(255,255,255,.22);\">savings</span></div>"
+    },
+
+    "banner": {
+      "aliases": ["promo-banner", "offer-banner"],
+      "when": "Contextual promo near top of a surface. One per surface.",
+      "html": "<div style=\"position:relative;overflow:hidden;border-radius:22px;padding:18px;background:radial-gradient(130% 140% at 100% 0%,#ff8b54 0%,#ff5200 45%,#4b0000 100%);box-shadow:0 18px 44px -16px rgba(255,82,0,.55);\"><div style=\"font:800 12px Figtree;letter-spacing:.08em;text-transform:uppercase;color:#ffe0d1;margin-bottom:6px;\">«Weekday special»</div><div style=\"font:800 24px Figtree;letter-spacing:-.01em;line-height:1.15;color:#fff;\">«Flat 25% off lunches»</div><div style=\"font:500 13px Figtree;color:#ffd9c6;margin-top:5px;\">«Pay with Pop · 12–4pm · 40+ places»</div><span class=\"mi fill\" style=\"position:absolute;right:14px;bottom:10px;font-size:60px;color:rgba(255,255,255,.16);\">«lunch_dining»</span></div>"
+    },
+
+    "card": {
+      "aliases": ["restaurant-card", "product-card", "content-card", "photo-card"],
+      "when": "Default grouping surface / feed item. Photo-forward variant shown; discount badge top-left, favourite top-right, rating chip inline, POPcoin pill at bottom.",
+      "html": "<div style=\"background:#1f1f1f;border:1px solid #262626;border-radius:24px;overflow:hidden;\"><div style=\"position:relative;height:158px;background:radial-gradient(circle at 30% 25%,rgba(255,82,0,.16),transparent 55%),repeating-linear-gradient(135deg,#242424 0,#242424 11px,#1b1b1b 11px,#1b1b1b 22px);\"><div style=\"position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:6px;color:#6f6f6f;font:400 11px ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase;\"><span class=\"mi\" style=\"font-size:16px;\">image</span>«food shot»</div><div style=\"position:absolute;top:12px;left:12px;display:flex;align-items:center;gap:5px;background:#ff5200;border-radius:9999px;padding:6px 11px;font:800 12px Figtree;color:#fff;box-shadow:0 6px 16px -6px rgba(255,82,0,.8);\"><span class=\"mi fill\" style=\"font-size:14px;\">sell</span>«20% OFF»</div><div style=\"position:absolute;top:12px;right:12px;width:34px;height:34px;border-radius:50%;background:rgba(13,13,13,.55);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;\"><span class=\"mi\" style=\"font-size:20px;color:#fff;\">favorite</span></div></div><div style=\"padding:14px 16px 16px;\"><div style=\"display:flex;align-items:flex-start;justify-content:space-between;gap:10px;\"><h3 style=\"margin:0;font:700 18px Figtree;color:#e6e6e6;\">«Toit Brewpub»</h3><div style=\"flex-shrink:0;display:flex;align-items:center;gap:3px;background:#0db651;border-radius:8px;padding:4px 8px;font:800 13px Figtree;color:#fff;\"><span class=\"mi fill\" style=\"font-size:14px;\">star</span>«4.6»</div></div><div style=\"font:500 13px Figtree;color:#b3b3b3;margin-top:5px;\">«European · ₹₹ · 0.4 km away»</div><div style=\"display:flex;align-items:center;gap:6px;margin-top:11px;font:600 13px Figtree;color:#e6e6e6;\"><span class=\"mi fill\" style=\"font-size:16px;color:#fbbc09;\">local_fire_department</span>«Must-try: Wood-fired Pizza»</div><div style=\"display:inline-flex;align-items:center;gap:5px;margin-top:11px;background:rgba(251,188,9,.13);border-radius:9999px;padding:5px 10px;font:700 12px Figtree;color:#fbbc09;\"><span class=\"mi fill\" style=\"font-size:15px;\">monetization_on</span>«Earn ₹40 POPcoins»</div></div></div>",
+      "variant_compact": "<div style=\"background:#1f1f1f;border:1px solid #262626;border-radius:24px;overflow:hidden;display:flex;\"><div style=\"position:relative;width:112px;flex-shrink:0;background:radial-gradient(circle at 40% 30%,rgba(255,82,0,.14),transparent 60%),repeating-linear-gradient(135deg,#242424 0,#242424 11px,#1b1b1b 11px,#1b1b1b 22px);\"><div style=\"position:absolute;top:8px;left:8px;background:#ff5200;border-radius:9999px;padding:4px 8px;font:800 11px Figtree;color:#fff;\">«15% OFF»</div></div><div style=\"padding:13px 14px;flex:1;\"><div style=\"display:flex;align-items:flex-start;justify-content:space-between;gap:8px;\"><h3 style=\"margin:0;font:700 16px Figtree;color:#e6e6e6;\">«The Fatty Bao»</h3><div style=\"flex-shrink:0;display:flex;align-items:center;gap:3px;background:#0db651;border-radius:7px;padding:3px 7px;font:800 12px Figtree;color:#fff;\"><span class=\"mi fill\" style=\"font-size:13px;\">star</span>«4.4»</div></div><div style=\"font:500 12px Figtree;color:#b3b3b3;margin-top:4px;\">«Asian · ₹₹ · 0.8 km»</div></div></div>"
+    },
+
+    "card-stack": {
+      "aliases": ["feed", "list-of-cards"],
+      "when": "2+ cards in sequence. Use ONE card variant throughout with consistent 16px gaps. Do not individually restyle cards.",
+      "html": "<div style=\"display:flex;flex-direction:column;gap:16px;\">/* repeat the `card` recipe N times — same variant, real data each */</div>"
+    },
+
+    "bento-grid": {
+      "aliases": ["bento", "stat-grid", "stats", "metrics-grid"],
+      "when": "Signature dashboard/highlight surface: compact 2×2 (or 3-cell) stat/reward tiles. Each tile = icon (token-colored) + amount + label.",
+      "html": "<div style=\"display:grid;grid-template-columns:1fr 1fr;gap:12px;\"><div style=\"background:#1f1f1f;border:1px solid #262626;border-radius:20px;padding:15px;\"><span class=\"mi\" style=\"font-size:22px;color:#0db651;\">calendar_month</span><div style=\"font:800 22px Figtree;color:#e6e6e6;margin-top:8px;\">«₹680»</div><div style=\"font:600 12px Figtree;color:#8a8a8a;margin-top:2px;\">«Saved this month»</div></div><div style=\"background:#1f1f1f;border:1px solid #262626;border-radius:20px;padding:15px;\"><span class=\"mi\" style=\"font-size:22px;color:#ff8b54;\">receipt_long</span><div style=\"font:800 22px Figtree;color:#e6e6e6;margin-top:8px;\">«₹11,600»</div><div style=\"font:600 12px Figtree;color:#8a8a8a;margin-top:2px;\">«Total spent via Pop»</div></div><div style=\"background:#1f1f1f;border:1px solid #262626;border-radius:20px;padding:15px;\"><span class=\"mi fill\" style=\"font-size:22px;color:#fbbc09;\">monetization_on</span><div style=\"font:800 22px Figtree;color:#e6e6e6;margin-top:8px;\">«1,240»</div><div style=\"font:600 12px Figtree;color:#8a8a8a;margin-top:2px;\">«POPcoins earned»</div></div><div style=\"background:#1f1f1f;border:1px solid #262626;border-radius:20px;padding:15px;\"><span class=\"mi\" style=\"font-size:22px;color:#0db651;\">percent</span><div style=\"font:800 22px Figtree;color:#e6e6e6;margin-top:8px;\">«20%»</div><div style=\"font:600 12px Figtree;color:#8a8a8a;margin-top:2px;\">«Avg. saved per bill»</div></div></div>"
+    },
+
+    "carousel": {
+      "aliases": ["dish-carousel", "horizontal-scroll", "product-rail"],
+      "when": "Horizontal scroll of dishes/products/offers. Full-bleed via negative side margins; items flex-shrink:0.",
+      "html": "<div style=\"display:flex;gap:13px;overflow-x:auto;margin:0 -20px;padding:0 20px 4px;scrollbar-width:none;\"><div style=\"flex-shrink:0;width:150px;\"><div style=\"height:110px;border-radius:16px;position:relative;background:radial-gradient(circle at 40% 35%,rgba(251,188,9,.16),transparent 60%),repeating-linear-gradient(135deg,#242424 0,#242424 10px,#1b1b1b 10px,#1b1b1b 20px);\"><span class=\"mi fill\" style=\"position:absolute;top:8px;right:8px;font-size:16px;color:#fbbc09;\">local_fire_department</span></div><div style=\"font:700 14px Figtree;color:#e6e6e6;margin-top:9px;\">«Wood-fired Pizza»</div><div style=\"font:700 13px Figtree;color:#b3b3b3;margin-top:2px;\">«₹480»</div></div>/* repeat items */</div>"
+    },
+
+    "offer-strip": {
+      "aliases": ["active-offer-strip"],
+      "when": "Full-width active-offer strip atop a product/checkout screen.",
+      "html": "<div style=\"display:flex;align-items:center;gap:10px;border-radius:16px;padding:12px 14px;background:linear-gradient(135deg,#2a1305,#1f1f1f);border:1px solid #6b2200;\"><span class=\"mi fill\" style=\"font-size:22px;color:#ff5200;\">sell</span><div style=\"flex:1;font:700 14px Figtree;color:#e6e6e6;\">«20% off with Pop»<span style=\"font:500 12px Figtree;color:#b3b3b3;\"> · applied at bill»</span></div><span class=\"mi\" style=\"font-size:20px;color:#8a8a8a;\">chevron_right</span></div>"
+    },
+
+    "payment-list-row": {
+      "aliases": ["list-row", "offer-row", "restaurant-row", "select-row"],
+      "when": "Workhorse repeated row. Group in ONE card with hairline dividers. Pick ONE right-side variant for the whole list: label (shown) / chevron / radio / button. Never mix variants in one list.",
+      "html": "<div style=\"background:#1f1f1f;border:1px solid #262626;border-radius:22px;overflow:hidden;\"><div style=\"display:flex;align-items:center;gap:13px;padding:14px 16px;border-bottom:1px solid #262626;\"><div style=\"width:56px;height:56px;border-radius:15px;flex-shrink:0;background:radial-gradient(circle at 35% 30%,rgba(255,82,0,.16),transparent 60%),repeating-linear-gradient(135deg,#2a2a2a 0,#2a2a2a 8px,#1e1e1e 8px,#1e1e1e 16px);\"></div><div style=\"flex:1;min-width:0;\"><div style=\"font:700 16px Figtree;color:#e6e6e6;\">«Mahesh Lunch Home»</div><div style=\"font:500 12px Figtree;color:#b3b3b3;margin-top:3px;\">«Coastal · 2.1 km»</div><div style=\"display:inline-flex;align-items:center;gap:3px;margin-top:6px;background:#0db651;border-radius:6px;padding:2px 6px;font:800 11px Figtree;color:#fff;\"><span class=\"mi fill\" style=\"font-size:12px;\">star</span>«4.7»</div></div><div style=\"text-align:right;flex-shrink:0;\"><div style=\"font:800 19px Figtree;color:#ff5200;letter-spacing:-.01em;\">«25% OFF»</div><div style=\"font:600 11px Figtree;color:#8a8a8a;\">«up to ₹500»</div></div></div>/* repeat rows; drop border-bottom on the last */</div>"
+    },
+
+    "transaction-list-row": {
+      "aliases": ["history-row", "redemption-row", "txn-row"],
+      "when": "History/redemption list. Logo tile, payee + time, amount right; saved/in = success green.",
+      "html": "<div style=\"background:#1f1f1f;border:1px solid #262626;border-radius:22px;overflow:hidden;\"><div style=\"display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid #262626;\"><div style=\"width:44px;height:44px;border-radius:13px;flex-shrink:0;background:radial-gradient(circle at 35% 30%,rgba(255,82,0,.18),transparent 60%),#2a2a2a;display:flex;align-items:center;justify-content:center;\"><span class=\"mi fill\" style=\"font-size:20px;color:#ff8b54;\">restaurant</span></div><div style=\"flex:1;min-width:0;\"><div style=\"font:700 15px Figtree;color:#e6e6e6;\">«Toit Brewpub»</div><div style=\"font:500 12px Figtree;color:#8a8a8a;margin-top:2px;\">«2 days ago · 20% off»</div></div><div style=\"text-align:right;flex-shrink:0;\"><div style=\"font:800 15px Figtree;color:#e6e6e6;\">«₹1,440»</div><div style=\"font:700 12px Figtree;color:#0db651;margin-top:2px;\">«saved ₹360»</div></div></div>/* repeat rows */</div>"
+    },
+
+    "offer-highlight": {
+      "aliases": ["discount-card", "active-offer-card", "pop-offer"],
+      "when": "Detail-page callout of the active Pop offer. Lit surface (surface-gradient over primary-container tint) + POPcoin pill.",
+      "html": "<div style=\"border-radius:20px;padding:16px;background:linear-gradient(135deg,#2a1305,#1f1f1f);border:1px solid #6b2200;\"><div style=\"display:flex;align-items:center;justify-content:space-between;\"><div><div style=\"font:700 12px Figtree;letter-spacing:.04em;text-transform:uppercase;color:#ff8b54;\">«Active Pop offer»</div><div style=\"font:800 19px Figtree;color:#fff;margin-top:4px;\">«20% off your total bill»</div><div style=\"font:500 13px Figtree;color:#b3b3b3;margin-top:3px;\">«Save up to ₹400 · pay with Pop»</div></div><span class=\"mi fill\" style=\"font-size:38px;color:#ff5200;\">sell</span></div><div style=\"display:inline-flex;align-items:center;gap:5px;margin-top:12px;background:rgba(251,188,9,.13);border-radius:9999px;padding:6px 11px;font:700 12px Figtree;color:#fbbc09;\"><span class=\"mi fill\" style=\"font-size:15px;\">monetization_on</span>«+ ₹40 POPcoins on this visit»</div></div>"
+    },
+
+    "amount-with-popcoin": {
+      "aliases": ["popcoin-badge", "reward-pill"],
+      "when": "Wherever money appears, show the reward. Standalone POPcoin pill.",
+      "html": "<div style=\"display:inline-flex;align-items:center;gap:5px;background:rgba(251,188,9,.13);border-radius:9999px;padding:5px 10px;font:700 12px Figtree;color:#fbbc09;\"><span class=\"mi fill\" style=\"font-size:15px;\">monetization_on</span>«Earn ₹40 POPcoins»</div>"
+    },
+
+    "input-field": {
+      "aliases": ["text-field", "form-field"],
+      "when": "Standard filled input. Label above, helper below; states default/error/success.",
+      "html": "<div><label style=\"display:block;font:600 12px Figtree;color:#b3b3b3;margin-bottom:7px;\">«Label»</label><div style=\"display:flex;align-items:center;gap:10px;background:#1f1f1f;border:1px solid #333;border-radius:12px;padding:13px 14px;\"><span class=\"mi\" style=\"font-size:20px;color:#8a8a8a;\">«person»</span><span style=\"font:500 15px Figtree;color:#e6e6e6;flex:1;\">«value or placeholder»</span></div><div style=\"font:500 11px Figtree;color:#8a8a8a;margin-top:6px;\">«Helper text»</div></div>"
+    },
+
+    "amount-input-naked": {
+      "aliases": ["amount-input", "big-amount"],
+      "when": "Payment amount entry. Borderless, full-bleed, huge number, pre-wired ₹.",
+      "html": "<div style=\"text-align:center;padding:24px 0;\"><div style=\"font:600 12px Figtree;letter-spacing:.06em;text-transform:uppercase;color:#8a8a8a;\">«Enter amount»</div><div style=\"display:flex;align-items:baseline;justify-content:center;gap:4px;margin-top:10px;\"><span style=\"font:700 32px Figtree;color:#8a8a8a;\">₹</span><span style=\"font:800 52px Figtree;letter-spacing:-.03em;color:#e6e6e6;\">«1,440»</span></div></div>"
+    },
+
+    "otp-input": {
+      "aliases": ["otp", "pin-input"],
+      "when": "OTP/PIN entry. 4–6 discrete cells + masked identifier + resend countdown.",
+      "html": "<div><div style=\"display:flex;gap:12px;justify-content:center;\">/* 6× */<div style=\"width:48px;height:56px;border-radius:12px;background:#1f1f1f;border:1px solid #333;display:flex;align-items:center;justify-content:center;font:800 22px Figtree;color:#e6e6e6;\">«•»</div></div><div style=\"text-align:center;font:500 12px Figtree;color:#8a8a8a;margin-top:14px;\">Sent to «+91 98•••••210» · <span style=\"color:#ff8b54;font-weight:700;\">Resend in 24s</span></div></div>"
+    },
+
+    "button": {
+      "aliases": ["cta", "primary-button", "redeem-button"],
+      "when": "Primary action. Brand-filled, rounded-xl, glowing. Exactly ONE primary per screen; place in sticky thumb zone on action screens.",
+      "html": "<div style=\"position:sticky;bottom:0;background:linear-gradient(to top,#0d0d0d 55%,transparent);padding:14px 20px 26px;\"><div style=\"display:flex;align-items:center;justify-content:center;gap:8px;background:#ff5200;border-radius:16px;padding:16px;font:800 16px Figtree;color:#fff;box-shadow:0 14px 34px -8px rgba(255,82,0,.75);\"><span class=\"mi fill\" style=\"font-size:21px;\">redeem</span>«Reserve & Redeem 20% off»</div></div>",
+      "variant_with_secondary": "<div style=\"position:sticky;bottom:0;background:linear-gradient(to top,#0d0d0d 55%,transparent);padding:14px 20px 26px;display:flex;gap:12px;\"><div style=\"width:54px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#1f1f1f;border:1px solid #333;border-radius:16px;\"><span class=\"mi\" style=\"font-size:23px;color:#e6e6e6;\">call</span></div><div style=\"flex:1;display:flex;align-items:center;justify-content:center;gap:8px;background:#ff5200;border-radius:16px;padding:16px;font:800 16px Figtree;color:#fff;box-shadow:0 14px 34px -8px rgba(255,82,0,.75);\"><span class=\"mi fill\" style=\"font-size:21px;\">redeem</span>«Reserve & Redeem»</div></div>"
+    },
+
+    "button-stack": {
+      "aliases": ["stacked-buttons"],
+      "when": "1–3 stacked actions on results/overlays. Only primary is filled; rest ghost.",
+      "html": "<div style=\"display:flex;flex-direction:column;gap:12px;padding:0 20px;\"><div style=\"display:flex;align-items:center;justify-content:center;gap:8px;background:#ff5200;border-radius:16px;padding:16px;font:800 16px Figtree;color:#fff;box-shadow:0 14px 34px -8px rgba(255,82,0,.75);\">«Done»</div><div style=\"display:flex;align-items:center;justify-content:center;background:transparent;border:1px solid #333;border-radius:16px;padding:16px;font:700 16px Figtree;color:#e6e6e6;\">«View receipt»</div></div>"
+    },
+
+    "slide-to-pay": {
+      "aliases": ["slide-to-confirm"],
+      "when": "High-commitment payment confirm.",
+      "html": "<div style=\"position:relative;height:60px;border-radius:16px;background:#1f1f1f;border:1px solid #333;display:flex;align-items:center;overflow:hidden;\"><div style=\"position:absolute;left:6px;width:48px;height:48px;border-radius:12px;background:#ff5200;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px -6px rgba(255,82,0,.7);\"><span class=\"mi\" style=\"font-size:24px;color:#fff;\">chevron_right</span></div><span style=\"width:100%;text-align:center;font:700 15px Figtree;color:#8a8a8a;\">«Slide to pay ₹1,440»</span></div>"
+    },
+
+    "tabs": {
+      "aliases": ["segmented", "pill-tabs", "toggle"],
+      "when": "In-page nav (underline) or binary/ternary toggle (pill-tab).",
+      "html": "<div style=\"display:flex;background:#1f1f1f;border:1px solid #333;border-radius:12px;padding:4px;\"><div style=\"flex:1;text-align:center;border-radius:9px;padding:9px;font:700 14px Figtree;color:#fff;background:#ff5200;\">«All offers»</div><div style=\"flex:1;text-align:center;border-radius:9px;padding:9px;font:600 14px Figtree;color:#8a8a8a;\">«% Off»</div><div style=\"flex:1;text-align:center;border-radius:9px;padding:9px;font:600 14px Figtree;color:#8a8a8a;\">«Flat Off»</div></div>"
+    },
+
+    "map-card": {
+      "aliases": ["location-card", "map"],
+      "when": "Location on a detail page. Grid-lined dark map with a brand pin + address row.",
+      "html": "<div style=\"background:#1f1f1f;border:1px solid #262626;border-radius:20px;overflow:hidden;\"><div style=\"height:120px;position:relative;background:repeating-linear-gradient(0deg,#242424 0,#242424 1px,transparent 1px,transparent 26px),repeating-linear-gradient(90deg,#242424 0,#242424 1px,transparent 1px,transparent 26px),#1a1a1a;\"><span class=\"mi fill\" style=\"position:absolute;top:50%;left:50%;transform:translate(-50%,-100%);font-size:34px;color:#ff5200;\">location_on</span></div><div style=\"display:flex;align-items:center;justify-content:space-between;padding:13px 16px;\"><div style=\"font:500 13px Figtree;color:#b3b3b3;max-width:200px;\">«298, 100 Feet Rd, Indiranagar»</div><div style=\"display:flex;align-items:center;gap:4px;color:#ff8b54;font:700 13px Figtree;\"><span class=\"mi\" style=\"font-size:17px;\">directions</span>«0.4 km»</div></div></div>"
+    },
+
+    "review-summary": {
+      "aliases": ["reviews", "rating-card"],
+      "when": "Aggregate rating + a featured review on detail pages.",
+      "html": "<div style=\"background:#1f1f1f;border:1px solid #262626;border-radius:20px;padding:16px;\"><div style=\"display:flex;gap:12px;align-items:center;padding-bottom:14px;border-bottom:1px solid #262626;\"><div style=\"font:800 36px Figtree;letter-spacing:-.02em;color:#e6e6e6;\">«4.6»</div><div><div style=\"color:#fbbc09;font-size:15px;letter-spacing:2px;\">★★★★★</div><div style=\"font:500 12px Figtree;color:#8a8a8a;margin-top:3px;\">«Based on 2,340 diner reviews»</div></div></div><div style=\"padding-top:14px;\"><div style=\"display:flex;align-items:center;gap:10px;\"><div style=\"width:34px;height:34px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;font:800 13px Figtree;color:#ff8b54;\">«R»</div><div style=\"flex:1;\"><div style=\"font:700 14px Figtree;color:#e6e6e6;\">«Rhea M.»</div><div style=\"font:400 11px Figtree;color:#8a8a8a;\">«2 days ago»</div></div><div style=\"display:flex;align-items:center;gap:2px;background:#0db651;border-radius:6px;padding:2px 6px;font:800 11px Figtree;color:#fff;\"><span class=\"mi fill\" style=\"font-size:12px;\">star</span>«5»</div></div><p style=\"margin:9px 0 0;font:500 13px Figtree;color:#cfcfcf;line-height:1.5;\">«Pizza and the wheat beer are unbeatable. Saved ₹360.»</p></div></div>"
+    },
+
+    "bottom-sheet": {
+      "aliases": ["sheet", "action-sheet"],
+      "when": "Default for focused actions/details/confirmations. Scrim behind + top-rounded + grabber + title bar.",
+      "html": "<div style=\"position:absolute;inset:0;background:rgba(13,13,13,.70);backdrop-filter:blur(2px);\"></div><div style=\"position:absolute;left:0;right:0;bottom:0;background:#1f1f1f;border-top-left-radius:32px;border-top-right-radius:32px;padding:12px 20px 26px;box-shadow:0 -20px 50px -20px rgba(0,0,0,.7);\"><div style=\"width:40px;height:4px;border-radius:9999px;background:#4d4d4d;margin:0 auto 16px;\"></div><h2 style=\"margin:0 0 14px;font:800 20px Figtree;color:#e6e6e6;\">«Confirm redemption»</h2>/* sheet body + button */</div>"
+    },
+
+    "transaction-result": {
+      "aliases": ["result", "success-screen", "status"],
+      "when": "Payment/redemption outcome. Big status icon + amount + detail rows. success=green+glow-success; failed=red+glow-danger. No nav.",
+      "html": "<div style=\"display:flex;flex-direction:column;align-items:center;text-align:center;padding:48px 24px 0;\"><div style=\"width:88px;height:88px;border-radius:50%;background:#0db651;display:flex;align-items:center;justify-content:center;box-shadow:0 14px 34px -10px rgba(13,182,81,.45);\"><span class=\"mi fill\" style=\"font-size:48px;color:#fff;\">check</span></div><div style=\"font:800 26px Figtree;letter-spacing:-.02em;color:#e6e6e6;margin-top:20px;\">«Redeemed!»</div><div style=\"font:500 14px Figtree;color:#b3b3b3;margin-top:6px;\">«You saved ₹360 at Toit Brewpub»</div><div style=\"font:800 44px Figtree;letter-spacing:-.03em;color:#e6e6e6;margin-top:18px;\">«₹1,440»</div></div>"
+    },
+
+    "empty-state": {
+      "aliases": ["zero-state", "no-results"],
+      "when": "Any empty area. Icon + title + body + CTA. Never a blank region.",
+      "html": "<div style=\"display:flex;flex-direction:column;align-items:center;text-align:center;padding:56px 32px;\"><div style=\"width:72px;height:72px;border-radius:20px;background:#1f1f1f;border:1px solid #333;display:flex;align-items:center;justify-content:center;\"><span class=\"mi\" style=\"font-size:36px;color:#8a8a8a;\">«search_off»</span></div><div style=\"font:700 18px Figtree;color:#e6e6e6;margin-top:18px;\">«No offers nearby yet»</div><div style=\"font:500 14px Figtree;color:#8a8a8a;margin-top:6px;max-width:260px;\">«Widen your radius or check back around lunch.»</div><div style=\"margin-top:18px;background:#ff5200;border-radius:14px;padding:12px 22px;font:800 14px Figtree;color:#fff;box-shadow:0 10px 26px -8px rgba(255,82,0,.7);\">«Expand search»</div></div>"
+    }
+  }
+}

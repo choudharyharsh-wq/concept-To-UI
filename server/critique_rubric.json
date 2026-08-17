@@ -1,0 +1,228 @@
+{
+  "$schema_notes": {
+    "purpose": "Closed, machine-checkable rubric for a single critique→revise pass in the POP html pipeline. Run AFTER all screens in an app are generated (app-level, not per-batch of 2) so coherence violations are catchable. Feed each rule to the critic LLM as structured output; revise ONLY screens with violations, then stop (no re-critique of passing screens).",
+    "critic_contract": "Critic node input: the full app's screens (screen_id + body_html) + this rubric + the app theme. Critic output (structured): { violations: [ { screen_id, rule_id, severity, evidence, fix } ], app_violations: [ { rule_id, severity, evidence, fix, screen_ids } ] }. Reviser input: only screens whose ids appear in violations/app_violations, plus the specific {rule_id, fix} notes for each. Max one revise cycle.",
+    "severity": "blocker = must fix before ship (breaks the senior look or the design system). warn = fix if cheap; acceptable to ship. info = stylistic nudge, log only.",
+    "scope": "screen = evaluated on one screen in isolation. app = evaluated across all screens together.",
+    "auto_hint": "Rules with an `auto_check` string can be pre-filtered with a cheap deterministic/regex/DOM pass before spending LLM tokens — only send ambiguous cases to the critic."
+  },
+
+  "rules": [
+    {
+      "id": "single-primary-cta",
+      "scope": "screen",
+      "severity": "blocker",
+      "title": "Exactly one dominant CTA per screen",
+      "check": "There is exactly one brand-filled (#ff5200 background) primary action of button size. Zero is allowed on pure-browse feeds where the cards are the action; two or more is a violation.",
+      "fix": "Keep the single most important action brand-filled + glowing; demote the rest to ghost/flat (transparent bg, 1px #333 border) or an icon button.",
+      "auto_check": "count elements with background #ff5200 AND padding >=14px AND (border-radius 16px) AND font-weight >=800; >1 → flag"
+    },
+    {
+      "id": "one-glow-per-zone",
+      "scope": "screen",
+      "severity": "blocker",
+      "title": "One glow per zone — glow is rare",
+      "check": "Brand glow box-shadows (rgba(255,82,0,...) with blur) appear on at most one element per visual zone (hero, content, action). Multiple glowing cards/chips/buttons stacked in one zone is the #1 amateur tell.",
+      "fix": "Remove glow from all but the single highest-emphasis element in each zone. Non-focal cards get a hairline border, not a shadow.",
+      "auto_check": "count box-shadows containing 'rgba(255,82,0'; if >3 total on one screen, send to critic to judge per-zone"
+    },
+    {
+      "id": "no-light-background",
+      "scope": "screen",
+      "severity": "blocker",
+      "title": "Never a light/white page background",
+      "check": "The screen/body background is a canonical dark surface (#0d0d0d). No white/near-white page or large light panels.",
+      "fix": "Set page bg to #0d0d0d; cards to #1f1f1f; raised to #262626.",
+      "auto_check": "body/root background not in {#0d0d0d,#0d0d0d} → flag; scan for #fff/#ffffff/#f... as a large-area background"
+    },
+    {
+      "id": "palette-fidelity",
+      "scope": "screen",
+      "severity": "warn",
+      "title": "Only canonical token colors",
+      "check": "Every color traces to the canonical palette or an effect recipe. No eyeballed/off-palette hex (e.g. #ff6b3d instead of #ff5200, random greys outside the tonal ladder).",
+      "fix": "Snap each stray color to the nearest canonical token value.",
+      "auto_check": "extract all hex; whitelist = canonical palette + effect rgba tints + placeholder greys (#242424,#1b1b1b,#2a2a2a,#1e1e1e,#1a1a1a,#6f6f6f,#cfcfcf); anything else → flag"
+    },
+    {
+      "id": "semantic-color-meaning",
+      "scope": "screen",
+      "severity": "blocker",
+      "title": "Semantic colors keep their meaning",
+      "check": "Green (#0db651) only for money saved/earned/positive; yellow (#fbbc09) only for rewards/POPcoins; red (#ee4d37) only for destructive/failed; brand orange only for primary action/active state. No swaps (e.g. green CTA, red price).",
+      "fix": "Recolor to the correct semantic token.",
+      "auto_check": null
+    },
+    {
+      "id": "consistent-row-variant",
+      "scope": "screen",
+      "severity": "blocker",
+      "title": "Repeated items use ONE row/card pattern",
+      "check": "A list/feed of repeated items uses a single consistent row or card pattern with the same right-side variant. No ad-hoc individually-styled blocks ('atom soup'); no mixed row variants (some chevron, some button) in one list.",
+      "fix": "Rebuild the list from one recipe (payment-list-row or transaction-list-row or card), same variant throughout, hairline dividers inside one card.",
+      "auto_check": null
+    },
+    {
+      "id": "p1-is-dominant",
+      "scope": "screen",
+      "severity": "warn",
+      "title": "The P1 is actually dominant",
+      "check": "The single most important element leads and is dominant by size/weight/tone — not merely present. The focal amount/hero is the largest type; the primary action is the brightest element.",
+      "fix": "Increase size/weight/tone of the P1; demote competing elements. If two things compete, one is wrong.",
+      "auto_check": null
+    },
+    {
+      "id": "pattern-not-atoms",
+      "scope": "screen",
+      "severity": "warn",
+      "title": "Composed from named patterns, not raw atoms",
+      "check": "Zones are built from recognizable POP patterns (card, list row, bento, hero, section-header) — not loose stacked divs/labels/buttons with no card or list container.",
+      "fix": "Wrap loose content in the correct recipe surface; add a section-header above each group.",
+      "auto_check": null
+    },
+    {
+      "id": "section-headers-present",
+      "scope": "screen",
+      "severity": "warn",
+      "title": "Every content group has a section header",
+      "check": "Each distinct content group is introduced by a section header (bold title, optional See-all).",
+      "fix": "Add a section-header recipe above each group.",
+      "auto_check": null
+    },
+    {
+      "id": "typography-scale",
+      "scope": "screen",
+      "severity": "warn",
+      "title": "Type comes from the scale; hierarchy is visible",
+      "check": "Text sizes/weights map to the type scale (no arbitrary sizes); there is clear hierarchy (titles ExtraBold/Bold, body Medium). Not a flat wall of same-size same-weight text.",
+      "fix": "Map each text element to its element→style; vary weight/size with intent.",
+      "auto_check": "collect font-size values; if >1 element uses a size not in {36,32,24,20,18,16,14,12} (+ the sanctioned focal 44-52), flag"
+    },
+    {
+      "id": "serif-usage",
+      "scope": "screen",
+      "severity": "warn",
+      "title": "Serif only for editorial moments",
+      "check": "Instrument Serif appears only on a hero tagline/promo line, if at all — never on body, labels, helpers, numbers, or state text.",
+      "fix": "Switch functional serif text to Figtree.",
+      "auto_check": "regex for Instrument Serif / serif font-family on elements that are labels/body/amounts → flag"
+    },
+    {
+      "id": "min-font-size",
+      "scope": "screen",
+      "severity": "warn",
+      "title": "No text below 12px; body ≥ 14px",
+      "check": "No functional text under 12px; body/meta at least 14px (12px only for captions/overlines).",
+      "fix": "Raise undersized text to the nearest scale step.",
+      "auto_check": "any font-size < 12px → flag"
+    },
+    {
+      "id": "spacing-rhythm",
+      "scope": "screen",
+      "severity": "info",
+      "title": "20px margins, 24px section gaps, 8px rhythm",
+      "check": "Screen side margins ~20px; between-section gaps ~24px; spacing values on the 4/8 rhythm; no arbitrary paddings.",
+      "fix": "Snap paddings/margins/gaps to the spacing scale.",
+      "auto_check": "collect padding/margin/gap px; flag values not in {4,8,12,14,16,20,22,24,26,40,64} (14/22/26 sanctioned for card internals/thumb zones)"
+    },
+    {
+      "id": "arbitrary-radius",
+      "scope": "screen",
+      "severity": "info",
+      "title": "Radii from the scale",
+      "check": "border-radius values come from the rounded scale (8/12/16/20/24/32/9999) — no eyeballed radii.",
+      "fix": "Snap to nearest scale radius.",
+      "auto_check": "collect border-radius px; flag values not in {8,11,12,13,15,16,18,20,22,24,26,32,9999} (11/13/15 sanctioned inner-thumb radii)"
+    },
+    {
+      "id": "rewards-surfaced",
+      "scope": "screen",
+      "severity": "warn",
+      "title": "POPcoin/offers appear wherever money does",
+      "check": "On screens showing prices/amounts/payment, the reward (POPcoin pill or offer) is present — POP's signature. Money without a reward hook is a miss.",
+      "fix": "Add an amount-with-popcoin pill or offer-highlight near the money.",
+      "auto_check": null
+    },
+    {
+      "id": "no-blank-image-box",
+      "scope": "screen",
+      "severity": "warn",
+      "title": "Branded placeholders, no blank grey boxes or hand-drawn SVG",
+      "check": "Image areas use the branded placeholder recipe (brand-tinted radial + diagonal stripe + monospace caption), not a flat grey rectangle and not a hand-drawn illustrative SVG.",
+      "fix": "Replace with the placeholder recipe; vary radial hue per card.",
+      "auto_check": "flag image-area divs whose background is a single solid grey with no gradient/repeating-linear-gradient; flag inline <svg> with >4 path/shape nodes used as illustration"
+    },
+    {
+      "id": "real-content",
+      "scope": "screen",
+      "severity": "blocker",
+      "title": "Real, plausible content — no lorem/placeholder labels",
+      "check": "No 'lorem ipsum', 'Item 1', 'Title', 'Lorem', 'xxxx', or numeric placeholders. Content is specific and plausible for the concept.",
+      "fix": "Replace with realistic domain content.",
+      "auto_check": "regex /lorem|ipsum|item \\d|placeholder|\\bTBD\\b|xxxx/i in visible text → flag"
+    },
+    {
+      "id": "touch-targets",
+      "scope": "screen",
+      "severity": "info",
+      "title": "Tappable icons have 44px targets",
+      "check": "Icon buttons / tappable controls have ~44px touch targets (a 24px glyph in a 40–44px hit area).",
+      "fix": "Wrap small glyphs in a 40–44px container.",
+      "auto_check": null
+    },
+    {
+      "id": "logo-integrity",
+      "scope": "screen",
+      "severity": "warn",
+      "title": "Brand/bank/UPI logos never recolored",
+      "check": "Any brand, bank, or UPI logo keeps its official colors; not tinted to the palette.",
+      "fix": "Restore original logo colors.",
+      "auto_check": null
+    },
+    {
+      "id": "nav-context-correct",
+      "scope": "screen",
+      "severity": "warn",
+      "title": "Bottom nav only on top-level; omitted on sub-flows/results/modals",
+      "check": "Bottom nav present on top-level destinations; absent on detail sub-pages, forms, results, and overlays. Active tab uses filled icon + brand.",
+      "fix": "Add/remove bottom-nav per archetype; fix the active tab styling.",
+      "auto_check": "archetype in {detail,form,result,overlay} AND bottom-nav present → flag"
+    },
+    {
+      "id": "balance-visibility-default",
+      "scope": "screen",
+      "severity": "info",
+      "title": "Balances don't default to visible",
+      "check": "Sensitive balances render masked (••••) with a reveal toggle by default.",
+      "fix": "Mask the balance; add a visibility toggle.",
+      "auto_check": null
+    },
+    {
+      "id": "app-chrome-consistency",
+      "scope": "app",
+      "severity": "blocker",
+      "title": "Frozen chrome is identical across screens",
+      "check": "Top bar and bottom nav are structurally identical across all screens (same heights, paddings, icon set, ordering) — only the active tab and location/title text differ. Divergent chrome between screens breaks app cohesion.",
+      "fix": "Replace divergent chrome with the frozen top-bar / bottom-nav constants.",
+      "auto_check": "diff the top-bar and bottom-nav subtrees across screens; structural mismatch → flag the outliers"
+    },
+    {
+      "id": "app-token-consistency",
+      "scope": "app",
+      "severity": "warn",
+      "title": "Same component looks the same everywhere",
+      "check": "A given pattern (card, list row, hero) uses consistent radius/padding/tone across all screens. No screen-to-screen drift in the same component.",
+      "fix": "Normalize the drifting instances to the recipe values.",
+      "auto_check": null
+    },
+    {
+      "id": "app-single-hero-per-screen",
+      "scope": "app",
+      "severity": "info",
+      "title": "Color budget holds across the app",
+      "check": "Across the app the 70/20/10 dominance holds — orange stays rare. No screen floods with brand color; the app reads as calm-dark with orange accents.",
+      "fix": "Reduce orange area on offending screens to accents only.",
+      "auto_check": null
+    }
+  ]
+}

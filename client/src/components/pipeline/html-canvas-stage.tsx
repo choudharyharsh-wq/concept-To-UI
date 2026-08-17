@@ -271,7 +271,11 @@ export function HtmlCanvasStage({ screens, isGenerating }: HtmlCanvasStageProps)
   // simply *viewing* a past generation and, on failure, retried in a loop,
   // burning API credits. So: reset to idle whenever the screen set changes
   // (new run or opening a different past generation) and wait for a click.
-  const screenSig = screens.map((s) => s.screen_id).join("|");
+  // Includes each screen's html length (not just screen_id) so the critic
+  // node revising a screen in place — same screen_id, different content —
+  // also invalidates the stale prepared clipboard and cached height, instead
+  // of silently keeping the pre-revision export/height around.
+  const screenSig = screens.map((s) => `${s.screen_id}:${s.html.length}`).join("|");
   useEffect(() => {
     clipboardRef.current = null;
     preparedCountRef.current = 0;

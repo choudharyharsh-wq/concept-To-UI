@@ -39,7 +39,8 @@ const FIGMA_TAIL: PipelineStage[] = [
 ];
 
 const HTML_TAIL: PipelineStage[] = [
-  { id: "html_compiler_node", name: "HTML Canvas", status: "pending", data: null },
+  { id: "html_compiler_node", name: "HTML Canvas",     status: "pending", data: null },
+  { id: "critic_node",        name: "Design Critique", status: "pending", data: null },
 ];
 
 function stagesForMode(mode: OutputMode): PipelineStage[] {
@@ -60,6 +61,7 @@ const NODE_DATA_KEY: Record<string, string> = {
   wireframe_compiler_node: "wireframe_payload",
   render_node:             "render_data",
   html_compiler_node:      "html_screens",
+  critic_node:             "critique_data",
   // prd_review_node and prd_apply_feedback_node are handled separately below.
 };
 
@@ -119,6 +121,16 @@ export function useGenerationStream() {
             : [...prev, data as unknown as HtmlScreen]
         );
         setStageStatus("html_compiler_node", "active");
+        return;
+      }
+
+      // Critic node revised a screen after the fact — REPLACE it in place
+      // (unlike screen_ready above, which deliberately drops repeats).
+      if (phase === "critic_node" && status === "screen_revised") {
+        setHtmlScreens(prev =>
+          prev.map(s => (s.screen_id === data.screen_id ? (data as unknown as HtmlScreen) : s))
+        );
+        setStageStatus("critic_node", "active");
         return;
       }
 

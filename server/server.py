@@ -105,6 +105,10 @@ async def _run_graph(config: dict, input_val):
             screen = chunk.get("html_screen") if isinstance(chunk, dict) else None
             if screen:
                 yield _sse("html_compiler_node", "screen_ready", screen)
+                continue
+            revised = chunk.get("html_screen_revised") if isinstance(chunk, dict) else None
+            if revised:
+                yield _sse("critic_node", "screen_revised", revised)
             continue
         # mode == "updates"
         for node_name, output in chunk.items():

@@ -5,6 +5,7 @@ from .nodes import (
     prd_node, prd_review_node, prd_apply_feedback_node,
     ia_node, user_flow_node, ux_layout_node,
     wireframe_compiler_node, render_node, html_compiler_node,
+    critic_node,
 )
 
 
@@ -60,6 +61,7 @@ def create_graph():
     workflow.add_node("wireframe_compiler_node",   wireframe_compiler_node)
     workflow.add_node("render_node",               render_node)
     workflow.add_node("html_compiler_node",        html_compiler_node)
+    workflow.add_node("critic_node",               critic_node)
 
     workflow.set_entry_point("prd_node")
 
@@ -88,7 +90,12 @@ def create_graph():
 
     workflow.add_edge("wireframe_compiler_node", "render_node")
     workflow.add_edge("render_node",             END)
-    workflow.add_edge("html_compiler_node",      END)
+
+    # html_compiler_node -> critic_node runs automatically, inline, no
+    # interrupt — a single critique+revise cycle (never re-critiques),
+    # gated internally on DS mode by critic_node itself.
+    workflow.add_edge("html_compiler_node",      "critic_node")
+    workflow.add_edge("critic_node",             END)
 
     checkpointer = MemorySaver()
 

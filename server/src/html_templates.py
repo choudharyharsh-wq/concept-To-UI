@@ -140,9 +140,12 @@ def pop_theme_head() -> str:
 # brief from THIS file instead of the hardcoded POP block above.
 # ─────────────────────────────────────────────────────────────────────────────
 
-# design1.md = the enriched POP spec (tokens + composition playbook + component/
-# pattern recipe library, mined from ds_index.json). Falls back to design.md.
-_DESIGN_MD_PATH = Path(__file__).parent.parent / "design1.md"
+# system.md = the grammar-only brief (tokens + effects + composition rules;
+# per-pattern HTML lives separately in recipes.json). Falls back to design1.md
+# (the older all-in-one enriched spec), then design.md.
+_DESIGN_MD_PATH = Path(__file__).parent.parent / "system.md"
+if not _DESIGN_MD_PATH.exists():
+    _DESIGN_MD_PATH = Path(__file__).parent.parent / "design1.md"
 if not _DESIGN_MD_PATH.exists():
     _DESIGN_MD_PATH = Path(__file__).parent.parent / "design.md"
 _design_cache: dict | None = None
@@ -153,6 +156,9 @@ _design_cache: dict | None = None
 _FONT_FALLBACK = {
     "awesome serif italic": ("Playfair Display", "ital,wght@1,600;1,700"),
     "awesome serif":        ("Playfair Display", "wght@600;700"),
+    # system.md ships this directly (real Google Font); pin the italic axis
+    # so the true italic cut loads instead of a browser-faked oblique.
+    "instrument serif":     ("Instrument Serif", "ital@1"),
 }
 _DEFAULT_WEIGHTS = "wght@300;400;500;600;700;800"
 
@@ -231,6 +237,21 @@ def _build_tailwind_extend(meta: dict) -> str:
     if serif_font:
         font_family["serif"] = [serif_font, "serif"]
 
+    # effects (system.md only): named glow/elevation/gradient/scrim constants so
+    # the model uses shadow-glow-brand-lg / bg-gradient-brand instead of
+    # inventing shadow math per screen. box_shadow <- glow-*/elev-*;
+    # background_image <- gradient-*; anything else (e.g. scrim) -> colors.
+    effects = meta.get("effects", {}) or {}
+    box_shadow: dict = {}
+    background_image: dict = {}
+    for key, value in effects.items():
+        if key.startswith("glow-") or key.startswith("elev-"):
+            box_shadow[key] = value
+        elif key.startswith("gradient-"):
+            background_image[key] = value
+        else:
+            colors.setdefault(key, value)
+
     extend = {
         "colors": colors,
         "fontFamily": font_family,
@@ -238,6 +259,10 @@ def _build_tailwind_extend(meta: dict) -> str:
         "borderRadius": meta.get("rounded", {}) or {},
         "spacing": meta.get("spacing", {}) or {},
     }
+    if box_shadow:
+        extend["boxShadow"] = box_shadow
+    if background_image:
+        extend["backgroundImage"] = background_image
     # JSON is a valid JS-object subset; Tailwind config accepts it verbatim.
     return json.dumps(extend, indent=2)
 
@@ -314,16 +339,19 @@ def design_md_design_language() -> str:
     data = load_design_md()
     if not data:
         return POP_DESIGN_LANGUAGE
-    meta   = data["meta"]
-    colors = list((meta.get("colors", {}) or {}).keys())
-    sizes  = list((meta.get("typography", {}) or {}).keys())
-    radii  = list((meta.get("rounded", {}) or {}).keys())
+    meta    = data["meta"]
+    colors  = list((meta.get("colors", {}) or {}).keys())
+    sizes   = list((meta.get("typography", {}) or {}).keys())
+    radii   = list((meta.get("rounded", {}) or {}).keys())
+    effects = list((meta.get("effects", {}) or {}).keys())
     token_hint = (
         "\n\nAVAILABLE TOKEN CLASSES (use these exact names, never raw hex):\n"
         f"- Colors → bg-/text-/border-: {', '.join(colors)}\n"
         f"- Type   → text-: {', '.join(sizes)} (plus font-sans / font-serif)\n"
         f"- Radius → rounded-: {', '.join(radii)}\n"
-        "Use the Material Symbols icon font for icons; never use raw white page backgrounds."
+        + (f"- Effects → shadow-/bg-: {', '.join(effects)} (never hand-compute a shadow/gradient — use these)\n"
+           if effects else "")
+        + "Use the Material Symbols icon font for icons; never use raw white page backgrounds."
     )
     return f"{meta.get('name','Design System')} — design language:\n\n{data['body']}{token_hint}"
 
@@ -334,6 +362,58 @@ def design_md_body_bg() -> str:
         return "#0D0D0D"
     colors = data["meta"].get("colors", {}) or {}
     return colors.get("background") or colors.get("surface") or "#0D0D0D"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# recipes.json / critique_rubric.json — real HTML pattern skeletons (retrieved
+# per screen, not dumped whole) and the closed rubric for the post-generation
+# critic node. DS mode only. Cached the same way as the design-md loaders.
+# ─────────────────────────────────────────────────────────────────────────────
+
+_RECIPES_PATH = Path(__file__).parent.parent / "recipes.json"
+_CRITIQUE_RUBRIC_PATH = Path(__file__).parent.parent / "critique_rubric.json"
+_recipes_cache: dict | None = None
+_critique_rubric_cache: dict | None = None
+
+
+def load_recipes() -> dict | None:
+    """Parse server/recipes.json (archetypes + named pattern skeletons). Cached."""
+    global _recipes_cache
+    if _recipes_cache is not None:
+        return _recipes_cache or None
+    if not _RECIPES_PATH.exists():
+        print(f"[Recipes] {_RECIPES_PATH.name} not found — no pattern-skeleton retrieval.")
+        _recipes_cache = {}
+        return None
+    try:
+        _recipes_cache = json.loads(_RECIPES_PATH.read_text())
+        n = len(_recipes_cache.get("recipes", {}))
+        print(f"[Recipes] Loaded {_RECIPES_PATH.name} ({n} named pattern skeletons).")
+        return _recipes_cache
+    except Exception as e:  # noqa: BLE001
+        print(f"[Recipes] Failed to parse {_RECIPES_PATH.name} ({e}); skipping.")
+        _recipes_cache = {}
+        return None
+
+
+def load_critique_rubric() -> dict | None:
+    """Parse server/critique_rubric.json (closed, machine-checkable rules). Cached."""
+    global _critique_rubric_cache
+    if _critique_rubric_cache is not None:
+        return _critique_rubric_cache or None
+    if not _CRITIQUE_RUBRIC_PATH.exists():
+        print(f"[Critique] {_CRITIQUE_RUBRIC_PATH.name} not found — skipping critic pass.")
+        _critique_rubric_cache = {}
+        return None
+    try:
+        _critique_rubric_cache = json.loads(_CRITIQUE_RUBRIC_PATH.read_text())
+        n = len(_critique_rubric_cache.get("rules", []))
+        print(f"[Critique] Loaded {_CRITIQUE_RUBRIC_PATH.name} ({n} rules).")
+        return _critique_rubric_cache
+    except Exception as e:  # noqa: BLE001
+        print(f"[Critique] Failed to parse {_CRITIQUE_RUBRIC_PATH.name} ({e}); skipping.")
+        _critique_rubric_cache = {}
+        return None
 
 
 # ─────────────────────────────────────────────────────────────────────────────
